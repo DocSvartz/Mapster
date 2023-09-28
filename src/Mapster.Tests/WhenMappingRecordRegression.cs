@@ -43,6 +43,28 @@ namespace Mapster.Tests
             _structResult.X.ShouldBe(1000);
             object.ReferenceEquals(_destinationStruct, _structResult).ShouldBeFalse();
         }
+                
+        [TestMethod]
+        public void AdaptToSealtedRecord()
+        {
+            var _sourceRecord = new TestRecord() { X = 2000 };
+            var _destinationSealtedRecord = new TestSealedRecord() { X = 3000 };
+            var _RecordResult = _sourceRecord.Adapt(_destinationSealtedRecord);
+
+            _RecordResult.X.ShouldBe(2000);
+            object.ReferenceEquals(_destinationSealtedRecord, _RecordResult).ShouldBeFalse();
+        }
+
+        [TestMethod]
+        public void AdaptToSealtedPositionalRecord()
+        {
+            var _sourceRecord = new TestRecord() { X = 2000 };
+            var _destinationSealtedPositionalRecord = new TestSealedRecordPositional(4000);
+            var _RecordResult = _sourceRecord.Adapt(_destinationSealtedPositionalRecord);
+
+            _RecordResult.X.ShouldBe(2000);
+            object.ReferenceEquals(_destinationSealtedPositionalRecord, _RecordResult).ShouldBeFalse();
+        }
 
         [TestMethod]
         public void AdaptRecordToClass()
@@ -360,6 +382,17 @@ namespace Mapster.Tests
     {
         public int X { set; get; }
     }
+
+    /// <summary>
+    /// Different Checked Constructor Attribute From Spec
+    /// https://learn.microsoft.com/ru-ru/dotnet/csharp/language-reference/proposals/csharp-9.0/records#copy-and-clone-members
+    /// </summary>
+    sealed record TestSealedRecord()
+    {
+        public int X { get; set; }
+    }
+
+    sealed record TestSealedRecordPositional(int X);
 
     #endregion TestClasses
 }
