@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using ExpressionDebugger;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Shouldly;
 using System;
 using System.Collections.Generic;
@@ -214,6 +215,57 @@ namespace Mapster.Tests
             return dest;
         }
 
+        /// <summary>
+        /// https://github.com/MapsterMapper/Mapster/issues/604
+        /// </summary>
+        [TestMethod]
+        public void AdaptValueTuple()
+        {
+            // Tuple to POCO
+            TypeAdapterConfig<(AuthorizationGroup authorizationGroup, GroupDetails groupDetails), GroupDM>
+                .NewConfig()
+                    .MapWith(dest => dest.Name, src => src.authorizationGroup)
+                    .MapWith(dest => dest.GroupId, src => src.groupDetails);
+
+            TypeAdapterConfig<(AuthorizationGroup authorizationGroup, GroupDetails groupDetails), ValueTuple<AuthorizationGroup, GroupDetails>>
+                .NewConfig()
+                    .MapWith(c=>c.Item1,d=>d.authorizationGroup)
+                    .MapWith(c=>c.Item2,D=>D.authorizationGroup);
+
+            AuthorizationGroup authorizationGroup = new() { Description = "TEST" };
+            GroupDetails groupDetails = new() { GroupId = 10 };
+
+            // Lets create a new instance of GroupDM: Works
+            var obj = (authorizationGroup, groupDetails).Adapt<GroupDM>();
+
+            // Now lets update
+            authorizationGroup.Description = "UPDATED TEST";
+            groupDetails.GroupId = 50;
+
+            // Now lets update GroupDM: Works
+            (authorizationGroup, groupDetails).Adapt(obj);
+
+            // POCO to Tuple
+            TypeAdapterConfig<GroupDM, ValueTuple<AuthorizationGroup, GroupDetails>>
+                .NewConfig();
+               // .Map(dest => dest.authorizationGroup, src => src)
+                //.Map(dest => dest.groupDetails, src => src);
+
+            GroupDM groupDM = new() { Name = "Hello world", Description = "Jon Bon Jovi" };
+
+
+            // Create a new instance of (AuthorizationGroup, GroupDetails): This works
+            var tuple = groupDM.Adapt<ValueTuple<AuthorizationGroup, GroupDetails>>();
+
+            // Now lets update poco
+            groupDM.GroupId = 99;
+            groupDM.Description = "Led Zep";
+
+            //Now lets update tuple: Doesn't work
+          var _result =  groupDM.Adapt(tuple);
+
+           object.ReferenceEquals(tuple, _result).ShouldBeTrue();
+        }
 
         #region NowNotWorking
 
@@ -275,6 +327,26 @@ namespace Mapster.Tests
 
 
     #region TestClasses
+
+    class GroupDM
+    {
+        public int GroupId;
+        public string Name { get; set; }
+        public string Description { get; set; }
+    }
+
+    class AuthorizationGroup
+    {
+        public string Name { get; set; }
+        public string Description { get; set; }
+    }
+
+    class GroupDetails
+    {
+        public int GroupId { get; set; }
+    }
+
+
 
     public class FakeRecord
     {
