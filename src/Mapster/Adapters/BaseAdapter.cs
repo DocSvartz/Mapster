@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Tracing;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -143,7 +144,7 @@ namespace Mapster.Adapters
             var blocks = new List<Expression>();
             var label = Expression.Label(arg.DestinationType);
 
-            //var drvdSource = source as TDerivedSource
+            //var drvdSource = _source as TDerivedSource
             //if (drvdSource != null)
             //  return adapt<TSource, TDest>(drvdSource);
             foreach (var tuple in arg.Settings.Includes)
@@ -218,7 +219,7 @@ namespace Mapster.Adapters
             else
             {
                 //TDestination result;
-                //if (source == null)
+                //if (_source == null)
                 //  return default(TDestination);
                 if (source.CanBeNull())
                 {
@@ -237,15 +238,15 @@ namespace Mapster.Adapters
                     assignActions.Add(Expression.Assign(transformedSource, transform));
                 assignActions.Add(assign);
 
-                //before(source, result, destination);
+                //before(_source, result, destination);
                 var beforeMappings = arg.Settings.BeforeMappingFactories.Select(it => InvokeMapping(it, source, result, destination, arg, true)).Reverse();
                 assignActions.AddRange(beforeMappings);
 
-                //result.prop = adapt(source.prop);
+                //result.prop = adapt(_source.prop);
                 var mapping = CreateBlockExpression(transformedSource, result, arg);
                 var settingActions = new List<Expression> {mapping};
 
-                //after(source, result, destination);
+                //after(_source, result, destination);
                 var afterMappings = arg.Settings.AfterMappingFactories.Select(it => InvokeMapping(it, source, result, destination, arg, false)).Reverse();
                 settingActions.AddRange(afterMappings);
 
@@ -254,13 +255,13 @@ namespace Mapster.Adapters
 
                 //using (var scope = new MapContextScope()) {
                 //  var references = scope.Context.Reference;
-                //  var key = new ReferenceTuple(source, typeof(TDestination));
+                //  var key = new ReferenceTuple(_source, typeof(TDestination));
                 //  if (references.TryGetValue(key, out var cache))
                 //      return (TDestination)cache;
                 //
                 //  var result = new TDestination();
-                //  references[source] = (object)result;
-                //  result.prop = adapt(source.prop);
+                //  references[_source] = (object)result;
+                //  result.prop = adapt(_source.prop);
                 //  return result;
                 //}
                 
@@ -348,7 +349,7 @@ namespace Mapster.Adapters
 
         protected Expression? CreateInlineExpressionBody(Expression source, CompileArgument arg)
         {
-            //source == null ? default(TDestination) : adapt(source)
+            //_source == null ? default(TDestination) : adapt(_source)
 
             var exp = CreateInlineExpression(source, arg);
             if (exp == null)
@@ -450,17 +451,19 @@ namespace Mapster.Adapters
         }
         internal Expression CreateAdaptExpression(Expression source, Type destinationType, CompileArgument arg, MemberMapping? mapping, Expression? destination = null)
         {
-            if (source.Type == destinationType && arg.MapType == MapType.Projection)
-                return source;
+            var _source = source.NullableValueExtractor(); // Extraction From Nullable
 
-            //adapt(source);
+            if (_source.Type == destinationType && arg.MapType == MapType.Projection)
+                return _source;
+
+            //adapt(_source);
             var notUsingDestinationValue = mapping is not { UseDestinationValue: true };
-            var exp = source.Type == destinationType && arg.Settings.ShallowCopyForSameType == true && notUsingDestinationValue &&
-                      !arg.Context.Config.HasRuleFor(source.Type, destinationType)
-                ? source
-                : CreateAdaptExpressionCore(source, destinationType, arg, mapping, destination);
+            var exp = _source.Type == destinationType && arg.Settings.ShallowCopyForSameType == true && notUsingDestinationValue &&
+                      !arg.Context.Config.HasRuleFor(_source.Type, destinationType)
+                ? _source
+                : CreateAdaptExpressionCore(_source, destinationType, arg, mapping, destination);
 
-            //transform(adapt(source));
+            //transform(adapt(_source));
             if (notUsingDestinationValue)
             {
                 var transform = arg.Settings.DestinationTransforms.Find(it => it.Condition(exp.Type));

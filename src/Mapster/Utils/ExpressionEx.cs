@@ -301,6 +301,31 @@ namespace Mapster.Utils
                 value);
         }
 
+        /// <summary>
+        /// Unpack Nullable TSource value
+        /// </summary>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        public static Expression NullableValueExtractor(this Expression param)
+        {
+            var _SourceType = param.Type;
+
+            if (_SourceType.IsNullable())
+            {
+                var _genericType = param.Type.GetGenericArguments()[0];
+
+                if (!_genericType.IsPrimitive || !_genericType.IsInterface)
+                {
+                    var ExtractionExpression = Expression.Convert(param, typeof(object));
+
+                    return ExtractionExpression.ApplyNullPropagation();
+                }
+
+                return param.ApplyNullPropagation();
+            }
+
+            return param;
+        }
         public static Expression ApplyNullPropagation(this Expression getter)
         {
             var current = getter;
