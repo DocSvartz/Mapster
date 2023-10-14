@@ -318,7 +318,7 @@ namespace Mapster.Utils
                 {
                     var ExtractionExpression = Expression.Convert(param, typeof(object));
 
-                    return ExtractionExpression.ApplyNullPropagation();
+                    return ExtractionExpression;
                 }
 
                 return param;
