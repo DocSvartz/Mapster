@@ -451,7 +451,7 @@ namespace Mapster.Adapters
         }
         internal Expression CreateAdaptExpression(Expression source, Type destinationType, CompileArgument arg, MemberMapping? mapping, Expression? destination = null)
         {
-            var _source = source.NullableValueExtractor(); // Extraction From Nullable
+            var _source = source.NullableEnumExtractor(); // Extraction Nullable Enum
 
             if (_source.Type == destinationType && arg.MapType == MapType.Projection)
                 return _source;

@@ -302,11 +302,11 @@ namespace Mapster.Utils
         }
 
         /// <summary>
-        /// Unpack Nullable TSource value
+        /// Unpack Enum Nullable TSource value
         /// </summary>
         /// <param name="param"></param>
         /// <returns></returns>
-        public static Expression NullableValueExtractor(this Expression param)
+        public static Expression NullableEnumExtractor(this Expression param)
         {
             var _SourceType = param.Type;
 
@@ -314,14 +314,14 @@ namespace Mapster.Utils
             {
                 var _genericType = param.Type.GetGenericArguments()[0];
 
-                if (!_genericType.IsPrimitive || !_genericType.IsInterface)
+                if (_genericType.IsEnum)
                 {
                     var ExtractionExpression = Expression.Convert(param, typeof(object));
 
                     return ExtractionExpression.ApplyNullPropagation();
                 }
 
-                return param.ApplyNullPropagation();
+                return param;
             }
 
             return param;

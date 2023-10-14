@@ -5,7 +5,7 @@ using System;
 namespace Mapster.Tests
 {
     [TestClass]
-    public class WhenMappingNullableRegression
+    public class WhenMappingNullableEnumRegression
     {
         /// <summary>
         /// https://github.com/MapsterMapper/Mapster/issues/640
@@ -45,62 +45,10 @@ namespace Mapster.Tests
 
             _result.TypeEmployer.Key.ShouldBe(MyEnum.User.ToString());
         }
-
-        /// <summary>
-        /// https://github.com/MapsterMapper/Mapster/issues/476
-        /// </summary>
-        [TestMethod]
-        public void UpdateNullStringEmail()
-        {
-            TypeAdapterConfig<string, Email>
-                .NewConfig()
-                .MapWith(value => new Email(value));
-
-            TypeAdapterConfig<Email, string>
-                .NewConfig()
-                .MapWith( src=> src.Value );
-
-
-            PostManUser postManUser = new () { Email = new Email("123@gmail.com") };
-            PostManUser postManUserWithNullEmail = new() { Email = null };
-            PostManDto postManDtoWithNullEmail = new PostManDto() { Email = null };
-            PostManDto postManDto = new() { Email = "234@gmail.com" };
-
-            var resultDto = postManUser.Adapt<PostManDto>(); 
-            var resultUser = postManDto.Adapt<PostManUser>();
-            var updateDto = postManUser.Adapt(postManDtoWithNullEmail); 
-            var updateUser = postManDto.Adapt(postManUserWithNullEmail);
-
-            resultDto.Email.ShouldBe("123@gmail.com");
-            resultUser.Email.Value.ShouldBe("234@gmail.com");
-            updateDto.Email.ShouldBe("123@gmail.com");
-            updateUser.Email.Value.ShouldBe("234@gmail.com");
-
-        }
-
         
     }
-
 
     #region TestClasses
-
-    class PostManUser
-    {
-        public Email Email { get; set; }
-    }
-
-    class PostManDto
-    {
-        public string Email { get; set; }   
-    }
-
-    class Email
-    {
-        public Email(string value ) { Value = value;  }
-        
-        public string Value { get; protected set; }
-    }
-
     
     class MyDestination
     {
