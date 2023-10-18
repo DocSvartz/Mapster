@@ -34,15 +34,13 @@ namespace Mapster.Adapters
 
         protected override Expression CreateExpressionBody(Expression source, Expression? destination, CompileArgument arg)
         {
-            
             if(destination == null || arg.DestinationType == typeof(object))
                 return base.CreateExpressionBody(source, destination, arg);
             else
             {
                 var convert = arg.Context.Config.CreateDynamicMapInvokeExpressionBody(arg.DestinationType, source);
                 return arg.Context.Config.CreateMapToTargetInvokeExpressionBody(convert.Type, destination.Type, convert, destination);
-            }
-                
+            } 
         }
     }
 }

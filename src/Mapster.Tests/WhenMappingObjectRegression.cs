@@ -10,7 +10,7 @@ namespace Mapster.Tests
         /// https://github.com/MapsterMapper/Mapster/issues/524 
         /// </summary>
         [TestMethod]
-        public void TSousreIsObjectUpdate()
+        public void TSourceIsObjectUpdate()
         {
             var source = new TestClassPublicCtr { X = 123 };
             var _result = Somemap(source);
@@ -30,7 +30,7 @@ namespace Mapster.Tests
         /// https://github.com/MapsterMapper/Mapster/issues/524
         /// </summary>
         [TestMethod]
-        public void TSousreIsObjectUpdateUseDynamicCast()
+        public void TSourceIsObjectUpdateUseDynamicCast()
         {
             var source = new TestClassPublicCtr { X = 123 };
             var _result = SomemapWithDynamic(source);
