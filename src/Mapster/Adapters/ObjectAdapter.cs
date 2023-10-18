@@ -15,8 +15,6 @@ namespace Mapster.Adapters
         {
             var srcType = arg.SourceType;
             var destType = arg.DestinationType;
-            if (srcType == destType)
-                return source;
             if (destType == typeof(object))
                 return Expression.Convert(source, destType);
             return arg.Context.Config.CreateDynamicMapInvokeExpressionBody(arg.DestinationType, source);
@@ -34,7 +32,10 @@ namespace Mapster.Adapters
 
         protected override Expression CreateExpressionBody(Expression source, Expression? destination, CompileArgument arg)
         {
-            if(destination == null || arg.DestinationType == typeof(object))
+            if (arg.SourceType == arg.DestinationType)
+                return source;
+
+            if (destination == null || arg.DestinationType == typeof(object))
                 return base.CreateExpressionBody(source, destination, arg);
             else
             {
