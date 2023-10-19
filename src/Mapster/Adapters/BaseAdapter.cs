@@ -415,9 +415,32 @@ namespace Mapster.Adapters
 
         private static Expression CreateAdaptExpressionCore(Expression source, Type destinationType, CompileArgument arg, MemberMapping? mapping = null, Expression? destination = null)
         {
-            var mapType = arg.MapType == MapType.MapToTarget && destination == null ? MapType.Map :
+            MapType mapType;
+
+            if (destinationType == typeof(string) && arg.MapType == MapType.MapToTargetPrimitive)
+            {
+                Expression dest;
+
+                if (destination == null)
+                {
+                    dest = destinationType.CreateDefault();
+                }
+                else
+                    dest = destination;
+
+
+
+                var c = arg.Context.Config.CreateMapToTargetInvokeExpressionBody(source.Type, destinationType, source, dest);
+
+                return c;
+            }
+            else
+            {
+                mapType = arg.MapType == MapType.MapToTarget && destination == null ? MapType.Map :
                 mapping?.UseDestinationValue == true ? MapType.MapToTarget :
                 arg.MapType;
+            }
+
             var extraParams = new HashSet<ParameterExpression>();
 
             try
@@ -452,6 +475,17 @@ namespace Mapster.Adapters
         {
             if (source.Type == destinationType && arg.MapType == MapType.Projection)
                 return source;
+
+          /*  if (source.Type.UnwrapNullable().IsPrimitive == false && source.Type.UnwrapNullable() != typeof(string))
+            {
+                if (destinationType.IsPrimitiveKind() || destinationType == typeof(string))
+                {
+                    if (arg.Settings.ConverterToTargetFactory != null)
+                    {
+                        arg.MapType = MapType.MapToTargetPrimitive;
+                    }
+                }
+            }*/
 
             //adapt(source);
             var notUsingDestinationValue = mapping is not { UseDestinationValue: true };

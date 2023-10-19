@@ -8,5 +8,6 @@ namespace Mapster
         Map = 1,
         MapToTarget = 2,
         Projection = 4,
+        MapToTargetPrimitive = 8,
     }
 }
