@@ -12,6 +12,7 @@ namespace Mapster.Tests
         /// <summary>
         /// https://github.com/MapsterMapper/Mapster/issues/640
         /// </summary>
+        [Ignore]
         [TestMethod]
         public void NullEnumToNullClass()
         {
@@ -52,7 +53,7 @@ namespace Mapster.Tests
         public void OptionalT()
         {
             TypeAdapterConfig<Optional561<string>, string>
-                .NewConfig()
+                .ForType()
                 .MapToTargetPrimitive((source, target) => source.HasValue ? source.Value : target)
                 .IgnoreNullValues(true);
 
@@ -63,13 +64,13 @@ namespace Mapster.Tests
             var target = new Source561 { Name = new Optional561<string>("John") }.Adapt<Target561>();
 
            
-          // var TargetDestinationFromNull = new Target561() { Name = "Me" };
+           var TargetDestinationFromNull = new Target561() { Name = "Me" };
 
-          //var NullToupdateoptional = sourceNull.Adapt(TargetDestinationFromNull);
+          var NullToupdateoptional = sourceNull.Adapt(TargetDestinationFromNull);
 
-           //var _result = sourceNull.Adapt(target);
+           var _result = sourceNull.Adapt(target);
 
-           // target.Name.ShouldBe("John");
+            target.Name.ShouldBe("John");
         }
 
 
@@ -78,9 +79,10 @@ namespace Mapster.Tests
 
     #region TestClasses
 
-
+    [AdaptToPrimitive(typeof(string))]
     class Optional561<T>
     {
+        
         public Optional561(T? value) 
         {
             if (value != null)

@@ -432,7 +432,7 @@ namespace Mapster.Adapters
         {
             MapType mapType;
 
-            if (arg.MapType == MapType.MapToTargetPrimitive)
+            if (source.Type.GetCustomAttributes(typeof(AdaptToPrimitiveAttribute)).ToArray().Count() != 0 )
             {
                 Expression dest;
 
@@ -450,6 +450,8 @@ namespace Mapster.Adapters
             }
             else
             {
+                var c =  source.Type.GetCustomAttributes(typeof(AdaptToPrimitiveAttribute));
+
                 mapType = arg.MapType == MapType.MapToTarget && destination == null ? MapType.Map :
                 mapping?.UseDestinationValue == true ? MapType.MapToTarget :
                 arg.MapType;
@@ -495,7 +497,7 @@ namespace Mapster.Adapters
                 if (destinationType.IsPrimitiveKind() || destinationType == typeof(string))
                 {
                     
-                        arg.MapType = MapType.MapToTargetPrimitive;
+                    //    arg.MapType = MapType.MapToTargetPrimitive;
                     
                 }
             }

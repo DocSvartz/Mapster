@@ -90,4 +90,17 @@ namespace Mapster
             MapType = MapType.Projection;
         }
     }
+
+    public class AdaptToPrimitiveAttribute : AdaptToAttribute
+    {
+        public AdaptToPrimitiveAttribute(Type type) : base(type)
+        {
+            MapType = MapType.MapToTargetPrimitive;
+        }
+
+        public AdaptToPrimitiveAttribute(string name) : base(name)
+        {
+            MapType = MapType.MapToTargetPrimitive;
+        }
+    }
 }

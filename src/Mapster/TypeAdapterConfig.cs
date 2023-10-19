@@ -500,6 +500,9 @@ namespace Mapster
 
         internal LambdaExpression CreateMapInvokeExpression(Type sourceType, Type destinationType, MapType mapType)
         {
+            if (mapType == MapType.MapToTargetPrimitive)
+                return CreateMapToTargetPrimitiveInvokeExpression(sourceType, destinationType);
+
             return mapType == MapType.MapToTarget
                 ? CreateMapToTargetInvokeExpression(sourceType, destinationType)
                 : CreateMapInvokeExpression(sourceType, destinationType);
@@ -569,6 +572,14 @@ namespace Mapster
             var p1 = Expression.Parameter(sourceType);
             var p2 = Expression.Parameter(destinationType);
             var invoke = CreateMapToTargetInvokeExpressionBody(sourceType, destinationType, p1, p2);
+            return Expression.Lambda(invoke, p1, p2);
+        }
+
+        private LambdaExpression CreateMapToTargetPrimitiveInvokeExpression(Type sourceType, Type destinationType)
+        {
+            var p1 = Expression.Parameter(sourceType);
+            var p2 = Expression.Parameter(destinationType);
+            var invoke = CreateMapToTargetPrimitiveInvokeExpressionBody(sourceType, destinationType, p1, p2);
             return Expression.Lambda(invoke, p1, p2);
         }
 
@@ -648,7 +659,7 @@ namespace Mapster
             }
 
             //remove recursive include types
-            if (mapType == MapType.MapToTarget)
+            if (mapType == MapType.MapToTarget || mapType == MapType.MapToTargetPrimitive)
                 result.Includes.Remove(tuple);
             else
                 result.Includes.RemoveAll(t => t.Source == tuple.Source);
@@ -689,6 +700,7 @@ namespace Mapster
 
                     _mapDict[key] = Compiler(CreateMapExpression(key, MapType.Map));
                     _mapToTargetDict[key] = Compiler(CreateMapExpression(key, MapType.MapToTarget));
+                    _mapToTargetPrimitiveDict[key] = Compiler(CreateMapExpression(key, MapType.MapToTargetPrimitive));
                 }
                 catch (Exception ex)
                 {
@@ -718,6 +730,8 @@ namespace Mapster
             var tuple = new TypeTuple(sourceType, destinationType);
             _mapDict[tuple] = Compiler(CreateMapExpression(tuple, MapType.Map));
             _mapToTargetDict[tuple] = Compiler(CreateMapExpression(tuple, MapType.MapToTarget));
+            _mapToTargetPrimitiveDict[tuple] = Compiler(CreateMapExpression(tuple, MapType.MapToTargetPrimitive));
+
             if (this == GlobalSettings)
             {
                 var field = typeof(TypeAdapter<,>).MakeGenericType(sourceType, destinationType).GetField("Map");
