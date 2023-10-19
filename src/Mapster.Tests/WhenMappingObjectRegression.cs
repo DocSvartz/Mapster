@@ -12,18 +12,10 @@ namespace Mapster.Tests
         [TestMethod]
         public void TSourceIsObjectUpdate()
         {
-            var source = new TestClassPublicCtr { X = 123 };
+            var source = new Source524 { X1 = 123 };
             var _result = Somemap(source);
 
-            _result.X.ShouldBe(123);
-        }
-
-        TestClassPublicCtr Somemap(object source)
-        {
-            var dest = new TestClassPublicCtr { X = 321 };
-            var dest1 = source.Adapt(dest);
-
-            return dest;
+            _result.X1.ShouldBe(123);
         }
 
         /// <summary>
@@ -32,18 +24,43 @@ namespace Mapster.Tests
         [TestMethod]
         public void TSourceIsObjectUpdateUseDynamicCast()
         {
-            var source = new TestClassPublicCtr { X = 123 };
+            var source = new Source524 { X1 = 123 };
             var _result = SomemapWithDynamic(source);
 
-            _result.X.ShouldBe(123);
+            _result.X1.ShouldBe(123);
         }
 
-        TestClassPublicCtr SomemapWithDynamic(object source)
+
+        #region TestFunctions
+
+        Dest524 Somemap(object source)
         {
-            var dest = new TestClassPublicCtr { X = 321 };
+            var dest = new Dest524 { X1 = 321 };
+            var dest1 = source.Adapt(dest);
+
+            return dest;
+        }
+
+        Dest524 SomemapWithDynamic(object source)
+        {
+            var dest = new Dest524 { X1 = 321 };
             var dest1 = source.Adapt(dest, source.GetType(), dest.GetType());
 
             return dest;
         }
+
+        #endregion TestFunctions
+
+        #region TestClasses
+        class Source524
+        {
+            public int X1 { get; set; }
+        }
+        class Dest524
+        {
+            public int X1 { get; set; }
+        }
+
+        #endregion TestClasses
     }
 }
