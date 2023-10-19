@@ -127,13 +127,18 @@ namespace Mapster
             return fn(Source, destination);
         }
 
+        private TDestination MapToTargetPrimitive<TDestination>(TDestination destination)
+        {
+            var fn = Config.GetMapToTargetPrimitiveFunction<TSource, TDestination>();
+            return fn(Source, destination);
+        }
 
-		/// <summary>
-		/// Get mapping expression.
-		/// </summary>
-		/// <typeparam name="TDestination">Destination type to create map expression.</typeparam>
-		/// <returns></returns>
-		public Expression<Func<TSource, TDestination>> CreateMapExpression<TDestination>()
+        /// <summary>
+        /// Get mapping expression.
+        /// </summary>
+        /// <typeparam name="TDestination">Destination type to create map expression.</typeparam>
+        /// <returns></returns>
+        public Expression<Func<TSource, TDestination>> CreateMapExpression<TDestination>()
         {
             var tuple = new TypeTuple(typeof(TSource), typeof(TDestination));
             return (Expression<Func<TSource, TDestination>>) Config.CreateMapExpression(tuple, MapType.Map);

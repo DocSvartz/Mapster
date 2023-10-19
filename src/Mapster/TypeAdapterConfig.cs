@@ -335,6 +335,20 @@ namespace Mapster
             return del;
         }
 
+        private readonly ConcurrentDictionary<TypeTuple, Delegate> _mapToTargetPrimitiveDict = new ConcurrentDictionary<TypeTuple, Delegate>();
+        public Func<TSource, TDestination, TDestination> GetMapToTargetPrimitiveFunction<TSource, TDestination>()
+        {
+            return (Func<TSource, TDestination, TDestination>)GetMapToTargetPrimitiveFunction(typeof(TSource), typeof(TDestination));
+        }
+        internal Delegate GetMapToTargetPrimitiveFunction(Type sourceType, Type destinationType)
+        {
+            var key = new TypeTuple(sourceType, destinationType);
+            if (!_mapToTargetPrimitiveDict.TryGetValue(key, out var del))
+                del = AddToHash(_mapToTargetPrimitiveDict, key, tuple => Compiler(CreateMapExpression(tuple, MapType.MapToTargetPrimitive)));
+            return del;
+        }
+
+
         private readonly ConcurrentDictionary<TypeTuple, MethodCallExpression> _projectionDict = new ConcurrentDictionary<TypeTuple, MethodCallExpression>();
         internal Expression<Func<TSource, TDestination>> GetProjectionExpression<TSource, TDestination>()
         {
@@ -417,9 +431,15 @@ namespace Mapster
 
         private static LambdaExpression CreateMapExpression(CompileArgument arg)
         {
-            var fn = arg.MapType == MapType.MapToTarget
+            Func<CompileArgument, LambdaExpression> fn;
+                     
+
+            fn = arg.MapType == MapType.MapToTarget
                 ? arg.Settings.ConverterToTargetFactory
                 : arg.Settings.ConverterFactory;
+            if (arg.MapType == MapType.MapToTargetPrimitive)
+                fn = arg.Settings.ConverterToTargetPrimitiveFactory;
+
             if (fn == null)
                 throw new CompileException(arg, new InvalidOperationException("ConverterFactory is not found"));
             try
@@ -514,6 +534,21 @@ namespace Mapster
             }
             return Expression.Call(invoker, "Invoke", null, p);
         }
+
+        internal Expression CreateMapToTargetPrimitiveInvokeExpressionBody(Type sourceType, Type destinationType, Expression p1, Expression p2)
+        {
+            if (RequireExplicitMapping)
+            {
+                var key = new TypeTuple(sourceType, destinationType);
+                _mapToTargetDict[key] = Compiler(CreateMapExpression(key, MapType.MapToTarget));
+            }
+            var method = (from m in typeof(TypeAdapterConfig).GetMethods(BindingFlags.Instance | BindingFlags.Public)
+                          where m.Name == nameof(GetMapToTargetPrimitiveFunction)
+                          select m).First().MakeGenericMethod(sourceType, destinationType);
+            var invoker = Expression.Call(CreateSelfExpression(), method);
+            return Expression.Call(invoker, "Invoke", null, p1, p2);
+        }
+
 
         internal Expression CreateMapToTargetInvokeExpressionBody(Type sourceType, Type destinationType, Expression p1, Expression p2)
         {
@@ -798,6 +833,7 @@ namespace Mapster
             if (RuleMap.TryRemove(key, out var rule))
                 Rules.LockRemove(rule);
             _mapDict.TryRemove(key, out _);
+            _mapToTargetPrimitiveDict.TryRemove(key, out _);
             _mapToTargetDict.TryRemove(key, out _);
             _projectionDict.TryRemove(key, out _);
             _dynamicMapDict.TryRemove(key, out _);

@@ -630,6 +630,24 @@ namespace Mapster
             return this;
         }
 
+        public TypeAdapterSetter<TSource, TDestination> MapToTargetPrimitive(Expression<Func<TSource, TDestination, TDestination>> converterFactory, bool applySettings = false)
+        {
+            this.CheckCompiled();
+
+            if (applySettings)
+            {
+                var adapter = new DelegateAdapter(converterFactory);
+                Settings.ConverterToTargetPrimitiveFactory = adapter.CreateAdaptToTargetPrimitiveFunc;
+            }
+            else
+                Settings.ConverterToTargetPrimitiveFactory = arg => converterFactory;
+            return this;
+
+        }
+
+
+
+
         public TypeAdapterSetter<TSource, TDestination> MapToTargetWith(Expression<Func<TSource, TDestination, TDestination>> converterFactory, bool applySettings = false)
         {
             this.CheckCompiled();

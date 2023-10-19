@@ -31,6 +31,20 @@ namespace Mapster.Adapters
                 .TrimParameters(1);
         }
 
+        public LambdaExpression CreateAdaptToTargetPrimitiveFunc(CompileArgument arg)
+        {
+            arg.MapType = MapType.MapToTargetPrimitive;
+
+            var p = Expression.Parameter(arg.SourceType);
+            var p2 = Expression.Parameter(arg.DestinationType);
+            var body = CreateExpressionBody(p, p2, arg);
+            return Expression.Lambda(body,
+                    new[] { p, p2 }.Concat(arg.Context.ExtraParameters))
+                .TrimParameters(2);
+        }
+
+
+
         public LambdaExpression CreateAdaptToTargetFunc(CompileArgument arg)
         {
             var p = Expression.Parameter(arg.SourceType);
@@ -50,6 +64,7 @@ namespace Mapster.Adapters
                 {
                     ConverterFactory = CreateAdaptFunc,
                     ConverterToTargetFactory = CreateAdaptToTargetFunc,
+                    ConverterToTargetPrimitiveFactory = CreateAdaptToTargetPrimitiveFunc,
                 }
             };
             DecorateRule(rule);
@@ -417,7 +432,7 @@ namespace Mapster.Adapters
         {
             MapType mapType;
 
-            if (destinationType == typeof(string) && arg.MapType == MapType.MapToTargetPrimitive)
+            if (arg.MapType == MapType.MapToTargetPrimitive)
             {
                 Expression dest;
 
@@ -428,10 +443,9 @@ namespace Mapster.Adapters
                 else
                     dest = destination;
 
+                var c = arg.Context.Config.CreateMapToTargetPrimitiveInvokeExpressionBody(source.Type, destinationType, source, dest);
 
-
-                var c = arg.Context.Config.CreateMapToTargetInvokeExpressionBody(source.Type, destinationType, source, dest);
-
+                arg.MapType = MapType.MapToTarget;
                 return c;
             }
             else
@@ -476,16 +490,15 @@ namespace Mapster.Adapters
             if (source.Type == destinationType && arg.MapType == MapType.Projection)
                 return source;
 
-          /*  if (source.Type.UnwrapNullable().IsPrimitive == false && source.Type.UnwrapNullable() != typeof(string))
+            if (arg.Settings.ConverterToTargetPrimitiveFactory != null)
             {
                 if (destinationType.IsPrimitiveKind() || destinationType == typeof(string))
                 {
-                    if (arg.Settings.ConverterToTargetFactory != null)
-                    {
+                    
                         arg.MapType = MapType.MapToTargetPrimitive;
-                    }
+                    
                 }
-            }*/
+            }
 
             //adapt(source);
             var notUsingDestinationValue = mapping is not { UseDestinationValue: true };
