@@ -41,7 +41,6 @@ namespace Mapster.Tests
             var _structResult = _sourceStruct.Adapt(_destinationStruct);
 
             _structResult.X.ShouldBe(1000);
-
             _structResult.X.ShouldNotBe(_destinationStruct.X);
         }
 
@@ -228,7 +227,6 @@ namespace Mapster.Tests
             _destination.X.ShouldBe(200);
             object.ReferenceEquals(_destination, _result).ShouldBeTrue();
         }
-
 
         #region NowNotWorking
 
