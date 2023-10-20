@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reflection;
+using System.Security.AccessControl;
 
 namespace Mapster
 {
@@ -93,6 +94,24 @@ namespace Mapster
         /// <returns>Adapted destination type.</returns>
         public static TDestination Adapt<TSource, TDestination>(this TSource source, TDestination destination, TypeAdapterConfig config)
         {
+            if (typeof(TSource) == typeof(object) || typeof(TDestination) == typeof(object))
+            {
+                var sourceType = source.GetType();
+                var destinationType = destination.GetType();
+
+                var del = config.GetMapToTargetFunction(sourceType, destinationType);
+                if (sourceType.GetTypeInfo().IsVisible && destinationType.GetTypeInfo().IsVisible)
+                {
+                    dynamic objfn = del;
+                    return objfn((dynamic)source, (dynamic)destination);
+                }
+                else
+                {
+                    //NOTE: if type is non-public, we cannot use dynamic
+                    //DynamicInvoke is slow, but works with non-public
+                    return (TDestination) del.DynamicInvoke(source, destination);
+                }
+            }
             var fn = config.GetMapToTargetFunction<TSource, TDestination>();
             return fn(source, destination);
         }

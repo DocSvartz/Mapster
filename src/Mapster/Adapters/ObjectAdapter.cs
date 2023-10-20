@@ -15,6 +15,8 @@ namespace Mapster.Adapters
         {
             var srcType = arg.SourceType;
             var destType = arg.DestinationType;
+            if (arg.SourceType == arg.DestinationType)
+                return source;
             if (destType == typeof(object))
                 return Expression.Convert(source, destType);
             return arg.Context.Config.CreateDynamicMapInvokeExpressionBody(arg.DestinationType, source);
@@ -30,18 +32,17 @@ namespace Mapster.Adapters
             return CreateInstantiationExpression(source, arg);
         }
 
-        protected override Expression CreateExpressionBody(Expression source, Expression? destination, CompileArgument arg)
-        {
-            if (arg.SourceType == arg.DestinationType)
-                return source;
+        //protected override Expression CreateExpressionBody(Expression source, Expression? destination, CompileArgument arg)
+        //{
+            
 
-            if (destination == null || arg.DestinationType == typeof(object))
-                return base.CreateExpressionBody(source, destination, arg);
-            else
-            {
-                var convert = arg.Context.Config.CreateDynamicMapInvokeExpressionBody(arg.DestinationType, source);
-                return arg.Context.Config.CreateMapToTargetInvokeExpressionBody(convert.Type, destination.Type, convert, destination);
-            } 
-        }
+        //    if (destination == null || arg.DestinationType == typeof(object))
+        //        return base.CreateExpressionBody(source, destination, arg);
+        //    else
+        //    {
+        //        var convert = arg.Context.Config.CreateDynamicMapInvokeExpressionBody(arg.DestinationType, source);
+        //        return arg.Context.Config.CreateMapToTargetInvokeExpressionBody(convert.Type, destination.Type, convert, destination);
+        //    } 
+        //}
     }
 }

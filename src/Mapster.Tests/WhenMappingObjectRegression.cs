@@ -30,12 +30,29 @@ namespace Mapster.Tests
             _result.X1.ShouldBe(123);
         }
 
+        [TestMethod]
+        public void UpdateManyDest()
+        {
+            var source = new Source524 { X1 = 123 };
+            var _result = SomemapManyDest(source);
+
+            _result.X1.ShouldBe(123);
+            _result.X2.ShouldBe(127);
+        }
 
         #region TestFunctions
 
         Dest524 Somemap(object source)
         {
             var dest = new Dest524 { X1 = 321 };
+            var dest1 = source.Adapt(dest);
+
+            return dest;
+        }
+
+        ManyDest524 SomemapManyDest(object source)
+        {
+            var dest = new ManyDest524 { X1 = 321, X2 = 127 };
             var dest1 = source.Adapt(dest);
 
             return dest;
@@ -59,6 +76,13 @@ namespace Mapster.Tests
         class Dest524
         {
             public int X1 { get; set; }
+        }
+
+        class ManyDest524
+        {
+            public int X1 { get; set;}
+
+            public int X2 { get; set;}  
         }
 
         #endregion TestClasses
