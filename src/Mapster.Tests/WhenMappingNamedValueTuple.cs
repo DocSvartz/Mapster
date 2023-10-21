@@ -109,10 +109,10 @@ namespace Mapster.Tests
             MyInt = myInt;
         }
 
-        public DestRecord501(int myInt, string myString) : this(myInt)
-        {
-            MyString = myString;
-        }
+        //public DestRecord501(int myInt, string myString) : this(myInt)
+        //{
+        //    MyString = myString;
+        //}
 
         public int MyInt { get; init; }
         public string MyString { get; init; }
