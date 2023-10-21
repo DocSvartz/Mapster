@@ -42,7 +42,7 @@ namespace Mapster.Tests
         }
 
         [TestMethod]
-        public void UpdateToRealObject() /// Warning potential Infinity Loop in ObjectAdapter!!!
+        public void UpdateToRealObject()
         {
             var source = new Source524 { X1 = 123 };
             var RealObject = new Object();
@@ -64,6 +64,39 @@ namespace Mapster.Tests
 
             _result.ShouldBeOfType<Source524>();
             ((Source524)_result).X1.ShouldBe(source.X1);
+        }
+
+        [TestMethod]
+        public void UpdateObjectInsaider()
+        {
+            var _source = new InsaderObject() { X1 = 1 };
+            var _Destination = new InsaderObject() { X1 = 2 };
+
+            var _result = _source.Adapt(_Destination);
+
+            _result.X1.ShouldBe(_source.X1);
+        }
+
+        [TestMethod]
+        public void UpdateObjectInsaiderToObject()
+        {
+            var _source = new InsaderObject() { X1 = 1 };
+            var _Destination = new InsaderObject() { X1 = new Object() };
+
+            var _result = _source.Adapt(_Destination);
+
+            _result.X1.ShouldBe(_source.X1);
+        }
+
+        [TestMethod]
+        public void UpdateObjectInsaiderWhenObjectinTSource()
+        {
+            var _source = new InsaderObject() { X1 = new Object() };
+            var _Destination = new InsaderObject() { X1 = 3 };
+
+            var _result = _source.Adapt(_Destination);
+
+            _result.X1.ShouldBe(_source.X1); 
         }
 
 
@@ -111,6 +144,12 @@ namespace Mapster.Tests
 
             public int X2 { get; set;}  
         }
+
+        class InsaderObject
+        {
+            public Object X1 { get; set;}
+        }
+
 
         #endregion TestClasses
     }
