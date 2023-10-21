@@ -1,5 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Shouldly;
+using System;
 
 namespace Mapster.Tests
 {
@@ -39,6 +40,32 @@ namespace Mapster.Tests
             _result.X1.ShouldBe(123);
             _result.X2.ShouldBe(127);
         }
+
+        [TestMethod]
+        public void UpdateToRealObject() /// Warning potential Infinity Loop in ObjectAdapter!!!
+        {
+            var source = new Source524 { X1 = 123 };
+            var RealObject = new Object();
+
+            var _result = source.Adapt(RealObject);
+
+            _result.ShouldBeOfType<Source524>();
+            ((Source524)_result).X1.ShouldBe(source.X1);
+
+        }
+
+        [TestMethod]
+        public void RealObjectCastToDestination() /// Warning potential Infinity Loop in ObjectAdapter!!!
+        {
+            var source = new Source524 { X1 = 123 };
+            var RealObject = new Object();
+
+            var _result = RealObject.Adapt(source);
+
+            _result.ShouldBeOfType<Source524>();
+            ((Source524)_result).X1.ShouldBe(source.X1);
+        }
+
 
         #region TestFunctions
 
