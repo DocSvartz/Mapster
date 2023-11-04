@@ -8,6 +8,8 @@ using Shouldly;
 
 namespace Mapster.Tests;
 
+#if NET6_0_OR_GREATER
+
 [TestClass]
 public class WhenUsingIMapFrom
 {
@@ -75,3 +77,5 @@ public class DestinationModel : IMapFrom<SourceModel>
 {
     public string Type { get; set; }
 }
+
+#endif

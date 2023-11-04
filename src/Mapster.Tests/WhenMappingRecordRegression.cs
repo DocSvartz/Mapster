@@ -5,6 +5,8 @@ using System.Collections.Generic;
 
 namespace Mapster.Tests
 {
+#if NET6_0_OR_GREATER
+
     /// <summary>
     /// Tests for https://github.com/MapsterMapper/Mapster/issues/537
     /// </summary>
@@ -438,4 +440,5 @@ namespace Mapster.Tests
     sealed record TestSealedRecordPositional(int X);
 
     #endregion TestClasses
+#endif
 }

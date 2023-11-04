@@ -8,6 +8,8 @@ using Shouldly;
 
 namespace Mapster.Tests
 {
+
+#if NET6_0_OR_GREATER
     [TestClass]
     public class WhenMappingRecordTypes
     {
@@ -80,4 +82,5 @@ namespace Mapster.Tests
 
         public record RecordTypeDto(Guid SpecialID);
     }
+#endif
 }

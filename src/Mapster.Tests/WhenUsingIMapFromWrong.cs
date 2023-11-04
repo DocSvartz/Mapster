@@ -6,6 +6,8 @@ using Shouldly;
 
 namespace Mapster.Tests;
 
+#if NET6_0_OR_GREATER
+
 [TestClass]
 public class WhenUsingIMapFromWrong
 {
@@ -31,3 +33,5 @@ public class WrongInheritedDestinationModel : IMapFrom<SourceModel>
             .Map(dest => dest.Value, _ => DesireValues.Number);
     }
 }
+
+#endif
