@@ -1,7 +1,7 @@
 namespace Mapster;
 
 
-#if NET6_0_OR_GREATER
+#if NETSTANDARD2_1_OR_GREATER
 public interface IMapFrom<TSource>
 {
 

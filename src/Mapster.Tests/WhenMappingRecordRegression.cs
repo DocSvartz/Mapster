@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace Mapster.Tests
 {
-#if NET6_0_OR_GREATER
+#if NETSTANDARD2_1_OR_GREATER
 
     /// <summary>
     /// Tests for https://github.com/MapsterMapper/Mapster/issues/537

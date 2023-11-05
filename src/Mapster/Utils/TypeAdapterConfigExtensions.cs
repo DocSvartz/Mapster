@@ -8,7 +8,7 @@ namespace Mapster.Utils;
 
 public static class TypeAdapterConfigExtensions
 {
-#if NET6_0_OR_GREATER
+#if NETSTANDARD2_1_OR_GREATER
     public static void ScanInheritedTypes(this TypeAdapterConfig config, Assembly assembly)
     {
         var types = assembly.GetTypes()

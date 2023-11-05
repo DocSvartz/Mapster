@@ -404,7 +404,7 @@ namespace Mapster
             var setMethod = propertyInfo.SetMethod;
             if (setMethod == null)
                 return false;
-#if NET6_0_OR_GREATER
+#if NETSTANDARD2_1_OR_GREATER
             var isExternalInitType = typeof(System.Runtime.CompilerServices.IsExternalInit);
             return setMethod.ReturnParameter.GetRequiredCustomModifiers().Contains(isExternalInitType);
 #endif

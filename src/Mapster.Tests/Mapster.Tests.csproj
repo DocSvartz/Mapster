@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFrameworks>net7.0;net6.0</TargetFrameworks>
+        <TargetFrameworks>net7.0;net6.0;net48</TargetFrameworks>
         <IsPackable>false</IsPackable>
         <AssemblyName>Mapster.Tests</AssemblyName>
         <AssemblyOriginatorKeyFile>Mapster.Tests.snk</AssemblyOriginatorKeyFile>
@@ -17,7 +17,6 @@
         <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\ExpressionDebugger\ExpressionDebugger.csproj" />
         <ProjectReference Include="..\Mapster\Mapster.csproj" />
     </ItemGroup>
     <ItemGroup>
