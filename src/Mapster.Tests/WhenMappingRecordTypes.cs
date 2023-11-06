@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Shouldly;
+using System;
+using System.Collections.Generic;
 
 namespace Mapster.Tests
 {
-
-#if NETSTANDARD2_1_OR_GREATER
     [TestClass]
     public class WhenMappingRecordTypes
     {
@@ -82,5 +77,4 @@ namespace Mapster.Tests
 
         public record RecordTypeDto(Guid SpecialID);
     }
-#endif
 }

@@ -4,7 +4,6 @@ using System;
 
 namespace Mapster.Tests
 {
-#if NET6_0_OR_GREATER
     /// <summary>
     /// This turned out not to be a bug, but I left the regression test here anyway
     /// </summary>
@@ -30,5 +29,4 @@ namespace Mapster.Tests
             c2.Title.ShouldBe("title1");
         }
     }
-#endif
 }

@@ -4,7 +4,6 @@ using System;
 
 namespace Mapster.Tests
 {
-
     /// <summary>
     /// Regression for https://github.com/MapsterMapper/Mapster/issues/485
     /// </summary>
