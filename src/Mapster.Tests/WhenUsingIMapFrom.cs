@@ -1,14 +1,13 @@
-using System;
-using System.Collections.Generic;
-using System.Reflection;
 using Mapster.Utils;
 using MapsterMapper;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Shouldly;
+using System;
+using System.Collections.Generic;
 
 namespace Mapster.Tests;
 
-#if NETSTANDARD2_1_OR_GREATER
+
 
 [TestClass]
 public class WhenUsingIMapFrom
@@ -76,6 +75,14 @@ public class InheritedDestinationModel : IMapFrom<SourceModel>
 public class DestinationModel : IMapFrom<SourceModel>
 {
     public string Type { get; set; }
+
+
+#if !NETSTANDARD2_1_OR_GREATER
+    public void ConfigureMapping(TypeAdapterConfig config)
+    {
+        this.MapFromConfigureDefault(config);
+    }
+#endif
+
 }
 
-#endif

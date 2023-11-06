@@ -8,7 +8,7 @@ namespace Mapster.Utils;
 
 public static class TypeAdapterConfigExtensions
 {
-#if NETSTANDARD2_1_OR_GREATER
+
     public static void ScanInheritedTypes(this TypeAdapterConfig config, Assembly assembly)
     {
         var types = assembly.GetTypes()
@@ -29,7 +29,7 @@ public static class TypeAdapterConfigExtensions
         InterfaceDynamicMapper dynamicMapper = new(config, types);
         dynamicMapper.ApplyMappingFromAssembly();
     }
-#endif
+
     public static bool HasRuleFor(this TypeAdapterConfig config, Type srcType, Type dstType) =>
         config.RuleMap.ContainsKey(new TypeTuple(srcType, dstType));
 }
