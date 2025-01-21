@@ -31,7 +31,7 @@ namespace Mapster.Adapters
             var ctor = destType.GetConstructors()
                     .OrderByDescending(it => it.GetParameters().Length).ToArray().FirstOrDefault(); // Will be used public constructor with the maximum number of parameters 
             var classModel = GetConstructorModel(ctor, false);
-            var classConverter = CreateClassConverter(source, classModel, arg);
+            var classConverter = CreateClassConverter(source, classModel, arg,  mappingToCtor:true);
             var installExpr = CreateInstantiationExpression(source, classConverter, arg);
             return RecordInlineExpression(source, arg, installExpr); // Activator field when not include in public ctor
         }

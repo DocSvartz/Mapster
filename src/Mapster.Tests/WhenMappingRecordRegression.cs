@@ -261,6 +261,11 @@ namespace Mapster.Tests
         [TestMethod]
         public void MultiCtorAndInlineRecordWorked()
         {
+
+            TypeAdapterConfig<MultiCtorAndInlinePoco, MultiCtorAndInlineRecord>
+                .NewConfig()
+                .Ignore(x => x.MyInt);
+
             var _sourcePoco = new MultiCtorAndInlinePoco() { MyInt = 1, MyString = "Hello", MyEmail = "123@gmail.com", InitData="Test"};
             var _sourceMultiCtorAndInline = new MultiCtorAndInlineRecord(2, "Hello World") { InitData = "Worked", MyEmail = "243@gmail.com" };
 

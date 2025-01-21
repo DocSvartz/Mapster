@@ -15,7 +15,7 @@ namespace Mapster.Adapters
 
         #region Build the Adapter Model
 
-        protected ClassMapping CreateClassConverter(Expression source, ClassModel classModel, CompileArgument arg, Expression? destination = null)
+        protected ClassMapping CreateClassConverter(Expression source, ClassModel classModel, CompileArgument arg, Expression? destination = null,bool mappingToCtor = false)
         {
             var destinationMembers = classModel.Members;
             var unmappedDestinationMembers = new List<string>();
@@ -29,7 +29,7 @@ namespace Mapster.Adapters
                         : ExpressionEx.PropertyOrFieldPath(source, (string)src)));
             foreach (var destinationMember in destinationMembers)
             {
-                if (ProcessIgnores(arg, destinationMember, out var ignore))
+                if (ProcessIgnores(arg, destinationMember, out var ignore) && !mappingToCtor)
                     continue;
 
                 var resolvers = arg.Settings.ValueAccessingStrategies.AsEnumerable();
@@ -147,6 +147,7 @@ namespace Mapster.Adapters
                 }
                 else
                 {
+                    var s = member.Ignore;
                     getter = CreateAdaptExpression(member.Getter, member.DestinationMember.Type, arg, member);
                     if (member.Ignore.Condition != null)
                     {
@@ -155,6 +156,12 @@ namespace Mapster.Adapters
                             : member.Ignore.Condition.Apply(arg.MapType, source, arg.DestinationType.CreateDefault());
                         var condition = ExpressionEx.Not(body);
                         getter = Expression.Condition(condition, getter, defaultConst);
+                    }
+                    else
+                        if(arg.Settings.Ignore.Count != 0)
+                    {
+                        if (arg.Settings.Ignore.Any(x => x.Key == member.DestinationMember.Name))
+                            getter = defaultConst;
                     }
                 }
                 arguments.Add(getter);
