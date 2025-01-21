@@ -128,7 +128,7 @@ namespace Mapster.Adapters
                    && ignore.Condition == null;
         }
 
-        protected Expression CreateInstantiationExpression(Expression source, ClassMapping classConverter, CompileArgument arg)
+        protected Expression CreateInstantiationExpression(Expression source, ClassMapping classConverter, CompileArgument arg, Expression? destination)
         {
             var members = classConverter.Members;
 
@@ -160,6 +160,19 @@ namespace Mapster.Adapters
                     else
                         if(arg.Settings.Ignore.Count != 0)
                     {
+                        if (arg.MapType == MapType.MapToTarget && arg.DestinationType.IsRecordType())
+                        {
+                            if (arg.Settings.Ignore.Any(x => x.Key == member.DestinationMember.Name))
+                            {
+                                var find = arg.DestinationType.GetFieldsAndProperties(true).ToArray()
+                                    .Where(x => x.Name == member.DestinationMember.Name).FirstOrDefault();
+
+                               // return find.GetExpression(s);
+
+                                getter = CreateAdaptExpression(member.Getter, member.DestinationMember.Type, arg, member);
+                            }
+                        }
+
                         if (arg.Settings.Ignore.Any(x => x.Key == member.DestinationMember.Name))
                             getter = defaultConst;
                     }

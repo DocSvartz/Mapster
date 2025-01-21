@@ -20,6 +20,9 @@ namespace Mapster.Adapters
         {
             //new TDestination(src.Prop1, src.Prop2)
 
+            if (arg.MapType == MapType.MapToTarget)
+               // arg.UseDestinationValue = true;
+
             if (arg.GetConstructUsing() != null)
                 return base.CreateInstantiationExpression(source, destination, arg);
 
@@ -32,7 +35,7 @@ namespace Mapster.Adapters
                     .OrderByDescending(it => it.GetParameters().Length).ToArray().FirstOrDefault(); // Will be used public constructor with the maximum number of parameters 
             var classModel = GetConstructorModel(ctor, false);
             var classConverter = CreateClassConverter(source, classModel, arg,  mappingToCtor:true);
-            var installExpr = CreateInstantiationExpression(source, classConverter, arg);
+            var installExpr = CreateInstantiationExpression(source, classConverter, arg, destination );
             return RecordInlineExpression(source, arg, installExpr); // Activator field when not include in public ctor
         }
 

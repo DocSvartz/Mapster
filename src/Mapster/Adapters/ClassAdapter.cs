@@ -81,7 +81,7 @@ namespace Mapster.Adapters
             if (classConverter == null)
                 return base.CreateInstantiationExpression(source, destination, arg);
 
-            return CreateInstantiationExpression(source, classConverter, arg);
+            return CreateInstantiationExpression(source, classConverter, arg, destination);
         }
 
         protected override Expression CreateBlockExpression(Expression source, Expression destination, CompileArgument arg)
