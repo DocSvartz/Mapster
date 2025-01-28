@@ -1,10 +1,10 @@
-﻿using System;
+﻿using Mapster.Models;
+using Mapster.Utils;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using Mapster.Models;
-using Mapster.Utils;
 using static Mapster.IgnoreDictionary;
 
 namespace Mapster.Adapters
@@ -17,6 +17,11 @@ namespace Mapster.Adapters
         protected override bool CanMap(PreCompileArgument arg)
         {
             return arg.DestinationType.IsRecordType();
+        }
+
+        protected override bool CanInline(Expression source, Expression? destination, CompileArgument arg)
+        {
+            return false;
         }
 
         protected override Expression CreateInstantiationExpression(Expression source, Expression? destination, CompileArgument arg)
@@ -36,13 +41,80 @@ namespace Mapster.Adapters
                 var classConverter = CreateClassConverter(source, classModel, arg, ctorMapping: true);
                 installExpr = CreateInstantiationExpression(source, classConverter, arg, destination, restorParamModel);
             }
-            return RecordInlineExpression(source, destination, arg, installExpr); // Activator field when not include in public ctor
+           
+                
+             return RecordInlineExpression(source, destination, arg, installExpr); // Activator field when not include in public ctor
         }
 
         protected override Expression CreateBlockExpression(Expression source, Expression destination, CompileArgument arg)
         {
-            return Expression.Empty();
+            // Mapping property Without setter when UseDestinationValue == true
+
+            var result = destination;
+            var classModel = GetSetterModel(arg);
+            var classConverter = CreateClassConverter(source, classModel, arg, result);
+            var members = classConverter.Members;
+
+            var lines = new List<Expression>();
+
+            foreach (var member in members)
+            {
+
+                if (member.DestinationMember.SetterModifier == AccessModifier.None
+                    && member.UseDestinationValue)
+                {
+                    
+                    if (member.DestinationMember is PropertyModel && member.DestinationMember.Type.IsValueType || member.DestinationMember.Type.IsMapsterPrimitive())
+                    {
+
+                        var adapt = CreateAdaptExpression(member.Getter, member.DestinationMember.Type, arg, member, result);
+                        var blocks = Expression.Block(SetValueTypePropertyByReflection(member, adapt));
+                        var lambda = Expression.Lambda(blocks, parameters: new[] { (ParameterExpression)source, (ParameterExpression)destination });
+
+                        if (arg.MapType == MapType.MapToTarget && arg.Settings.IgnoreNullValues == true && member.Getter.CanBeNull())
+                        {
+                            var condition = Expression.NotEqual(member.Getter, Expression.Constant(null, member.Getter.Type));
+                            lines.Add( Expression.IfThen(condition, Expression.Invoke(lambda, source, destination)));
+                            continue;
+                        }
+
+                        lines.Add(Expression.Invoke(lambda, source, destination));
+                    }
+                    else
+                    {
+                        var destMember = member.DestinationMember.GetExpression(destination);
+
+                        var adapt = CreateAdaptExpression(member.Getter, member.DestinationMember.Type, arg, member, destMember);
+
+                        if (arg.MapType == MapType.MapToTarget && arg.Settings.IgnoreNullValues == true && member.Getter.CanBeNull())
+                        {
+                            var condition = Expression.NotEqual(member.Getter, Expression.Constant(null, member.Getter.Type));
+                            lines.Add(Expression.IfThen(condition, adapt ));
+                            continue;
+                        }
+
+                        lines.Add(adapt);
+                    }
+                   
+                }                
+            }
+
+            return lines.Count > 0 ? (Expression)Expression.Block(lines) : Expression.Empty();
         }
+
+        protected static Expression SetValueTypePropertyByReflection(MemberMapping member, Expression adapt)
+        {
+            var typeofExpression = Expression.Constant(member.Destination!.Type);
+            var getPropertyMethod = typeof(Type).GetMethod("GetField", new[] { typeof(string), typeof (BindingFlags) })!;
+            var getPropertyExpression = Expression.Call(typeofExpression, getPropertyMethod,
+                Expression.Constant($"<{member.DestinationMember.Name}>k__BackingField"),Expression.Constant(BindingFlags.Instance | BindingFlags.NonPublic));
+            var setValueMethod =
+                typeof(FieldInfo).GetMethod("SetValue", new[] { typeof(object), typeof(object) })!;
+            var memberAsObject = adapt.To(typeof(object));
+            return Expression.Call(getPropertyExpression, setValueMethod,
+                new[] { member.Destination, memberAsObject });
+        }
+
 
         protected override Expression CreateInlineExpression(Expression source, CompileArgument arg)
         {
@@ -69,8 +141,6 @@ namespace Mapster.Adapters
                 lines.AddRange(memberInit.Bindings);
             foreach (var member in members)
             {
-                if (member.UseDestinationValue)
-                    return null;
 
                 if (!arg.Settings.Resolvers.Any(r => r.DestinationMemberName == member.DestinationMember.Name)
                     && contructorMembers.Any(x=>string.Equals(x.Name, member.DestinationMember.Name, StringComparison.InvariantCultureIgnoreCase)))
@@ -79,7 +149,23 @@ namespace Mapster.Adapters
                 if (member.DestinationMember.SetterModifier == AccessModifier.None)
                     continue;
 
-                var value = CreateAdaptExpression(member.Getter, member.DestinationMember.Type, arg, member);
+                var adapt = CreateAdaptExpression(member.Getter, member.DestinationMember.Type, arg, member);
+
+                if (arg.MapType == MapType.MapToTarget && arg.Settings.IgnoreNullValues == true && member.Getter.CanBeNull()) // add IgnoreNullValues support
+                {
+                    if (adapt is ConditionalExpression condEx)
+                    {
+                        if (condEx.Test is BinaryExpression { NodeType: ExpressionType.Equal } binEx &&
+                            binEx.Left == member.Getter &&
+                            binEx.Right is ConstantExpression { Value: null })
+                            adapt = condEx.IfFalse;
+                    }
+                    var condition = Expression.NotEqual(member.Getter, Expression.Constant(null, member.Getter.Type));
+                    adapt = Expression.Condition(condition, adapt, member.DestinationMember.GetExpression(destination));
+                }
+
+
+
 
                 //special null property check for projection
                 //if we don't set null to property, EF will create empty object
@@ -90,9 +176,9 @@ namespace Mapster.Adapters
                     && !member.DestinationMember.Type.IsCollection()
                     && member.Getter.Type.GetTypeInfo().GetCustomAttributesData().All(attr => attr.GetAttributeType().Name != "ComplexTypeAttribute"))
                 {
-                    value = member.Getter.NotNullReturn(value);
+                    adapt = member.Getter.NotNullReturn(adapt);
                 }
-                var bind = Expression.Bind((MemberInfo)member.DestinationMember.Info!, value);
+                var bind = Expression.Bind((MemberInfo)member.DestinationMember.Info!, adapt);
                 lines.Add(bind);
             }
 
@@ -128,6 +214,7 @@ namespace Mapster.Adapters
 
             return lines;
         }
+
     }
 
 }

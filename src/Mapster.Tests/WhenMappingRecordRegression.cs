@@ -2,6 +2,8 @@
 using Shouldly;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
+using static Mapster.Tests.WhenMappingRecordRegression;
 
 namespace Mapster.Tests
 {
@@ -16,20 +18,83 @@ namespace Mapster.Tests
         {
             TypeAdapterConfig<TestRecordY, TestRecordY>
                 .NewConfig()
+                .IgnoreNullValues(true)
                 .Ignore(dest => dest.Y);
+
+            TypeAdapterConfig<TestSourceZ, TestRecordZ>
+              .NewConfig()
+              .IgnoreNullValues(true);
+              //.Ignore(dest => dest.Y);
 
             var _source = new TestRecord() { X = 700 };
             var _destination = new TestRecordY() { X = 500 , Y = 200 };
 
+            var _sourceZ = new TestSourceZ();
+
             var _destination2 = new TestRecordY() { X = 300, Y = 400 };
-            var _result = _source.Adapt(_destination);
+            // var _result = _source.Adapt(_destination);
 
-            var result2 = _destination.Adapt(_destination2);
+            //  var result2 = _destination.Adapt(_destination2);
 
-            _result.X.ShouldBe(700);
-            _result.Y.ShouldBe(200);
-            object.ReferenceEquals(_result, _destination).ShouldBeFalse();
+            var t = _sourceZ.BuildAdapter().CreateMapExpression<TestRecordZ>();
+            var s = _sourceZ.BuildAdapter().CreateMapToTargetExpression<TestRecordZ>();
+
+
+            var resultZ = _sourceZ.Adapt< TestRecordZ>();
+
+
+
+
+
+            var fff = new TestRecordZ
+            {
+                X = 123,
+                Y = 334,
+
+                
+            };
+
+            // func = MapUseDestinationValue();
+
+            //Expression<TestSourceZ, TestRecordZ> map = MapUseDestinationValue(_sourceZ);
+
+            //typeof(TestRecordZ).GetField("<Z>k__BackingField", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(fff, 3);
+
+            //var s = _sourceZ.BuildAdapter().CreateMapExpression<TestRecordZ>();
+            //_result.X.ShouldBe(700);
+            //_result.Y.ShouldBe(200);
+            //object.ReferenceEquals(_result, _destination).ShouldBeFalse();
         }
+
+        public class StudentDto
+        {
+            public StudentName Name { get; set; }
+        }
+
+
+        public class StudentName
+        {
+            public string Name { get; set; }
+        }
+
+
+
+
+        //public TestRecordZ MapUseDestinationValue(TestSourceZ var1)
+        //{
+        //    TestRecordZ result = new()
+        //    {
+        //        X = var1.X,
+        //        Y = var1.Y,
+
+        //    };
+
+        //    typeof(TestRecordZ).GetField("<Z>k__BackingField", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(result, var1.Z);
+
+        //    return result;
+        //}
+
+
 
         [TestMethod]
         public void AdaptPositionalRecordToPositionalRecord()
@@ -392,6 +457,27 @@ namespace Mapster.Tests
         }
 
 
+        [TestMethod]
+        public void Tst()
+        {
+            TypeAdapterConfig<Source7191, Destination7191>.NewConfig()
+             .MapToConstructor(true)
+             //.IgnoreNullValues(true)
+             //.ConstructUsing(x => new Destination7191(33, 44))
+             .Map(dest => dest.Data3, src => src.Data1)
+             .Map(dest => dest.Data4, src => src.Data2)
+             //.IgnoreIf((src, dest) => src.Data1 == 20, dest => dest.Data1)
+             //.IgnoreIf((src, dest) => src.Data2 == 40, dest => dest.Data2)
+             /*.Ignore(x=>x.Data1)*/;
+
+            var source = new Source7191(5, 6); 
+
+            var s = source.BuildAdapter().CreateMapExpression<Destination7191>();
+
+            var result = source.Adapt<Destination7191>();
+        }
+
+
 
         #region NowNotWorking
 
@@ -419,6 +505,59 @@ namespace Mapster.Tests
 
 
     #region TestClasses
+
+    public class Source7191
+    {
+        public Source7191(int data1, int data2)
+        {
+            Data1 = data1;
+            Data2 = data2;
+        }
+
+        public int Data1 { get; private set; }
+        public int Data2 { get; private set; }
+
+        
+    }
+    public class Destination7191
+    {
+        public Destination7191(int data1, int data2)
+        {
+            Data1 = data2;
+            Data2 = data1;
+        }
+
+        public int Data1 { get; private set; }
+        public int Data2 { get; private set; }
+
+        public int Data3 { get; set; }
+        public int Data4 { get; set; }
+    }
+
+
+
+    public class TestSourceZ
+    {
+        public int? X { get; set; } = 300;
+        public int? Y { get; set; } = 200;
+
+        public int? Z { get; set; } = null;
+
+        public StudentName Name { get; set; } = new StudentName { Name = "Skot" } ;
+    }
+
+
+    public record TestRecordZ()
+    {
+        public int X { get; set; }
+        public int Y { get; set; }
+
+        [UseDestinationValue]
+        public string Z { get; } = "0";
+
+        [UseDestinationValue]
+        public StudentName Name { get; } = new StudentName {  Name = "Marta"};
+    }
     public record TestRecordY()
     {
         public int X { get; set; }
