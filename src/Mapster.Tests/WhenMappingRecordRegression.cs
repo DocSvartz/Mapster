@@ -552,6 +552,8 @@ namespace Mapster.Tests
         public int X { get; set; }
         public int Y { get; set; }
 
+        public int S { get; set; }
+
         [UseDestinationValue]
         public string Z { get; } = "0";
 
