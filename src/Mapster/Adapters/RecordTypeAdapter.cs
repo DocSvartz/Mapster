@@ -160,8 +160,10 @@ namespace Mapster.Adapters
                             binEx.Right is ConstantExpression { Value: null })
                             adapt = condEx.IfFalse;
                     }
-                    var condition = Expression.NotEqual(member.Getter, Expression.Constant(null, member.Getter.Type));
-                    adapt = Expression.Condition(condition, adapt, member.DestinationMember.GetExpression(destination));
+                    var destinationCompareNull = Expression.Equal(destination, Expression.Constant(null, destination.Type));
+                    var sourceCondition = Expression.NotEqual(member.Getter, Expression.Constant(null, member.Getter.Type));
+                    var destinationCanbeNull =  Expression.Condition(destinationCompareNull, member.DestinationMember.Type.CreateDefault(), member.DestinationMember.GetExpression(destination));
+                    adapt = Expression.Condition(sourceCondition, adapt, destinationCanbeNull);
                 }
 
 
