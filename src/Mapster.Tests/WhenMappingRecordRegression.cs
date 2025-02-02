@@ -422,6 +422,20 @@ namespace Mapster.Tests
 
         }
 
+        /// <summary>
+        /// https://github.com/MapsterMapper/Mapster/issues/771
+        /// </summary>
+        [TestMethod]
+        public void FixCtorParamMapping()
+        {
+            var sourceRequestPaymentDto = new PaymentDTO("MasterCard", "1234", "12/99", "234", 12);
+            var sourceRequestOrderDto = new  OrderDTO (Guid.NewGuid(), Guid.NewGuid(), "order123", sourceRequestPaymentDto);
+
+            var result = new CreateOrderRequest (sourceRequestOrderDto).Adapt<CreateOrderCommand>();
+
+            result.Order.Payment.CVV.ShouldBe("234");
+        }
+
         #region NowNotWorking
 
         /// <summary>
@@ -445,6 +459,28 @@ namespace Mapster.Tests
         #endregion NowNotWorking
 
     }
+
+    public record CreateOrderRequest(OrderDTO Order);
+
+    public record CreateOrderCommand(OrderDTO Order);
+
+
+    public record OrderDTO
+    (
+    Guid Id,
+    Guid CustomerId,
+    string OrderName,
+    PaymentDTO Payment
+    );
+
+    public record PaymentDTO
+    (
+    string CardName,
+    string CardNumber,
+    string Expiration,
+    string CVV,
+    int PaymentMethod
+    );
 
 
     #region TestClasses
