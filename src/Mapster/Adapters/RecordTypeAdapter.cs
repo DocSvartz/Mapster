@@ -15,6 +15,7 @@ namespace Mapster.Adapters
         protected override int Score => -149;
         protected override bool UseTargetValue => false;
 
+        private List<MemberMapping> SkipIgnoreNullValuesMemberMap = new List<MemberMapping>();
         protected override bool CanMap(PreCompileArgument arg)
         {
             return arg.DestinationType.IsRecordType();
@@ -32,6 +33,7 @@ namespace Mapster.Adapters
         protected override Expression CreateInstantiationExpression(Expression source, Expression? destination, CompileArgument arg)
         {
             //new TDestination(src.Prop1, src.Prop2)
+            SkipIgnoreNullValuesMemberMap.Clear();
 
             Expression installExpr;
 
@@ -83,8 +85,14 @@ namespace Mapster.Adapters
 
                 var adapt = CreateAdaptExpression(member.Getter, member.DestinationMember.Type, arg, member);
 
-                if (arg.MapType == MapType.MapToTarget && arg.Settings.IgnoreNullValues == true && member.Getter.CanBeNull()) // add IgnoreNullValues support
+                if (arg.Settings.IgnoreNullValues == true && member.Getter.CanBeNull()) // add IgnoreNullValues support
                 {
+                    if (arg.MapType != MapType.MapToTarget)
+                    {
+                        SkipIgnoreNullValuesMemberMap.Add(member);
+                        continue;
+                    }
+                        
                     if (adapt is ConditionalExpression condEx)
                     {
                         if (condEx.Test is BinaryExpression { NodeType: ExpressionType.Equal } binEx &&
@@ -157,8 +165,30 @@ namespace Mapster.Adapters
             var classModel = GetSetterModel(arg);
             var classConverter = CreateClassConverter(source, classModel, arg, result);
             var members = classConverter.Members;
-
             var lines = new List<Expression>();
+
+            if(arg.MapType != MapType.MapToTarget)
+            {
+                foreach (var member in SkipIgnoreNullValuesMemberMap)
+                {
+
+                    var adapt = CreateAdaptExpression(member.Getter, member.DestinationMember.Type, arg, member);
+
+                    if (adapt is ConditionalExpression condEx)
+                    {
+                        if (condEx.Test is BinaryExpression { NodeType: ExpressionType.Equal } binEx &&
+                            binEx.Left == member.Getter &&
+                            binEx.Right is ConstantExpression { Value: null })
+                            adapt = condEx.IfFalse;
+                    }
+                    adapt = member.DestinationMember.SetExpression(destination, adapt);
+                    var sourceCondition = Expression.NotEqual(member.Getter, Expression.Constant(null, member.Getter.Type));
+
+                  
+                   lines.Add(Expression.IfThen(sourceCondition, adapt));
+                }
+            }
+               
 
             foreach (var member in members)
             {
