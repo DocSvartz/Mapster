@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 
 namespace Mapster.Utils
@@ -17,10 +18,9 @@ namespace Mapster.Utils
             return Expression.Assign(left, middle);
         }
 
-        public static Expression PropertyOrFieldPath(Expression expr, string path)
+        public static Expression PropertyOrFieldPath(Expression expr, string[] path)
         {
-            var props = path.Split('.');
-            return props.Aggregate(expr, PropertyOrField);
+            return path.Aggregate(expr, PropertyOrField);
         }
 
         private static Expression PropertyOrField(Expression expr, string prop)
@@ -352,7 +352,7 @@ namespace Mapster.Utils
             return getter;
         }
 
-        public static string? GetMemberPath(this LambdaExpression lambda, bool firstLevelOnly = false, bool noError = false)
+        public static string[]? GetMemberPath(this LambdaExpression lambda, bool firstLevelOnly = false, bool noError = false)
         {
             var props = new List<string>();
             var expr = lambda.Body.TrimConversion(true);
@@ -376,7 +376,7 @@ namespace Mapster.Utils
                 throw new ArgumentException("Allow only member access (eg. obj => obj.Child.Name)", nameof(lambda));
             }
             props.Reverse();
-            return string.Join(".", props);
+            return props.ToArray();
         }
 
         public static bool IsIdentity(this LambdaExpression lambda)
