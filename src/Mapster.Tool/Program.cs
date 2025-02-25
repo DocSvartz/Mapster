@@ -76,7 +76,7 @@ namespace Mapster.Tool
             // This way when we compare attribute types (such as MapperAttribute) between our running assembly
             // and the scanned assembly the two types with the same FullName can be considered equal because
             // they both were resolved from AssemblyLoadContext.Default.
-            
+
             // This isolated Assembly Load Context will be able to resolve the Mapster assembly, but
             // the resolved Assembly will be the same one that is in AssemblyLoadContext.Default
             // (the runtime assembly load context that our code refers to by default when referencing
@@ -461,8 +461,8 @@ namespace Mapster.Tool
                     setter.Settings.Resolvers.Add(
                         new InvokerModel
                         {
-                            DestinationMemberName = setting.TargetPropertyName ?? name,
-                            SourceMemberName = name,
+                            DestinationMemberPath = (setting.TargetPropertyName ?? name).Split('.'),
+                            SourceMemberPath = name.Split('.'),
                             Invoker = setting.MapFunc,
                         }
                     );

@@ -1,11 +1,11 @@
-﻿using Mapster.Utils;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Linq;
 using System.Linq.Expressions;
+using Mapster.Utils;
 
 namespace Mapster
 {
-    public class IgnoreDictionary : ConcurrentDictionary<string, IgnoreDictionary.IgnoreItem>, IApplyable<IgnoreDictionary>
+    public class IgnoreDictionary : ConcurrentDictionary<string[], IgnoreDictionary.IgnoreItem>, IApplyable<IgnoreDictionary>
     {
         public readonly struct IgnoreItem
         {
@@ -19,11 +19,14 @@ namespace Mapster
             public bool IsChildPath { get; }
         }
 
+        public IgnoreDictionary() : base(new StringArrayEqualityComparer()) { }
+
         public void Apply(object other)
         {
             if (other is IgnoreDictionary collection)
                 Apply(collection);
         }
+
         public void Apply(IgnoreDictionary other)
         {
             foreach (var member in other)
@@ -32,9 +35,9 @@ namespace Mapster
             }
         }
 
-        internal void Merge(string name, in IgnoreItem src)
+        internal void Merge(string[] path, in IgnoreItem src)
         {
-            if (src.Condition != null && TryGetValue(name, out var item))
+            if (src.Condition != null && TryGetValue(path, out var item))
             {
                 if (item.Condition == null)
                     return;
@@ -43,10 +46,10 @@ namespace Mapster
                 var body = item.IsChildPath ? item.Condition.Body : item.Condition.Apply(param[0], param[1]);
                 var condition = Expression.Lambda(Expression.OrElse(src.Condition.Body, body), param);
 
-                TryUpdate(name, new IgnoreItem(condition, src.IsChildPath), item);
+                TryUpdate(path, new IgnoreItem(condition, src.IsChildPath), item);
             }
             else
-                TryAdd(name, src);
+                TryAdd(path, src);
 
         }
 
@@ -55,7 +58,7 @@ namespace Mapster
             var result = new IgnoreDictionary();
             foreach (var member in this)
             {
-                if (!member.Key.StartsWith(destMemberName + "."))
+                if (member.Key.Length <= 1 || member.Key[0] != destMemberName)
                     continue;
 
                 var condition = member.Value.IsChildPath || member.Value.Condition == null
@@ -63,7 +66,7 @@ namespace Mapster
                     : Expression.Lambda(member.Value.Condition.Apply(source, destination), source, destination);
 
                 var next = new IgnoreItem(condition, true);
-                result.Merge(member.Key.Substring(destMemberName.Length + 1), next);
+                result.Merge(member.Key[1..], next);
             }
 
             return result;

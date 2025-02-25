@@ -57,7 +57,7 @@ namespace Mapster
 
             foreach (var name in names)
             {
-                setter.Settings.Ignore[name] = new IgnoreDictionary.IgnoreItem();
+                setter.Settings.Ignore[new[] { name }] = new IgnoreDictionary.IgnoreItem();
             }
             return setter;
         }
@@ -149,7 +149,7 @@ namespace Mapster
             var invoker = Expression.Lambda(source.Body, Expression.Parameter(typeof(object)));
             setter.Settings.Resolvers.Add(new InvokerModel
             {
-                DestinationMemberName = memberName,
+                DestinationMemberPath = memberName.Split('.'),
                 Invoker = invoker,
                 Condition = null
             });
@@ -165,8 +165,8 @@ namespace Mapster
 
             setter.Settings.Resolvers.Add(new InvokerModel
             {
-                DestinationMemberName = memberName,
-                SourceMemberName = source.GetMemberPath(noError: true),
+                DestinationMemberPath = memberName.Split('.'),
+                SourceMemberPath = source.GetMemberPath(noError: true),
                 Invoker = source,
                 Condition = null
             });
@@ -181,8 +181,8 @@ namespace Mapster
 
             setter.Settings.Resolvers.Add(new InvokerModel
             {
-                DestinationMemberName = destinationMemberName,
-                SourceMemberName = sourceMemberName,
+                DestinationMemberPath = destinationMemberName.Split('.'),
+                SourceMemberPath = sourceMemberName.Split('.'),
                 Condition = null
             });
 
@@ -332,7 +332,8 @@ namespace Mapster
 
             foreach (var member in members)
             {
-                Settings.Ignore[member.GetMemberPath()!] = new IgnoreDictionary.IgnoreItem();
+                string[] path = member.GetMemberPath()!;
+                Settings.Ignore[path] = new IgnoreDictionary.IgnoreItem();
             }
             return this;
         }
@@ -352,7 +353,7 @@ namespace Mapster
 
             Settings.Resolvers.Add(new InvokerModel
             {
-                DestinationMemberName = member.GetMemberPath()!,
+                DestinationMemberPath = member.GetMemberPath()!,
                 Invoker = invoker,
                 Condition = null
             });
@@ -373,8 +374,8 @@ namespace Mapster
 
             Settings.Resolvers.Add(new InvokerModel
             {
-                DestinationMemberName = destinationMember.GetMemberPath()!,
-                SourceMemberName = sourceMemberName,
+                DestinationMemberPath = destinationMember.GetMemberPath()!,
+                SourceMemberPath = new[] { sourceMemberName },
                 Condition = null
             });
 
@@ -531,8 +532,8 @@ namespace Mapster
 
             foreach (var member in members)
             {
-                var name = member.GetMemberPath()!;
-                Settings.Ignore.Merge(name, new IgnoreDictionary.IgnoreItem(condition, false));
+                var path = member.GetMemberPath()!;
+                Settings.Ignore.Merge(path, new IgnoreDictionary.IgnoreItem(condition, false));
             }
             return this;
         }
@@ -545,7 +546,7 @@ namespace Mapster
 
             foreach (var member in members)
             {
-                Settings.Ignore.Merge(member, new IgnoreDictionary.IgnoreItem(condition, false));
+                Settings.Ignore.Merge(member.Split('.'), new IgnoreDictionary.IgnoreItem(condition, false));
             }
             return this;
         }
@@ -565,8 +566,8 @@ namespace Mapster
 
             Settings.Resolvers.Add(new InvokerModel
             {
-                DestinationMemberName = member.GetMemberPath()!,
-                SourceMemberName = sourceName,
+                DestinationMemberPath = member.GetMemberPath()!,
+                SourceMemberPath = sourceName,
                 Invoker = source,
                 Condition = shouldMap
             });
@@ -581,8 +582,8 @@ namespace Mapster
 
             Settings.Resolvers.Add(new InvokerModel
             {
-                DestinationMemberName = memberName,
-                SourceMemberName = source.GetMemberPath(noError: true),
+                DestinationMemberPath = memberName.Split('.'),
+                SourceMemberPath = source.GetMemberPath(noError: true),
                 Invoker = source,
                 Condition = shouldMap
             });

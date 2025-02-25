@@ -105,8 +105,9 @@ namespace Mapster.Adapters
 
             //ignore mapped
             var ignores = arg.Settings.Resolvers
-                .Select(r => r.SourceMemberName)
-                .Where(name => name != null)
+                .Select(r => r.SourceMemberPath)
+                .Where(path => path != null)
+                .Select(path => path![0])
                 .ToHashSet();
 
             //ignore
@@ -114,7 +115,7 @@ namespace Mapster.Adapters
             foreach (var ignore in arg.Settings.Ignore)
             {
                 if (ignore.Value.Condition == null)
-                    ignores.Add(ignore.Key);
+                    ignores.Add(ignore.Key[0]);
                 else
                 {
                     var body = ignore.Value.IsChildPath
@@ -123,7 +124,7 @@ namespace Mapster.Adapters
                     var setWithCondition = Expression.IfThen(
                         ExpressionEx.Not(body),
                         set);
-                    ignoreIfs.Add(ignore.Key, setWithCondition);
+                    ignoreIfs.Add(ignore.Key[0], setWithCondition);
                 }
             }
 
