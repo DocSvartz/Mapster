@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using Mapster.Utils;
 
 namespace Mapster
 {
@@ -21,16 +20,18 @@ namespace Mapster
         internal HashSet<string> GetSourceNames()
         {
             return _srcNames ??= (from it in Settings.Resolvers
-                where it.SourceMemberName != null
-                select it.SourceMemberName!.Split('.').First()).ToHashSet();
+                                  where it.SourceMemberName != null
+                                  select it.SourceMemberName!.Split('.').First()).ToHashSet();
         }
 
         private HashSet<string>? _destNames;
-        internal HashSet<string> GetDestinationNames()
+        internal HashSet<string> GetDestinationNames(bool split = true)
         {
             return _destNames ??= (from it in Settings.Resolvers
-                where it.DestinationMemberName != null
-                select it.DestinationMemberName.Split('.').First()).ToHashSet();
+                                   where it.DestinationMemberName != null
+                                   select split
+                                       ? it.DestinationMemberName.Split('.').First()
+                                       : it.DestinationMemberName).ToHashSet();
         }
 
         private bool _fetchConstructUsing;

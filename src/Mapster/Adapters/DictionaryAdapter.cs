@@ -219,7 +219,7 @@ namespace Mapster.Adapters
         protected override ClassModel GetSetterModel(CompileArgument arg)
         {
             //get member name from map
-            var destNames = arg.GetDestinationNames().AsEnumerable();
+            var destNames = arg.GetDestinationNames(false).AsEnumerable();
 
             //get member name from properties
             if (arg.SourceType.GetDictionaryType() == null)

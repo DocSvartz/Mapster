@@ -173,6 +173,23 @@ namespace Mapster.Tests
         }
 
         [TestMethod]
+        public void Dictionary_To_Object_Map_With_Periods()
+        {
+            var dict = new Dictionary<string, object>
+            {
+                ["Key.With.Periods"] = Guid.NewGuid(),
+                ["Foo"] = "test",
+            };
+
+            TypeAdapterConfig<Dictionary<string, object>, SimplePoco>.NewConfig()
+                .Map(c => c.Id, "Key.With.Periods");
+
+            var poco = TypeAdapter.Adapt<SimplePoco>(dict);
+            poco.Id.ShouldBe(dict["Key.With.Periods"]);
+            poco.Name.ShouldBeNull();
+        }
+
+        [TestMethod]
         public void Dictionary_To_Object_CamelCase()
         {
             TypeAdapterConfig.GlobalSettings.Default.NameMatchingStrategy(NameMatchingStrategy.FromCamelCase);
