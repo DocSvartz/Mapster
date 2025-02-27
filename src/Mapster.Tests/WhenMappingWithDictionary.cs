@@ -37,7 +37,6 @@ namespace Mapster.Tests
             dict["Name"].ShouldBe(poco.Name);
         }
 
-
         [TestMethod]
         public void Object_To_Dictionary_Map()
         {
@@ -54,6 +53,25 @@ namespace Mapster.Tests
 
             dict.Count.ShouldBe(2);
             dict["Code"].ShouldBe(poco.Id);
+            dict["Name"].ShouldBe(poco.Name);
+        }
+
+        [TestMethod]
+        public void Object_To_Dictionary_Map_With_Periods()
+        {
+            var poco = new SimplePoco
+            {
+                Id = Guid.NewGuid(),
+                Name = "test",
+            };
+
+            var config = new TypeAdapterConfig();
+            config.NewConfig<SimplePoco, Dictionary<string, object>>()
+                .Map("Key.With.Periods", c => c.Id);
+            var dict = poco.Adapt<Dictionary<string, object>>(config);
+
+            dict.Count.ShouldBe(2);
+            dict["Key.With.Periods"].ShouldBe(poco.Id);
             dict["Name"].ShouldBe(poco.Name);
         }
 
