@@ -1,11 +1,11 @@
-﻿using Mapster.Models;
-using Mapster.Utils;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using Mapster.Models;
+using Mapster.Utils;
 
 // ReSharper disable once CheckNamespace
 namespace Mapster
@@ -69,7 +69,7 @@ namespace Mapster
             var bindingFlags = BindingFlags.Instance | BindingFlags.Public;
             if (includeNonPublic)
                 bindingFlags |= BindingFlags.NonPublic;
-            
+
             if (type.GetTypeInfo().IsInterface)
             {
                 var allInterfaces = GetAllInterfaces(type);
@@ -173,9 +173,9 @@ namespace Mapster
             if (type.IsConvertible())
                 return false;
 
-            if(RecordTypeIdentityHelper.IsDirectiveTagret(type)) // added Support work from custom Attribute
+            if (RecordTypeIdentityHelper.IsDirectiveTagret(type)) // added Support work from custom Attribute
                 return true;
-          
+
             #region SupportingСurrentBehavior for Config Clone and Fork 
 
             if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(KeyValuePair<,>))
@@ -183,7 +183,7 @@ namespace Mapster
 
             #endregion SupportingСurrentBehavior for Config Clone and Fork 
 
-           if(RecordTypeIdentityHelper.IsRecordType(type))
+            if (RecordTypeIdentityHelper.IsRecordType(type))
                 return true;
 
             return false;
@@ -222,7 +222,7 @@ namespace Mapster
             var setType = typeof(HashSet<>).MakeGenericType(elementType);
             return type.GetTypeInfo().IsAssignableFrom(setType.GetTypeInfo());
         }
-        
+
         public static bool IsAssignableFromCollection(this Type type)
         {
             return type.IsAssignableFromList() || type.IsAssignableFromSet();
@@ -257,9 +257,9 @@ namespace Mapster
                 return destinationType;
             }
 #endif
-            return destinationType.GetInterface(type => 
-                type.GetTypeInfo().IsGenericType && 
-                type.GetGenericTypeDefinition() == typeof(IDictionary<,>) );
+            return destinationType.GetInterface(type =>
+                type.GetTypeInfo().IsGenericType &&
+                type.GetGenericTypeDefinition() == typeof(IDictionary<,>));
         }
 
         public static AccessModifier GetAccessModifier(this FieldInfo memberInfo)
@@ -352,7 +352,7 @@ namespace Mapster
 
         public static IEnumerable<InvokerModel> Next(this IEnumerable<InvokerModel> resolvers, IgnoreDictionary ignore, ParameterExpression source, string destName)
         {
-            return resolvers.Where(it => !ignore.TryGetValue(it.DestinationMemberName, out var item) || item.Condition != null)
+            return resolvers.Where(it => !ignore.TryGetValue(it.DestinationMemberPath, out var item) || item.Condition != null)
                     .Select(it => it.Next(source, destName))
                     .Where(it => it != null)!;
         }
@@ -370,7 +370,7 @@ namespace Mapster
                 type = type.GetTypeInfo().BaseType;
             } while (type != null && type != typeof(object));
         }
-        
+
         public static bool IsInitOnly(this PropertyInfo propertyInfo)
         {
             var setMethod = propertyInfo.SetMethod;

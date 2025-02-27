@@ -26,7 +26,7 @@ namespace Mapster.Adapters
                 arg.Settings.ExtraSources.Select(src =>
                     src is LambdaExpression lambda 
                         ? lambda.Apply(arg.MapType, source) 
-                        : ExpressionEx.PropertyOrFieldPath(source, (string)src)));
+                        : ExpressionEx.PropertyOrFieldPath(source, (string[])src)));
             foreach (var destinationMember in destinationMembers)
             {
                 if (ProcessIgnores(arg, destinationMember, out var ignore))
@@ -124,7 +124,7 @@ namespace Mapster.Adapters
             if (!destinationMember.ShouldMapMember(arg, MemberSide.Destination))
                 return true;
 
-            return arg.Settings.Ignore.TryGetValue(destinationMember.Name, out ignore)
+            return arg.Settings.Ignore.TryGetValue(new[] { destinationMember.Name }, out ignore)
                    && ignore.Condition == null;
         }
 

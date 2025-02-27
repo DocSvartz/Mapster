@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Mapster.Models;
+using Mapster.Utils;
 
 namespace Mapster
 {
@@ -249,7 +250,8 @@ namespace Mapster
             {
                 if (sourceProperties.Contains(selectorProperty)) continue;
                 // Check whether the adapter config has a config for the property
-                if (rule != null && rule.Settings.Resolvers.Any(r => r.DestinationMemberName.Equals(selectorProperty))) continue;
+                StringArrayEqualityComparer equalityComparer = new();
+                if (rule != null && rule.Settings.Resolvers.Any(r => equalityComparer.Equals(r.DestinationMemberPath, selectorProperty.Split('.')))) continue;
                 throw new Exception($"Property {selectorProperty} does not exist in {sourceType.Name} and is not configured in Mapster");
             }
             return source.Adapt<TDestination>(config);

@@ -5,27 +5,28 @@ namespace Mapster.Models
 {
     public class InvokerModel
     {
-        public string DestinationMemberName { get; set; }
+        public string[] DestinationMemberPath { get; set; }
         public LambdaExpression? Invoker { get; set; }
-        public string? SourceMemberName { get; set; }
+        public string[]? SourceMemberPath { get; set; }
         public LambdaExpression? Condition { get; set; }
         public bool IsChildPath { get; set; }
 
         public InvokerModel? Next(ParameterExpression source, string destMemberName)
         {
-            if (!DestinationMemberName.StartsWith(destMemberName + "."))
+            if (DestinationMemberPath.Length == 0
+                || DestinationMemberPath[0] != destMemberName)
                 return null;
 
             return new InvokerModel
             {
-                DestinationMemberName = DestinationMemberName.Substring(destMemberName.Length + 1),
+                DestinationMemberPath = DestinationMemberPath[1..],
                 Condition = IsChildPath || Condition == null
                     ? Condition
                     : Expression.Lambda(Condition.Apply(source), source),
                 Invoker = IsChildPath
                     ? Invoker
                     : Expression.Lambda(GetInvokingExpression(source), source),
-                SourceMemberName = SourceMemberName,
+                SourceMemberPath = SourceMemberPath,
                 IsChildPath = true,
             };
         }
@@ -34,8 +35,8 @@ namespace Mapster.Models
         {
             if (IsChildPath)
                 return Invoker!.Body;
-            return SourceMemberName != null
-                ? ExpressionEx.PropertyOrFieldPath(exp, SourceMemberName)
+            return SourceMemberPath != null
+                ? ExpressionEx.PropertyOrFieldPath(exp, SourceMemberPath)
                 : Invoker!.Apply(mapType, exp);
         }
 

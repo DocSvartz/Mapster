@@ -214,7 +214,9 @@ namespace Mapster.Adapters
                 if (member.UseDestinationValue)
                     return null;
 
-                if (!arg.Settings.Resolvers.Any(r => r.DestinationMemberName == member.DestinationMember.Name) 
+                if (!arg.Settings.Resolvers.Any(r
+                        => r.DestinationMemberPath.Length == 1
+                        && r.DestinationMemberPath[0] == member.DestinationMember.Name)
                     && member.Getter is MemberExpression memberExp && contructorMembers.Contains(memberExp.Member))
                     continue;
 

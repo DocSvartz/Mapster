@@ -36,7 +36,8 @@ namespace Mapster
             Expression? getter = null;
             foreach (var resolver in resolvers)
             {
-                if (!destinationMember.Name.Equals(resolver.DestinationMemberName, StringComparison.InvariantCultureIgnoreCase))
+                if (resolver.DestinationMemberPath.Length != 1
+                    || !destinationMember.Name.Equals(resolver.DestinationMemberPath[0], StringComparison.InvariantCultureIgnoreCase))
                     continue;
 
                 var invoke = resolver.GetInvokingExpression(source, arg.MapType);
@@ -146,8 +147,8 @@ namespace Mapster
                 {
                     yield return new InvokerModel
                     {
-                        SourceMemberName = member.Name,
-                        DestinationMemberName = destinationMember.Name + "." + prop,
+                        SourceMemberPath = new[] { member.Name },
+                        DestinationMemberPath = new[] { destinationMember.Name }.Concat(prop.Split('.')).ToArray(),
                     };
                 }
             }
@@ -222,11 +223,12 @@ namespace Mapster
             Expression? lastCondition = null;
             foreach (var resolver in resolvers)
             {
-                if (!destinationMember.Name.Equals(resolver.DestinationMemberName))
+                if (resolver.DestinationMemberPath.Length != 1
+                    || !destinationMember.Name.Equals(resolver.DestinationMemberPath[0]))
                     continue;
 
                 Expression invoke = resolver.Invoker == null
-                    ? Expression.Call(method, source.To(dictType), Expression.Constant(resolver.SourceMemberName))
+                    ? Expression.Call(method, source.To(dictType), Expression.Constant(resolver.SourceMemberPath![0]))
                     : resolver.GetInvokingExpression(source, arg.MapType);
                 getter = lastCondition != null
                     ? Expression.Condition(lastCondition, getter!, invoke)
