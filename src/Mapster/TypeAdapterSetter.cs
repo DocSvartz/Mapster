@@ -15,6 +15,9 @@ namespace Mapster
         protected const string ResultParameterName = "result";
         protected const string DestinationParameterName = "destination";
 
+        public Type TSource { get; set; }
+        public Type TDestination { get; set; }
+
         public readonly TypeAdapterSettings Settings;
         public readonly TypeAdapterConfig Config;
         public TypeAdapterSetter(TypeAdapterSettings settings, TypeAdapterConfig config)
@@ -175,18 +178,30 @@ namespace Mapster
         }
 
         public static TSetter Map<TSetter>(
-            this TSetter setter, string destinationMemberName, string sourceMemberName) where TSetter : TypeAdapterSetter
+            this TSetter setter, string destinationMemberName, string sourceMemberName, char? altSeparator = null) where TSetter : TypeAdapterSetter
         {
             setter.CheckCompiled();
 
-            setter.Settings.Resolvers.Add(new InvokerModel
-            {
-                DestinationMemberPath = destinationMemberName.Split('.'),
-                SourceMemberPath = sourceMemberName.Split('.'),
-                Condition = null
-            });
 
-            return setter;
+
+           var MappingTypes =  new TypeTuple(setter.TSource,setter.TDestination);
+
+            if (MappingTypes.IsValidMemeberName(destinationMemberName,sourceMemberName, altSeparator))
+            {
+                setter.Settings.Resolvers.Add(new InvokerModel
+                {
+                    DestinationMemberPath = MappingTypes.Destination.GetSeparatedMemeberPath(destinationMemberName,altSeparator),
+                    SourceMemberPath = MappingTypes.Source.GetSeparatedMemeberPath(sourceMemberName, altSeparator),
+                    Condition = null
+                });
+                return setter;
+            }
+           
+               
+            throw new Exception($"{MappingTypes.GetNameOfTypeWithUnsupportedMemeberName()} " +
+                $"Contains Members with unsupported Names. Use the Alternate Separator (' / ') " +
+                $"to access properties of internal members -> .Map(MemberName + \"/Id\", c => c.Id)");
+
         }
 
         public static TSetter EnableNonPublicMembers<TSetter>(this TSetter setter, bool value) where TSetter : TypeAdapterSetter

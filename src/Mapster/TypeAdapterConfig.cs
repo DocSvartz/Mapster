@@ -175,7 +175,13 @@ namespace Mapster
         {
             var key = new TypeTuple(typeof(TSource), typeof(TDestination));
             var settings = GetSettings(key);
-            return new TypeAdapterSetter<TSource, TDestination>(settings, this);
+
+            var result = new TypeAdapterSetter<TSource, TDestination>(settings, this);
+
+            result.TSource = typeof(TSource);
+            result.TDestination = typeof(TDestination);
+
+            return result; 
         }
 
 
@@ -189,7 +195,13 @@ namespace Mapster
         {
             var key = new TypeTuple(sourceType, destinationType);
             var settings = GetSettings(key);
-            return new TypeAdapterSetter(settings, this);
+
+            var result = new TypeAdapterSetter(settings, this);
+
+            result.TSource = sourceType;
+            result.TDestination = destinationType;
+
+            return result;
         }
 
 

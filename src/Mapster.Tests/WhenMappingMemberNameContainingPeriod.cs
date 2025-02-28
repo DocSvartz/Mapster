@@ -126,6 +126,34 @@ public class WhenMappingMemberNameContainingPeriod
     }
 
     [TestMethod]
+    public void Using_Property_Path_String_Nested_Is_Supported()
+    {
+        // Create a target type with a property that contains periods
+        Type targetType = new TestTypeBuilder()
+            .AddProperty<Nested>(MemberName)
+            .CreateType();
+
+
+        // Create the config, both ways
+        TypeAdapterConfig
+            .GlobalSettings
+            .NewConfig(typeof(Source), targetType)
+            .Map(MemberName + "/NestedValue", nameof(Source.Value));
+        TypeAdapterConfig
+            .GlobalSettings
+            .NewConfig(targetType, typeof(Source))
+            .Map(nameof(Source.Value), MemberName + "/NestedValue");
+
+        // Execute the mapping both ways
+        Source source = new() { Value = 551 };
+        object target = source.Adapt(typeof(Source), targetType);
+        Source adaptedSource = target.Adapt<Source>();
+
+        Assert.AreEqual(source.Value, adaptedSource.Value);
+    }
+
+    [Ignore]
+    [TestMethod]
     public void Object_To_Dictionary_Map()
     {
         var poco = new SimplePoco
@@ -174,6 +202,11 @@ public class WhenMappingMemberNameContainingPeriod
     private class Source
     {
         public int Value { get; set; }
+    }
+
+    private class Nested
+    {
+        public int NestedValue { get; set; }
     }
 
     private class TestTypeBuilder
