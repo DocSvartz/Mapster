@@ -380,5 +380,60 @@ namespace Mapster
             var isExternalInitType = typeof(System.Runtime.CompilerServices.IsExternalInit);
             return setMethod.ReturnParameter.GetRequiredCustomModifiers().Contains(isExternalInitType);
         }
+
+        public static bool IsTypeWithUnsupportedMemeberName(this Type type)
+        {
+            return
+                type.GetFieldsAndProperties().Any(x => x.Name.Contains('.'));
+               
+        }
+
+        private static bool IsUnsupportedMemeberName(this TypeTuple tuple)
+        {
+            return
+                tuple.Source.IsTypeWithUnsupportedMemeberName()
+                || tuple.Destination.IsTypeWithUnsupportedMemeberName();
+        }
+
+        public static bool IsValidMemeberName(this TypeTuple tuple, string destinationMemberName, string sourceMemberName, char? AltSeparator)
+        {
+
+            var sourseMembers = tuple.Source.GetFieldsAndProperties();
+            var destinationMemebers = tuple.Destination.GetFieldsAndProperties();
+
+            var altSeparator = AltSeparator.HasValue ? AltSeparator.Value : '/';
+
+            if (tuple.IsUnsupportedMemeberName())
+            {
+                var isTopLevelMember = sourseMembers.Any(x => x.Name == sourceMemberName)
+                && destinationMemebers.Any(x => x.Name == destinationMemberName);
+
+                if (isTopLevelMember)
+                    return true;
+                else
+                    return sourceMemberName.Contains(altSeparator)
+                    || destinationMemberName.Contains(altSeparator);
+            }
+
+            return true;
+        }
+
+        public static string[] GetSeparatedMemeberPath(this Type type, string MemberPath, char? altSeparator)
+        {
+            var altseparator = altSeparator.HasValue ? altSeparator.Value : '/';
+
+            if (type.IsTypeWithUnsupportedMemeberName() || MemberPath.Contains(altseparator))
+                return MemberPath.Split(altseparator);
+            else
+                return MemberPath.Split('.');
+        }
+
+        public static string GetNameOfTypeWithUnsupportedMemeberName(this TypeTuple tuple)
+        {
+            if (tuple.Source.IsTypeWithUnsupportedMemeberName())
+                return tuple.Source.Name;
+            else
+                return tuple.Destination.Name;
+        }
     }
 }
