@@ -2,7 +2,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 
 namespace Mapster.Utils
@@ -19,22 +21,84 @@ namespace Mapster.Utils
 
         public static Expression PropertyOrFieldPath(Expression expr, string path)
         {
-            var props = path.Split('.');
-            return props.Aggregate(expr, PropertyOrField);
+            Expression current = expr;
+            string[] props = path.Split('.');
+
+            for (int i = 0; i < props.Length; i++)
+            {
+                if (IsDictionaryKey(current, props[i], out Expression? next))
+                {
+                    current = next;
+                    continue;
+                }
+
+                if (IsPropertyOrField(current, props[i], out next))
+                {
+                    current = next;
+                    continue;
+                }
+
+                // For dynamically built types, it is possible to have periods in the property name.
+                // Rejoin an incrementing number of parts with periods to try and find a property match. 
+                if (IsPropertyOrFieldPathWithPeriods(current, props[i..], out next, out int combinationLength))
+                {
+                    current = next;
+                    i += combinationLength - 1;
+                    continue;
+                }
+
+                throw new ArgumentException($"'{props[i]}' is not a member of type '{current.Type.FullName}'", nameof(path));
+            }
+
+            return current;
         }
 
-        private static Expression PropertyOrField(Expression expr, string prop)
+        private static bool IsPropertyOrFieldPathWithPeriods(Expression expr, string[] path, [NotNullWhen(true)] out Expression? propExpr, out int combinationLength)
+        {
+            if (path.Length < 2)
+            {
+                propExpr = null;
+                combinationLength = 0;
+                return false;
+            }
+
+            for (int count = 2; count <= path.Length; count++)
+            {
+                string prop = string.Join('.', path[..count]);
+                if (IsPropertyOrField(expr, prop, out propExpr))
+                {
+                    combinationLength = count;
+                    return true;
+                }
+            }
+
+            propExpr = null;
+            combinationLength = 0;
+            return false;
+        }
+
+        private static bool IsDictionaryKey(Expression expr, string prop, [NotNullWhen(true)] out Expression? propExpr)
         {
             var type = expr.Type;
             var dictType = type.GetDictionaryType();
-            if (dictType?.GetGenericArguments()[0] == typeof(string))
+
+            if (dictType?.GetGenericArguments()[0] != typeof(string))
             {
+                propExpr = null;
+                return false;
+            }
+
                 var method = typeof(MapsterHelper).GetMethods()
                     .First(m => m.Name == nameof(MapsterHelper.GetValueOrDefault) && m.GetParameters()[0].ParameterType.Name == dictType.Name)
                     .MakeGenericMethod(dictType.GetGenericArguments());
 
-                return Expression.Call(method, expr.To(type), Expression.Constant(prop));
+            propExpr = Expression.Call(method, expr.To(type), Expression.Constant(prop));
+            return true;
             }
+
+        private static bool IsPropertyOrField(Expression expr, string prop, [NotNullWhen(true)] out Expression? propExpr)
+        {
+            Type type = expr.Type;
 
             if (type.GetTypeInfo().IsInterface)
             {
@@ -42,9 +106,27 @@ namespace Mapster.Utils
                 var flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
                 var interfaceType = allTypes.FirstOrDefault(it => it.GetProperty(prop, flags) != null || it.GetField(prop, flags) != null);
                 if (interfaceType != null)
+                {
                     expr = Expression.Convert(expr, interfaceType);
+                    type = expr.Type;
             }
-            return Expression.PropertyOrField(expr, prop);
+            }
+
+            MemberInfo? propertyOrField = type
+                .GetMember(
+                    prop,
+                    MemberTypes.Field | MemberTypes.Property,
+                    BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.FlattenHierarchy)
+                .FirstOrDefault();
+
+            propExpr = propertyOrField?.MemberType switch
+            {
+                MemberTypes.Property => Expression.Property(expr, (PropertyInfo)propertyOrField),
+                MemberTypes.Field => Expression.Field(expr, (FieldInfo)propertyOrField),
+                _ => null
+            };
+
+            return propExpr != null;
         }
 
         private static bool IsReferenceAssignableFrom(this Type destType, Type srcType)
