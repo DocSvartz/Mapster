@@ -13,6 +13,7 @@ namespace Mapster.Tests
         public void TestCleanup()
         {
             TypeAdapterConfig.GlobalSettings.RequireExplicitMapping = false;
+            TypeAdapterConfig.GlobalSettings.RequireExplicitMappingPrimitive = false;
             TypeAdapterConfig.GlobalSettings.Clear();
         }
 
@@ -140,8 +141,60 @@ namespace Mapster.Tests
             setter.Compile(); // Should fail here
         }
 
-        #region TestClasses
+        [TestMethod]
+        public void RequireExplicitMappingPrimitiveWork()
+        {
+            TypeAdapterConfig.GlobalSettings.RequireExplicitMappingPrimitive = true;
 
+            TypeAdapterConfig<Source783, Destination783>.NewConfig();
+
+            Should.Throw<CompileException>(() => 
+            {
+                TypeAdapterConfig.GlobalSettings.Compile(); // throw CompileException
+            });
+
+            byte byteSource = 10;
+
+            byteSource.Adapt<byte>(); // Should work when the type is mapped to itself
+
+            Should.Throw<CompileException>(() =>
+            {
+                byteSource.Adapt<int>();  // throw CompileException, Do not map to another primitive type without registering the configuration
+            });
+
+            Should.NotThrow(() =>
+            {
+                TypeAdapterConfig<byte, int>.NewConfig(); 
+
+                byteSource.Adapt<int>();  // Not throw CompileException when config is registering
+            });
+
+            Should.NotThrow(() =>
+            {
+                TypeAdapterConfig<Source783, Destination783>.NewConfig()
+                    .Map(dest=> dest.MyProperty, src=> int.Parse(src.MyProperty)); 
+                // it work works because int.Parse return Type Int. Type is mapped to itself (int -> int) without config.
+
+                var sourceMapconfig = new Source783() { MyProperty = "128" };
+                var resultMapconfig = sourceMapconfig.Adapt<Destination783>();
+
+                resultMapconfig.MyProperty.ShouldBe(128);
+            });
+
+        }
+
+
+        #region TestClasses
+        
+        public class Source783
+        {
+            public string MyProperty { get; set; } = "";
+        }
+
+        public class Destination783
+        {
+            public int MyProperty { get; set; }
+        }
 
         public enum NameEnum
         {
