@@ -82,6 +82,7 @@ namespace Mapster
 
         public bool RequireDestinationMemberSource { get; set; }
         public bool RequireExplicitMapping { get; set; }
+        public bool RequireExplicitMappingPrimitive { get; set; }
         public bool AllowImplicitDestinationInheritance { get; set; }
         public bool AllowImplicitSourceInheritance { get; set; } = true;
         public bool SelfContainedCodeGeneration { get; set; }
@@ -495,7 +496,7 @@ namespace Mapster
 
         internal Expression CreateMapInvokeExpressionBody(Type sourceType, Type destinationType, Expression p)
         {
-            if (RequireExplicitMapping)
+            if (RequireExplicitMapping || RequireExplicitMappingPrimitive)
             {
                 var key = new TypeTuple(sourceType, destinationType);
                 _mapDict[key] = Compiler(CreateMapExpression(key, MapType.Map));
@@ -518,7 +519,7 @@ namespace Mapster
 
         internal Expression CreateMapToTargetInvokeExpressionBody(Type sourceType, Type destinationType, Expression p1, Expression p2)
         {
-            if (RequireExplicitMapping)
+            if (RequireExplicitMapping || RequireExplicitMappingPrimitive)
             {
                 var key = new TypeTuple(sourceType, destinationType);
                 _mapToTargetDict[key] = Compiler(CreateMapExpression(key, MapType.MapToTarget));
