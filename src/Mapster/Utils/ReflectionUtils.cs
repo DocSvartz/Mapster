@@ -38,7 +38,7 @@ namespace Mapster
 
         public static bool IsMapsterPrimitive(this Type type)
         {
-            return _primitiveTypes.TryGetValue(type, out var primitiveType) || type == typeof(string);
+            return _primitiveTypes.TryGetValue(type, out var primitiveType) || type == typeof(string) || type.IsEnum;
         }
 
         public static bool IsNullable(this Type type)

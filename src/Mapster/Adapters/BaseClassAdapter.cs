@@ -40,6 +40,63 @@ namespace Mapster.Adapters
                         select fn(src, destinationMember, arg))
                     .FirstOrDefault(result => result != null);
 
+                if (arg.MapType == MapType.Projection && getter != null)
+                {
+                    var s = new TopLevelMemberNameVisitor();
+
+                    s.Visit(getter);
+
+                    var match = arg.Settings.ProjectToTypeResolvers.GetValueOrDefault(s.MemeberName);
+
+                    if (match != null)
+                    {
+                        arg.Settings.Resolvers.Add(new InvokerModel
+                        {
+                            Condition = null,
+                            DestinationMemberName = destinationMember.Name,
+                            Invoker = (LambdaExpression)match.Operand,
+                            SourceMemberName = null,
+                            IsChildPath = false
+
+                        });
+                    }
+
+                    getter = (from fn in resolvers
+                              from src in sources
+                              select fn(src, destinationMember, arg))
+                    .FirstOrDefault(result => result != null);
+                }
+
+
+                if (arg.MapType == MapType.Projection)
+                {
+
+                    var checkgetter = (from fn in resolvers.Where(ValueAccessingStrategy.CustomResolvers.Contains)
+                                       from src in sources
+                                       select fn(src, destinationMember, arg))
+                                       .FirstOrDefault(result => result != null);
+
+                    if (checkgetter == null)
+                    {
+                        Type destinationType;
+
+                        if (destinationMember.Type.IsNullable())
+                            destinationType = destinationMember.Type.GetGenericArguments()[0];
+                        else
+                            destinationType = destinationMember.Type;
+
+                        if (arg.Settings.ProjectToTypeMapConfig == Enums.ProjectToTypeAutoMapping.OnlyPrimitiveTypes
+                            && destinationType.IsMapsterPrimitive() == false)
+                            continue;
+
+                        if (arg.Settings.ProjectToTypeMapConfig == Enums.ProjectToTypeAutoMapping.WithoutCollections
+                            && destinationType.IsCollectionCompatible() == true)
+                            continue;
+                    }
+
+                }
+
+
                 var nextIgnore = arg.Settings.Ignore.Next((ParameterExpression)source, (ParameterExpression?)destination, destinationMember.Name);
                 var nextResolvers = arg.Settings.Resolvers.Next(arg.Settings.Ignore, (ParameterExpression)source, destinationMember.Name)
                     .ToList();

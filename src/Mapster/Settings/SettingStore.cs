@@ -25,6 +25,12 @@ namespace Mapster
                 _objectStore[key] = value;
         }
 
+
+        public T GetEnum<T>(string key, Func<T> initializer) where T : System.Enum
+        {
+            return (T)_objectStore.GetOrAdd(key, _ => initializer());
+        }
+
         public bool? Get(string key)
         {
             return _booleanStore.TryGetValue(key, out var value) ? value : null;

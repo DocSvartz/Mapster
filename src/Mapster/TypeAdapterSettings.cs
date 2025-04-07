@@ -1,4 +1,5 @@
-﻿using Mapster.Models;
+﻿using Mapster.Enums;
+using Mapster.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
@@ -104,6 +105,19 @@ namespace Mapster
             get => Get(nameof(MapToTargetPrimitive));
             set => Set(nameof(MapToTargetPrimitive), value);
         }
+
+        public ProjectToTypeAutoMapping ProjectToTypeMapConfig
+        {
+            get => GetEnum(nameof(ProjectToTypeMapConfig), ()=> default(ProjectToTypeAutoMapping));
+            set => Set(nameof(ProjectToTypeMapConfig), value);
+        }
+
+        public  Dictionary<string,UnaryExpression> ProjectToTypeResolvers
+        {
+            get => Get(nameof(ProjectToTypeResolvers), () => new Dictionary<string, UnaryExpression>());
+            set => Set(nameof(ProjectToTypeResolvers), value);
+        }
+
 
         public List<Func<IMemberModel, MemberSide, bool?>> ShouldMapMember
         {
