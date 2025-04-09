@@ -1,6 +1,6 @@
-﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Shouldly;
+using System;
 
 namespace Mapster.Tests
 {
@@ -134,7 +134,48 @@ namespace Mapster.Tests
             poco.IsImport.GetValueOrDefault().ShouldBeTrue();
         }
 
+        /// <summary>
+        /// https://github.com/MapsterMapper/Mapster/issues/414
+        /// </summary>
+        [TestMethod]
+        public void MappingNullTuple()
+        {
+            TypeAdapterConfig<(string?, string?, Application414), Output414>.NewConfig()
+                .Map(dest => dest, src => src.Item1)
+                .Map(dest => dest, src => src.Item2)
+                .Map(dest => dest.Application, src => src.Item3 == null ? (Application414)null : new Application414()
+                 {
+                     Id = src.Item3.Id,
+                     Name = src.Item3.Name
+                 });
+
+            (string, string, Application414) source = (null, null, null);
+
+            var result = source.Adapt<Output414>();
+
+            result.Item1.ShouldBeNull();
+            result.Item2.ShouldBeNull();
+            result.Application.ShouldBeNull();
+        }
+
         #region TestClasses
+
+
+        public class Output414
+        {
+            public string Item1 { get; set; }
+
+            public string Item2 { get; set; }
+
+            public Application414 Application { get; set; }
+        }
+
+        public class Application414
+        {
+            public string Name { get; set; }
+
+            public int Id { get; set; }
+        }
 
         public class NullablePrimitivesPoco
         {
