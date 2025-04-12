@@ -380,5 +380,24 @@ namespace Mapster
             var isExternalInitType = typeof(System.Runtime.CompilerServices.IsExternalInit);
             return setMethod.ReturnParameter.GetRequiredCustomModifiers().Contains(isExternalInitType);
         }
+
+        public static bool IsAssignableToGenericType(this Type derivedType, Type genericType)
+        {
+            
+            if (derivedType.IsGenericType && derivedType.BaseType.GUID == genericType.GUID)
+                return true;
+
+            Type baseType = derivedType.BaseType;
+            if (baseType == null) return false;
+
+            return IsAssignableToGenericType(baseType, genericType);
+        }
+        public static bool IsOpenGenericType(this Type type)
+        {
+            if(type.IsGenericType)
+               return type.GetGenericArguments().All(x=>x.GUID == Guid.Empty);
+
+            return false;
+        }
     }
 }

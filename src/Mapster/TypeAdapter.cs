@@ -136,6 +136,12 @@ namespace Mapster
         /// <returns>Adapted destination type.</returns>
         public static object? Adapt(this object source, Type sourceType, Type destinationType)
         {
+            if (source != null &&
+                sourceType.IsOpenGenericType() && destinationType.IsOpenGenericType())
+            {
+                var arg = source.GetType().GetGenericArguments();
+                return Adapt(source, sourceType.MakeGenericType(arg), destinationType.MakeGenericType(arg), TypeAdapterConfig.GlobalSettings);
+            }
             return Adapt(source, sourceType, destinationType, TypeAdapterConfig.GlobalSettings);
         }
 

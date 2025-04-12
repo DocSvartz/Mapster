@@ -174,39 +174,47 @@ namespace Mapster.Adapters
             //  return adapt<TSource, TDest>(drvdSource);
             foreach (var tuple in arg.Settings.Includes)
             {
+                TypeTuple itemTuple = tuple;
+
+                if (tuple.Source.IsOpenGenericType() && tuple.Destination.IsOpenGenericType())
+                {
+                    var genericArg = source.Type.GetGenericArguments();
+                    itemTuple = new TypeTuple(tuple.Source.MakeGenericType(genericArg), tuple.Destination.MakeGenericType(genericArg));
+                }
+                   
                 //same type, no redirect to prevent endless loop
-                if (tuple.Source == arg.SourceType)
+                if (itemTuple.Source == arg.SourceType)
                     continue;
 
                 //type is not compatible, no redirect
-                if (!arg.SourceType.GetTypeInfo().IsAssignableFrom(tuple.Source.GetTypeInfo()))
+                if (!arg.SourceType.GetTypeInfo().IsAssignableFrom(itemTuple.Source.GetTypeInfo()))
                     continue;
 
-                var drvdSource = Expression.Variable(tuple.Source);
+                var drvdSource = Expression.Variable(itemTuple.Source);
                 vars.Add(drvdSource);
 
                 var drvdSourceAssign = Expression.Assign(
                     drvdSource,
-                    Expression.TypeAs(source, tuple.Source));
+                    Expression.TypeAs(source, itemTuple.Source));
                 blocks.Add(drvdSourceAssign);
-                var cond = Expression.NotEqual(drvdSource, Expression.Constant(null, tuple.Source));
+                var cond = Expression.NotEqual(drvdSource, Expression.Constant(null, itemTuple.Source));
 
                 ParameterExpression? drvdDest = null;
                 if (destination != null)
                 {
-                    drvdDest = Expression.Variable(tuple.Destination);
+                    drvdDest = Expression.Variable(itemTuple.Destination);
                     vars.Add(drvdDest);
 
                     var drvdDestAssign = Expression.Assign(
                         drvdDest,
-                        Expression.TypeAs(destination, tuple.Destination));
+                        Expression.TypeAs(destination, itemTuple.Destination));
                     blocks.Add(drvdDestAssign);
                     cond = Expression.AndAlso(
                         cond,
-                        Expression.NotEqual(drvdDest, Expression.Constant(null, tuple.Destination)));
+                        Expression.NotEqual(drvdDest, Expression.Constant(null, itemTuple.Destination)));
                 }
 
-                var adaptExpr = CreateAdaptExpressionCore(drvdSource, tuple.Destination, arg, destination: drvdDest);
+                var adaptExpr = CreateAdaptExpressionCore(drvdSource, itemTuple.Destination, arg, destination: drvdDest);
                 var adapt = Expression.Return(label, adaptExpr);
                 var ifExpr = Expression.IfThen(cond, adapt);
                 blocks.Add(ifExpr);

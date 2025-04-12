@@ -1,10 +1,5 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Shouldly;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Mapster.Tests
 {
@@ -34,6 +29,60 @@ namespace Mapster.Tests
             var c = new C { BProperty = "C" };
             var b = a.Adapt<B<C>>(config); // successful mapping
             var cCopy = c.Adapt<C>(config);
+        }
+
+        [TestMethod]
+        public void MapOpenGenericsUseInherits()
+        {
+            TypeAdapterConfig.GlobalSettings
+                .ForType(typeof(GenericPoco<>), typeof(GenericDto<>))
+                .Map("value", "Value");
+
+            TypeAdapterConfig.GlobalSettings
+                .ForType(typeof(DerivedPoco<>), typeof(DerivedDto<>))
+                .Map("derivedValue", "DerivedValue")
+                .Inherits(typeof(GenericPoco<>), typeof(GenericDto<>));
+
+            var poco = new DerivedPoco<int> { Value = 123 , DerivedValue = 42 };
+            var dto = poco.Adapt<DerivedDto<int>>();
+            dto.value.ShouldBe(poco.Value);
+            dto.derivedValue.ShouldBe(poco.DerivedValue);
+        }
+
+        [TestMethod]
+        public void MapOpenGenericsUseInclude()
+        {
+            TypeAdapterConfig.GlobalSettings.Clear();
+           
+            TypeAdapterConfig.GlobalSettings
+                .ForType(typeof(DerivedPoco<>), typeof(DerivedDto<>))
+                .Map("derivedValue", "DerivedValue");
+
+            TypeAdapterConfig.GlobalSettings
+                .ForType(typeof(GenericPoco<>), typeof(GenericDto<>))
+                .Map("value", "Value");
+
+            TypeAdapterConfig.GlobalSettings
+               .ForType(typeof(GenericPoco<>), typeof(GenericDto<>))
+               .Include(typeof(DerivedPoco<>), typeof(DerivedDto<>));
+
+            var poco = new DerivedPoco<int> { Value = 123, DerivedValue = 42 };
+            var dto = poco.Adapt(typeof(GenericPoco<>), typeof(GenericDto<>));
+
+            dto.ShouldBeOfType<DerivedDto<int>>();
+
+            ((DerivedDto<int>)dto).value.ShouldBe(poco.Value);
+            ((DerivedDto<int>)dto).derivedValue.ShouldBe(poco.DerivedValue);
+        }
+
+        public class DerivedPoco<T> : GenericPoco<T>
+        {
+            public T DerivedValue { get; set; }
+        }
+
+        public class DerivedDto<T> : GenericDto<T>
+        {
+            public T derivedValue { get; set; }
         }
 
         public class GenericPoco<T>
