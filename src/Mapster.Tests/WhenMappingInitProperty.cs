@@ -19,7 +19,7 @@ public class WhenMappingInitProperty
         var c =  source.Adapt<BDestination>(); 
         var s = source.Adapt(new BDestination());
 
-        ((ADestination)c).Id.ShouldBe(156);
+        ((ADestination)c).Id.ShouldBe(default); // Hidden Base member is not mapping
         s.Id.ShouldBe(156);
     }
 
@@ -33,7 +33,7 @@ public class WhenMappingInitProperty
         var c = source.Adapt<BDestination>();
         var s = source.Adapt(new BDestination());
 
-        ((ADestination)c).Id.ShouldBe(256);
+        ((ADestination)c).Id.ShouldBe(default); // Hidden Base member is not mapping
         s.Id.ShouldBe(256);
     }
 

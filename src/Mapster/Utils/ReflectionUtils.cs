@@ -69,21 +69,42 @@ namespace Mapster
             var bindingFlags = BindingFlags.Instance | BindingFlags.Public;
             if (includeNonPublic)
                 bindingFlags |= BindingFlags.NonPublic;
-            
+
+            var currentTypeMembers = type.FindMembers(MemberTypes.Property | MemberTypes.Field,
+                 BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
+                 (x, y) => true, type.FullName);
+
             if (type.GetTypeInfo().IsInterface)
             {
                 var allInterfaces = GetAllInterfaces(type);
-                return allInterfaces.SelectMany(GetPropertiesFunc);
+                return allInterfaces.SelectMany(x => GetPropertiesFunc(x, currentTypeMembers));
             }
 
-            return GetPropertiesFunc(type).Concat(GetFieldsFunc(type));
+            return GetPropertiesFunc(type, currentTypeMembers).Concat(GetFieldsFunc(type, currentTypeMembers));
 
-            IEnumerable<IMemberModelEx> GetPropertiesFunc(Type t) => t.GetProperties(bindingFlags)
-                .Where(x => x.GetIndexParameters().Length == 0)
+            IEnumerable<IMemberModelEx> GetPropertiesFunc(Type t, MemberInfo[] currentTypeMembers) => t.GetProperties(bindingFlags)
+                .Where(x => x.GetIndexParameters().Length == 0).DropHiddenMembers(currentTypeMembers)
                 .Select(CreateModel);
 
-            IEnumerable<IMemberModelEx> GetFieldsFunc(Type t) => t.GetFields(bindingFlags)
+            IEnumerable<IMemberModelEx> GetFieldsFunc(Type t, MemberInfo[] overlapMembers) =>
+                t.GetFields(bindingFlags).DropHiddenMembers(overlapMembers)
                 .Select(CreateModel);
+        }
+
+        public static IEnumerable<T> DropHiddenMembers<T>(this IEnumerable<T> allMembers, ICollection<MemberInfo> currentTypeMembers) where T : MemberInfo
+        {
+            var compareMemberNames = allMembers.IntersectBy(currentTypeMembers.Select(x => x.Name), x => x.Name).Select(x => x.Name);
+
+            foreach (var member in allMembers)
+            {
+                if (compareMemberNames.Contains(member.Name))
+                {
+                    if (currentTypeMembers.First(x => x.Name == member.Name).MetadataToken == member.MetadataToken)
+                        yield return member;
+                }
+                else
+                    yield return member;
+            }
         }
 
         // GetProperties(), GetFields(), GetMethods() do not return properties/methods from parent interfaces,
