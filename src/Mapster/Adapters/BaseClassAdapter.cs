@@ -21,6 +21,9 @@ namespace Mapster.Adapters
             var unmappedDestinationMembers = new List<string>();
             var properties = new List<MemberMapping>();
 
+            if (arg.Settings.IgnoreNonMapped == true)
+                IgnoreNonMapped(classModel,arg);
+          
             var sources = new List<Expression> {source};
             sources.AddRange(
                 arg.Settings.ExtraSources.Select(src =>
@@ -34,11 +37,7 @@ namespace Mapster.Adapters
 
                 var resolvers = arg.Settings.ValueAccessingStrategies.AsEnumerable();
                 if (arg.Settings.IgnoreNonMapped == true)
-                {
-                    arg.Settings.SkipDestinationMemberCheck = true;
                     resolvers = resolvers.Where(ValueAccessingStrategy.CustomResolvers.Contains);
-                }
-                    
                 var getter = (from fn in resolvers
                         from src in sources
                         select fn(src, destinationMember, arg))
@@ -183,6 +182,18 @@ namespace Mapster.Adapters
             {
                 Members = arg.DestinationType.GetFieldsAndProperties(true)
             };
+        }
+
+        protected void IgnoreNonMapped (ClassModel classModel, CompileArgument arg)
+        {
+            var notMappingToIgnore = classModel.Members
+                .ExceptBy(arg.Settings.Resolvers.Select(x => x.DestinationMemberName), 
+                y => y.Name);
+
+            foreach (var item in notMappingToIgnore)
+            {
+                arg.Settings.Ignore.TryAdd(item.Name, new IgnoreDictionary.IgnoreItem());
+            }
         }
 
         #endregion
