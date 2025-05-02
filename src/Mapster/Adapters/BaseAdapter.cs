@@ -201,9 +201,12 @@ namespace Mapster.Adapters
                         drvdDest,
                         Expression.TypeAs(destination, tuple.Destination));
                     blocks.Add(drvdDestAssign);
-                    cond = Expression.AndAlso(
-                        cond,
-                        Expression.NotEqual(drvdDest, Expression.Constant(null, tuple.Destination)));
+
+                    // fix by https://github.com/MapsterMapper/Mapster/issues/794
+                    // This can be removed if it does not cause any other bugs.
+                    // cond = Expression.AndAlso(
+                    //     cond,
+                    //     Expression.NotEqual(drvdDest, Expression.Constant(null, tuple.Destination)));
                 }
 
                 var adaptExpr = CreateAdaptExpressionCore(drvdSource, tuple.Destination, arg, destination: drvdDest);
