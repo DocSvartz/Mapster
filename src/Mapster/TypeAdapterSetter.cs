@@ -552,7 +552,9 @@ namespace Mapster
 
         public TypeAdapterSetter<TSource, TDestination> Map<TDestinationMember, TSourceMember>(
             Expression<Func<TDestination, TDestinationMember>> member,
-            Expression<Func<TSource, TSourceMember>> source, Expression<Func<TSource, bool>>? shouldMap = null)
+            Expression<Func<TSource, TSourceMember>> source,
+            Expression<Func<TSource, bool>>? shouldMap = null,
+            TDestinationMember defaultValue = default)
         {
             this.CheckCompiled();
 
@@ -568,6 +570,7 @@ namespace Mapster
                 DestinationMemberName = member.GetMemberPath()!,
                 SourceMemberName = sourceName,
                 Invoker = source,
+                DefaultValue = defaultValue == null ? null : Expression.Lambda(Expression.Constant( defaultValue)),
                 Condition = shouldMap
             });
             return this;

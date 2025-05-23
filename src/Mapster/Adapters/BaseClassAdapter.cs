@@ -56,9 +56,13 @@ namespace Mapster.Adapters
                 };
                 if (getter != null)
                 {
+                    var customDefault = arg.Settings.Resolvers
+                        .Where(x=>x.DefaultValue != null && x.DestinationMemberName == destinationMember.Name)
+                        .FirstOrDefault()?.DefaultValue;
+
                     propertyModel.Getter = arg.MapType == MapType.Projection 
                         ? getter 
-                        : getter.ApplyNullPropagation();
+                        : getter.ApplyNullPropagation(customDefault);
                     properties.Add(propertyModel);
                 }
                 else

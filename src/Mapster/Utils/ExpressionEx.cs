@@ -325,29 +325,48 @@ namespace Mapster.Utils
 
             return param;
         }
-        public static Expression ApplyNullPropagation(this Expression getter)
+        public static Expression ApplyNullPropagation(this Expression getter, LambdaExpression? customDefaultValue)
         {
             var current = getter;
             var result = getter;
+            var memberNestingLevel = 0; 
+
             while (current.NodeType == ExpressionType.MemberAccess)
             {
-                var memEx = (MemberExpression) current;
+                var memEx = (MemberExpression)current;
                 var expr = memEx.Expression;
                 if (expr == null)
                     break;
-                if (expr.NodeType == ExpressionType.Parameter) 
+
+                if (expr.NodeType == ExpressionType.Parameter && customDefaultValue == null)
                     return result;
 
+                var defValue = customDefaultValue == null ? result.Type.CreateDefault() : customDefaultValue.Body;
+
+                if (!defValue.Type.CanBeNull())
+                {
+                    defValue = Expression.Convert(defValue, typeof(Nullable<>).MakeGenericType(defValue.Type));
+                    if(customDefaultValue == null)
+                        defValue = defValue.Type.CreateDefault();
+                }
                 if (expr.CanBeNull())
                 {
                     var compareNull = Expression.Equal(expr, Expression.Constant(null, expr.Type));
+
+                    if (memberNestingLevel == 0 && customDefaultValue != null && getter.Type.CanBeNull())
+                        compareNull = Expression.OrElse(compareNull, Expression.Equal(getter, Expression.Constant(null, getter.Type)));
+
                     if (!result.Type.CanBeNull())
                         result = Expression.Convert(result, typeof(Nullable<>).MakeGenericType(result.Type));
-                    result = Expression.Condition(compareNull, result.Type.CreateDefault(), result);
+                    result = Expression.Condition(compareNull, defValue, result);
                 }
 
+                memberNestingLevel++;
                 current = expr;
             }
+
+            if (current.NodeType == ExpressionType.Parameter && customDefaultValue != null)
+                return result;
 
             return getter;
         }
