@@ -46,6 +46,24 @@ public class WhenNullPropagationRegression
         dto.Location.ShouldBe(customdefault);
     }
 
+    [TestMethod]
+    public void WhenThrowWhenNullWorked()
+    {
+        TypeAdapterConfig<PocoToPathNullPropagation, DtoToPathNullPropagation>.NewConfig()
+                .Map(dest => dest.Location, src => src.Child.Address.Location).ThrowWhenNull();
+
+        var poco = new PocoToPathNullPropagation
+        {
+            Id = Guid.NewGuid(),
+            Child = new()
+        };
+
+        Should.Throw<NullReferenceException>(() =>
+        {
+            var dto = poco.Adapt<DtoToPathNullPropagation>();
+        });
+    }
+
     #region Classes
 
     public class SimplePocoToNullPropagation

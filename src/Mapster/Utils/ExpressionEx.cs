@@ -371,6 +371,63 @@ namespace Mapster.Utils
             return getter;
         }
 
+        public static Expression ApplyThrowPropagation(this Expression getter)
+        {
+            var types = new Type[1];
+            types[0] =(typeof(string));
+            var constructorInfo = typeof(NullReferenceException).GetConstructor(types);
+
+            if (getter is BinaryExpression get)
+            {
+                var resultType = ((MemberExpression)get.Left).Expression?.Type.Name;
+                var sourceType = ((MemberExpression)get.Right).Expression?.Type.Name;
+                var memberNestingLevel = 0;
+
+                var current = get.Right;
+                var result = getter;
+                while (current.NodeType == ExpressionType.MemberAccess)
+                {
+                    var memEx = (MemberExpression)current;
+                    var expr = memEx.Expression;
+                    if (expr == null)
+                        break;
+                    if (expr.NodeType == ExpressionType.Parameter)
+                        return result;
+
+                    if (expr.CanBeNull())
+                    {
+                        var compareNull = Expression.Equal(expr, Expression.Constant(null, expr.Type));
+
+                        var argumets = new Expression[1];
+                        var membername = (expr as MemberExpression).Member.Name;
+
+                        if (memberNestingLevel == 0 && current.Type.CanBeNull())
+                        {
+                            compareNull = Expression.OrElse(compareNull, Expression.Equal(current, Expression.Constant(null, current.Type)));
+                            
+                            var memberPath = Expression.Lambda(memEx).GetMemberPath(noError: true);
+                            argumets[0] = Expression.Constant($"Member: {membername} or {memEx.Member.Name} by path: {memberPath} was null!; Mapping Types: {sourceType} to {resultType}");
+
+                        }
+                        else
+                        {
+                            var memberPath = Expression.Lambda(expr).GetMemberPath(noError: true);
+                            argumets[0] = Expression.Constant($"Member: {membername} by path: {memberPath} was null!; Mapping Types: {sourceType} to {resultType}");
+                        }
+
+                        result = Expression.IfThenElse(compareNull, Expression
+                            .Throw(Expression.New(constructorInfo, argumets)), result);
+                    }
+
+                    current = expr;
+                    memberNestingLevel++;
+                }
+
+            }
+            return getter;
+        }
+
+
         public static string? GetMemberPath(this LambdaExpression lambda, bool firstLevelOnly = false, bool noError = false)
         {
             var props = new List<string>();
