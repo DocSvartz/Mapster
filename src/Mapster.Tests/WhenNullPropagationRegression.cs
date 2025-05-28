@@ -14,7 +14,7 @@ public class WhenNullPropagationRegression
         string customdefault = "42";
 
         TypeAdapterConfig<SimplePocoToNullPropagation, SimpleDtoToNullPropagation>.NewConfig()
-                .Map(dest => dest.AnotherName, src => src.Name, defaultValue:customdefault)
+                .Map(dest => dest.AnotherName, src => src.Name).SourceDefaultValue(customdefault)
                 .Map(dest => dest.LastModified, src => DateTime.Now)
                 .Compile();
 
@@ -33,7 +33,7 @@ public class WhenNullPropagationRegression
         string customdefault = "Default Location";
 
         TypeAdapterConfig<PocoToPathNullPropagation, DtoToPathNullPropagation>.NewConfig()
-                .Map(dest => dest.Location, src => src.Child.Address.Location, defaultValue:customdefault);
+                .Map(dest => dest.Location, src => src.Child.Address.Location).SourceDefaultValue(customdefault);
 
         var poco = new PocoToPathNullPropagation
         {

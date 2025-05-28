@@ -430,15 +430,14 @@ namespace Mapster
 
         #region replace for chaining
 
-        public MapTypeAdapterSetter<TSource, TDestination> Map<TDestinationMember, TSourceMember>(
+        public MapTypeAdapterSetterAllMemberTypes<TSource, TDestination> Map<TDestinationMember, TSourceMember>(
            Expression<Func<TDestination, TDestinationMember>> member,
            Expression<Func<TSource, TSourceMember>> source,
-           Expression<Func<TSource, bool>>? shouldMap = null,
-           TDestinationMember defaultValue = default)
+           Expression<Func<TSource, bool>>? shouldMap = null)
         {
             this.CheckCompiled();
 
-           var result = new MapTypeAdapterSetter<TSource, TDestination>(this.Settings,this.Config).Map(member, source, shouldMap, defaultValue);
+           var result = new MapTypeAdapterSetterAllMemberTypes<TSource, TDestination>(this.Settings,this.Config).Map(member, source, shouldMap);
            return result;
         }
 
@@ -1047,7 +1046,7 @@ namespace Mapster
         public string TSourceMemberName { get; set; }
         public string TDestinationMemberName { get; set; }
 
-        public MapTypeAdapterSetter<TSource, TDestination> Map<TDestinationMember, TSourceMember>(
+        public new MapTypeAdapterSetter<TSource, TDestination> Map<TDestinationMember, TSourceMember>(
             Expression<Func<TDestination, TDestinationMember>> member,
             Expression<Func<TSourceMember>> source)
         {
@@ -1072,7 +1071,7 @@ namespace Mapster
             return this;
         }
 
-        public MapTypeAdapterSetter<TSource, TDestination> Map<TDestinationMember>(
+        public new MapTypeAdapterSetter<TSource, TDestination> Map<TDestinationMember>(
             Expression<Func<TDestination, TDestinationMember>> destinationMember,
             string sourceMemberName)
         {
@@ -1097,36 +1096,9 @@ namespace Mapster
             return this;
         }
 
-        public MapTypeAdapterSetter<TSource, TDestination> Map<TDestinationMember, TSourceMember>(
-           Expression<Func<TDestination, TDestinationMember>> member,
-           Expression<Func<TSource, TSourceMember>> source,
-           Expression<Func<TSource, bool>>? shouldMap = null,
-           TDestinationMember defaultValue = default)
-        {
-            this.CheckCompiled();
+        
 
-            this.TSourceMemberName = source.GetMemberPath(noError: true)!;
-            this.TDestinationMemberName = member.GetMemberPath(noError: true)!;
-
-            var sourceName = source.GetMemberPath(noError: true);
-            if (member.IsIdentity())
-            {
-                Settings.ExtraSources.Add((object?)sourceName ?? source);
-                return this;
-            }
-
-            Settings.Resolvers.Add(new InvokerModel
-            {
-                DestinationMemberName = member.GetMemberPath(noError: true)!,
-                SourceMemberName = sourceName,
-                Invoker = source,
-                DefaultValue = defaultValue == null ? null : Expression.Lambda(Expression.Constant(defaultValue)),
-                Condition = shouldMap
-            });
-            return this;
-        }
-
-        public MapTypeAdapterSetter<TSource, TDestination> Map<TSourceMember>(
+        public new MapTypeAdapterSetter<TSource, TDestination> Map<TSourceMember>(
             string memberName,
             Expression<Func<TSource, TSourceMember>> source, Expression<Func<TSource, bool>>? shouldMap = null)
         {
@@ -1146,6 +1118,55 @@ namespace Mapster
             return this;
         }
 
+        
+
+    }
+
+    public class MapTypeAdapterSetterAllMemberTypes<TSource, TDestination> : MapTypeAdapterSetter<TSource, TDestination>, IMapTypeAdapterAllMembertypes
+    {
+        public MapTypeAdapterSetterAllMemberTypes(TypeAdapterSettings settings, TypeAdapterConfig parentConfig)
+            : base(settings, parentConfig)
+        { }
+
+        public Type TSourceMember { get; set; }
+        public Type TDestinationMember { get; set; }
+        public string TSourceMemberName { get; set; }
+        public string TDestinationMemberName { get; set; }
+
+        public new MapTypeAdapterSetterAllMemberTypes<TSource, TDestination> Map<TDestinationMember, TSourceMember>(
+           Expression<Func<TDestination, TDestinationMember>> member,
+           Expression<Func<TSource, TSourceMember>> source,
+           Expression<Func<TSource, bool>>? shouldMap = null)
+        {
+            this.CheckCompiled();
+
+            this.TSourceMemberName = source.GetMemberPath(noError: true)!;
+            this.TDestinationMemberName = member.GetMemberPath(noError: true)!;
+            this.TSourceMember = source.ReturnType;
+            this.TDestinationMember = source.ReturnType;
+
+            var sourceName = source.GetMemberPath(noError: true);
+            if (member.IsIdentity())
+            {
+                Settings.ExtraSources.Add((object?)sourceName ?? source);
+                return this;
+            }
+
+            Settings.Resolvers.Add(new InvokerModel
+            {
+                DestinationMemberName = member.GetMemberPath(noError: true)!,
+                SourceMemberName = sourceName,
+                Invoker = source,
+                Condition = shouldMap
+            });
+            return this;
+        }
+    }
+
+    public interface IMapTypeAdapterAllMembertypes : IMapTypeAdapterSetter
+    {
+        Type TSourceMember { get; set; }
+        Type TDestinationMember { get; set; }
     }
 
     public interface IMapTypeAdapterSetter
@@ -1169,5 +1190,24 @@ namespace Mapster
 
             return setter;
         }
+
+        public static TSetter SourceDefaultValue<TSetter,TSourceMember>(this TSetter setter, TSourceMember defaultValue) where TSetter : TypeAdapterSetter, IMapTypeAdapterAllMembertypes
+        {
+            setter.CheckCompiled();
+
+            if (typeof(TSourceMember) != setter.TSourceMember)
+                throw new ArgumentException($"Type of DefaultValue is {typeof(TSourceMember).Name}, but must be {setter.TSourceMember.Name}");
+
+            var find = setter.Settings.Resolvers
+                .Where(x => x.SourceMemberName == setter.TSourceMemberName && x.DestinationMemberName == setter.TDestinationMemberName)
+                .FirstOrDefault();
+
+            if (find != null)
+                find.DefaultValue = Expression.Lambda(Expression.Constant(defaultValue));
+
+
+            return setter;
+        }
+
     }
 }
