@@ -377,6 +377,8 @@ namespace Mapster.Utils
             types[0] =(typeof(string));
             var constructorInfo = typeof(NullReferenceException).GetConstructor(types);
 
+            string labelSource = "{Source}";
+
             if (getter is BinaryExpression get)
             {
                 var resultType = ((MemberExpression)get.Left).Expression?.Type.Name;
@@ -391,28 +393,29 @@ namespace Mapster.Utils
                     var expr = memEx.Expression;
                     if (expr == null)
                         break;
-                    if (expr.NodeType == ExpressionType.Parameter)
-                        return result;
-
+                
                     if (expr.CanBeNull())
                     {
                         var compareNull = Expression.Equal(expr, Expression.Constant(null, expr.Type));
 
                         var argumets = new Expression[1];
-                        var membername = (expr as MemberExpression).Member.Name;
+                        string membername;
+                        if (expr.NodeType == ExpressionType.Parameter)
+                            membername = "Source";
+                        else
+                            membername = (expr as MemberExpression).Member.Name;
 
                         if (memberNestingLevel == 0 && current.Type.CanBeNull())
                         {
                             compareNull = Expression.OrElse(compareNull, Expression.Equal(current, Expression.Constant(null, current.Type)));
                             
                             var memberPath = Expression.Lambda(memEx).GetMemberPath(noError: true);
-                            argumets[0] = Expression.Constant($"Member: {membername} or {memEx.Member.Name} by path: {memberPath} was null!; Mapping Types: {sourceType} to {resultType}");
-
+                            argumets[0] = Expression.Constant($"Member: .{membername} or .{memEx.Member.Name} by path: {labelSource}.{memberPath} was null!; Mapping Types: {sourceType} to {resultType}");
                         }
                         else
                         {
                             var memberPath = Expression.Lambda(expr).GetMemberPath(noError: true);
-                            argumets[0] = Expression.Constant($"Member: {membername} by path: {memberPath} was null!; Mapping Types: {sourceType} to {resultType}");
+                            argumets[0] = Expression.Constant($"Member: .{membername} by path: .{memberPath} was null!; Mapping Types: {labelSource}.{sourceType} to {resultType}");
                         }
 
                         result = Expression.IfThenElse(compareNull, Expression
@@ -423,6 +426,7 @@ namespace Mapster.Utils
                     memberNestingLevel++;
                 }
 
+                return result;
             }
             return getter;
         }
