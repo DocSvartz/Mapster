@@ -415,7 +415,7 @@ namespace Mapster.Utils
                         else
                         {
                             var memberPath = Expression.Lambda(expr).GetMemberPath(noError: true);
-                            argumets[0] = Expression.Constant($"Member: .{membername} by path: .{memberPath} was null!; Mapping Types: {labelSource}.{sourceType} to {resultType}");
+                            argumets[0] = Expression.Constant($"Member: .{membername} by path: {labelSource}.{memberPath} was null!; Mapping Types: {sourceType} to {resultType}");
                         }
 
                         result = Expression.IfThenElse(compareNull, Expression
