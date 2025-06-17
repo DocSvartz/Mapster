@@ -38,7 +38,7 @@ namespace Mapster
 
         public static bool IsMapsterPrimitive(this Type type)
         {
-            return _primitiveTypes.TryGetValue(type, out var primitiveType) || type == typeof(string);
+            return _primitiveTypes.TryGetValue(type, out var primitiveType) || type == typeof(string) || type.IsEnum;
         }
 
         public static bool IsNullable(this Type type)
@@ -61,6 +61,12 @@ namespace Mapster
             if (type.IsConvertible())
                 return false;
 
+            if (type == typeof(Type) || type.BaseType == typeof(MulticastDelegate))
+                return false;
+
+            if (type.IsClass && type.GetProperties().Count() != 0)
+                return true;
+
             return type.GetFieldsAndProperties().Any(it => (it.SetterModifier & (AccessModifier.Public | AccessModifier.NonPublic)) != 0);
         }
 
@@ -69,21 +75,42 @@ namespace Mapster
             var bindingFlags = BindingFlags.Instance | BindingFlags.Public;
             if (includeNonPublic)
                 bindingFlags |= BindingFlags.NonPublic;
-            
+
+            var currentTypeMembers = type.FindMembers(MemberTypes.Property | MemberTypes.Field,
+                 BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
+                 (x, y) => true, type.FullName);
+
             if (type.GetTypeInfo().IsInterface)
             {
                 var allInterfaces = GetAllInterfaces(type);
-                return allInterfaces.SelectMany(GetPropertiesFunc);
+                return allInterfaces.SelectMany(x => GetPropertiesFunc(x, currentTypeMembers));
             }
 
-            return GetPropertiesFunc(type).Concat(GetFieldsFunc(type));
+            return GetPropertiesFunc(type, currentTypeMembers).Concat(GetFieldsFunc(type, currentTypeMembers));
 
-            IEnumerable<IMemberModelEx> GetPropertiesFunc(Type t) => t.GetProperties(bindingFlags)
-                .Where(x => x.GetIndexParameters().Length == 0)
+            IEnumerable<IMemberModelEx> GetPropertiesFunc(Type t, MemberInfo[] currentTypeMembers) => t.GetProperties(bindingFlags)
+                .Where(x => x.GetIndexParameters().Length == 0).DropHiddenMembers(currentTypeMembers)
                 .Select(CreateModel);
 
-            IEnumerable<IMemberModelEx> GetFieldsFunc(Type t) => t.GetFields(bindingFlags)
+            IEnumerable<IMemberModelEx> GetFieldsFunc(Type t, MemberInfo[] overlapMembers) =>
+                t.GetFields(bindingFlags).DropHiddenMembers(overlapMembers)
                 .Select(CreateModel);
+        }
+
+        public static IEnumerable<T> DropHiddenMembers<T>(this IEnumerable<T> allMembers, ICollection<MemberInfo> currentTypeMembers) where T : MemberInfo
+        {
+            var compareMemberNames = allMembers.IntersectBy(currentTypeMembers.Select(x => x.Name), x => x.Name).Select(x => x.Name);
+
+            foreach (var member in allMembers)
+            {
+                if (compareMemberNames.Contains(member.Name))
+                {
+                    if (currentTypeMembers.First(x => x.Name == member.Name).MetadataToken == member.MetadataToken)
+                        yield return member;
+                }
+                else
+                    yield return member;
+            }
         }
 
         // GetProperties(), GetFields(), GetMethods() do not return properties/methods from parent interfaces,
@@ -379,6 +406,25 @@ namespace Mapster
 
             var isExternalInitType = typeof(System.Runtime.CompilerServices.IsExternalInit);
             return setMethod.ReturnParameter.GetRequiredCustomModifiers().Contains(isExternalInitType);
+        }
+
+        public static bool IsAssignableToGenericType(this Type derivedType, Type genericType)
+        {
+            
+            if (derivedType.IsGenericType && derivedType.BaseType.GUID == genericType.GUID)
+                return true;
+
+            Type baseType = derivedType.BaseType;
+            if (baseType == null) return false;
+
+            return IsAssignableToGenericType(baseType, genericType);
+        }
+        public static bool IsOpenGenericType(this Type type)
+        {
+            if(type.IsGenericType)
+               return type.GetGenericArguments().All(x=>x.GUID == Guid.Empty);
+
+            return false;
         }
     }
 }

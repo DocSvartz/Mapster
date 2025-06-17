@@ -13,6 +13,8 @@ namespace Mapster
 {
     public class TypeAdapterConfig
     {
+        public Type SourceType { get; protected set; }
+        public Type DestinationType { get; protected set; }
         public static List<TypeAdapterRule> RulesTemplate { get; } = CreateRuleTemplate();
         public static TypeAdapterConfig GlobalSettings { get; } = new TypeAdapterConfig();
 
@@ -82,6 +84,7 @@ namespace Mapster
 
         public bool RequireDestinationMemberSource { get; set; }
         public bool RequireExplicitMapping { get; set; }
+        public bool RequireExplicitMappingPrimitive { get; set; }
         public bool AllowImplicitDestinationInheritance { get; set; }
         public bool AllowImplicitSourceInheritance { get; set; } = true;
         public bool SelfContainedCodeGeneration { get; set; }
@@ -147,6 +150,9 @@ namespace Mapster
 		/// <returns></returns>
 		public TypeAdapterSetter<TSource, TDestination> NewConfig<TSource, TDestination>()
         {
+            this.SourceType = typeof(TSource);
+            this.DestinationType = typeof(TDestination);
+
             Remove(typeof(TSource), typeof(TDestination));
             return ForType<TSource, TDestination>();
         }
@@ -160,6 +166,9 @@ namespace Mapster
 		/// <returns></returns>
 		public TypeAdapterSetter NewConfig(Type sourceType, Type destinationType)
         {
+            this.SourceType = sourceType;
+            this.DestinationType = destinationType;
+
             Remove(sourceType, destinationType);
             return ForType(sourceType, destinationType);
         }
@@ -173,6 +182,9 @@ namespace Mapster
 		/// <returns></returns>
 		public TypeAdapterSetter<TSource, TDestination> ForType<TSource, TDestination>()
         {
+            this.SourceType = typeof(TSource);
+            this.DestinationType = typeof(TDestination);
+
             var key = new TypeTuple(typeof(TSource), typeof(TDestination));
             var settings = GetSettings(key);
             return new TypeAdapterSetter<TSource, TDestination>(settings, this);
@@ -187,6 +199,9 @@ namespace Mapster
 		/// <returns></returns>
 		public TypeAdapterSetter ForType(Type sourceType, Type destinationType)
         {
+            this.SourceType = sourceType;
+            this.DestinationType = destinationType;
+
             var key = new TypeTuple(sourceType, destinationType);
             var settings = GetSettings(key);
             return new TypeAdapterSetter(settings, this);
@@ -200,6 +215,9 @@ namespace Mapster
 		/// <returns></returns>
 		public TypeAdapterSetter<TDestination> ForDestinationType<TDestination>()
         {
+            this.SourceType = typeof(void);
+            this.DestinationType = typeof(TDestination);
+
             var key = new TypeTuple(typeof(void), typeof(TDestination));
             var settings = GetSettings(key);
             return new TypeAdapterSetter<TDestination>(settings, this);
@@ -213,6 +231,9 @@ namespace Mapster
 		/// <returns></returns>
 		public TypeAdapterSetter ForDestinationType(Type destinationType)
         {
+            this.SourceType = typeof(void);
+            this.DestinationType = destinationType;
+
             var key = new TypeTuple(typeof(void), destinationType);
             var settings = GetSettings(key);
             return new TypeAdapterSetter(settings, this);
@@ -495,7 +516,7 @@ namespace Mapster
 
         internal Expression CreateMapInvokeExpressionBody(Type sourceType, Type destinationType, Expression p)
         {
-            if (RequireExplicitMapping)
+            if (RequireExplicitMapping || RequireExplicitMappingPrimitive)
             {
                 var key = new TypeTuple(sourceType, destinationType);
                 _mapDict[key] = Compiler(CreateMapExpression(key, MapType.Map));
@@ -518,7 +539,7 @@ namespace Mapster
 
         internal Expression CreateMapToTargetInvokeExpressionBody(Type sourceType, Type destinationType, Expression p1, Expression p2)
         {
-            if (RequireExplicitMapping)
+            if (RequireExplicitMapping || RequireExplicitMappingPrimitive)
             {
                 var key = new TypeTuple(sourceType, destinationType);
                 _mapToTargetDict[key] = Compiler(CreateMapExpression(key, MapType.MapToTarget));
