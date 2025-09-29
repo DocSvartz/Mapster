@@ -9,10 +9,11 @@ namespace Mapster.Tests
         [TestMethod]
         public void Dto_To_Domain_MapsCorrectly()
         {
-            TypeAdapterConfig.GlobalSettings.Default.MapToConstructor(true);
+            var config = new TypeAdapterConfig();
 
-            TypeAdapterConfig<AbstractDtoTestClass, AbstractDomainTestClass>
-                .NewConfig()
+            config.Default.MapToConstructor(true);
+            config
+                .NewConfig<AbstractDtoTestClass, AbstractDomainTestClass>()
                 .Include<DerivedDtoTestClass, DerivedDomainTestClass>();
 
 
@@ -27,10 +28,7 @@ namespace Mapster.Tests
                 AbstractType = dtoDerived
             };
 
-            TypeAdapterConfig<DtoTestClass, DomainTestClass>.NewConfig()
-               .Map(x => x.AbstractType, y => y.AbstractType, z => z.AbstractType != null);
-
-            var domain = dto.Adapt<DomainTestClass>();
+            var domain = dto.Adapt<DomainTestClass>(config);
 
             domain.AbstractType.ShouldNotBe(null);
             domain.AbstractType.ShouldBeOfType<DerivedDomainTestClass>();
@@ -44,10 +42,11 @@ namespace Mapster.Tests
         [TestMethod]
         public void Dto_To_Domain_AbstractClassNull_MapsCorrectly()
         {
-            TypeAdapterConfig.GlobalSettings.Default.MapToConstructor(true);
+            var config = new TypeAdapterConfig();
 
-            TypeAdapterConfig<AbstractDtoTestClass, AbstractDomainTestClass>
-                .NewConfig()
+            config.Default.MapToConstructor(true);
+            config
+                .NewConfig<AbstractDtoTestClass, AbstractDomainTestClass>()
                 .Include<DerivedDtoTestClass, DerivedDomainTestClass>();
 
             var dto = new DtoTestClass
@@ -55,7 +54,7 @@ namespace Mapster.Tests
                 AbstractType = null
             };
 
-            var domain = dto.Adapt<DomainTestClass>();
+            var domain = dto.Adapt<DomainTestClass>(config);
 
             domain.AbstractType.ShouldBeNull();
         }
