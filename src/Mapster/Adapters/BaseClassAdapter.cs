@@ -147,7 +147,17 @@ namespace Mapster.Adapters
                 }
                 else
                 {
-                    getter = CreateAdaptExpression(member.Getter, member.DestinationMember.Type, arg, member);
+
+                    if (member.Getter.CanBeNull() && member.Ignore.Condition == null)
+                    {
+                        var compareNull = Expression.Equal(member.Getter, Expression.Constant(null, member.Getter.Type));
+                        getter = Expression.Condition(ExpressionEx.Not(compareNull),
+                            CreateAdaptExpression(member.Getter, member.DestinationMember.Type, arg, member),
+                           defaultConst);
+                    }
+                    else
+                        getter = CreateAdaptExpression(member.Getter, member.DestinationMember.Type, arg, member);
+
                     if (member.Ignore.Condition != null)
                     {
                         var body = member.Ignore.IsChildPath
