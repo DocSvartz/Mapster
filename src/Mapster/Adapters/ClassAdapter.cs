@@ -201,7 +201,7 @@ namespace Mapster.Adapters
             var exp = CreateInstantiationExpression(source, arg);
             var memberInit = exp as MemberInitExpression;
             var newInstance = memberInit?.NewExpression ?? (NewExpression)exp;
-            var contructorMembers = newInstance.Arguments.OfType<MemberExpression>().Select(me => me.Member).ToArray();
+            var contructorMembers = newInstance.GetAllMemberExpressionsMemberInfo().ToArray();
             var classModel = GetSetterModel(arg);
             var classConverter = CreateClassConverter(source, classModel, arg);
             var members = classConverter.Members;
