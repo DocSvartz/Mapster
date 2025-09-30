@@ -27,7 +27,7 @@ namespace Mapster.Adapters
             return Expression.Empty();
         }
 
-        protected override Expression CreateInlineExpression(Expression source, CompileArgument arg)
+        protected override Expression CreateInlineExpression(Expression source, CompileArgument arg, bool IsRequiredOnly = false)
         {
             return CreateInstantiationExpression(source, arg);
         }

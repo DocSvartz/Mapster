@@ -127,7 +127,7 @@ namespace Mapster.Utils
 
         protected override Expression VisitMember(MemberExpression node)
         {
-            CanBeNull = node.Member.GetCustomAttributesData().All(IsNullable);
+            CanBeNull = node.Type.IsClass || node.Member.GetCustomAttributesData().All(IsNullable);
             return node;
         }
     }

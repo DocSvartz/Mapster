@@ -115,7 +115,7 @@ namespace Mapster.Adapters
             return Expression.Block(actions);
         }
 
-        protected override Expression CreateInlineExpression(Expression source, CompileArgument arg)
+        protected override Expression CreateInlineExpression(Expression source, CompileArgument arg, bool IsRequiredOnly = false)
         {
             if (arg.DestinationType.GetTypeInfo().IsAssignableFrom(source.Type.GetTypeInfo()) && 
                 (arg.Settings.ShallowCopyForSameType == true || arg.MapType == MapType.Projection))

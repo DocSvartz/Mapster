@@ -18,6 +18,8 @@ namespace Mapster.Adapters
 
         protected override Expression CreateExpressionBody(Expression source, Expression? destination, CompileArgument arg)
         {
+            if (arg.SourceType != arg.DestinationType && arg.Context.Config.RequireExplicitMappingPrimitive && !arg.ExplicitMapping)
+                throw new InvalidOperationException("Implicit mapping is not allowed (check GlobalSettings.RequireExplicitMapping) and no configuration exists");
 
             if (arg.Settings.MapToTargetPrimitive == true)
             {
@@ -92,7 +94,7 @@ namespace Mapster.Adapters
             throw new NotImplementedException();
         }
 
-        protected override Expression CreateInlineExpression(Expression source, CompileArgument arg)
+        protected override Expression CreateInlineExpression(Expression source, CompileArgument arg, bool IsRequiredOnly = false)
         {
             throw new NotImplementedException();
         }

@@ -69,19 +69,19 @@ namespace Mapster.Adapters
                 classConverter = destType.GetConstructors()
                     .OrderByDescending(it => it.GetParameters().Length)
                     .Select(it => GetConstructorModel(it, true))
-                    .Select(it => CreateClassConverter(source, it, arg))
+                    .Select(it => CreateClassConverter(source, it, arg, ctorMapping:true))
                     .FirstOrDefault(it => it != null);
             }
             else
             {
                 var model = GetConstructorModel(ctor, false);
-                classConverter = CreateClassConverter(source, model, arg);
+                classConverter = CreateClassConverter(source, model, arg, ctorMapping:true);
             }
 
             if (classConverter == null)
                 return base.CreateInstantiationExpression(source, destination, arg);
 
-            return CreateInstantiationExpression(source, classConverter, arg);
+            return CreateInstantiationExpression(source, classConverter, arg, destination);
         }
 
         protected override Expression CreateBlockExpression(Expression source, Expression destination, CompileArgument arg)
@@ -191,7 +191,7 @@ namespace Mapster.Adapters
                 new[] { member.Destination, memberAsObject });
         }
 
-        protected override Expression? CreateInlineExpression(Expression source, CompileArgument arg)
+        protected override Expression? CreateInlineExpression(Expression source, CompileArgument arg, bool IsRequiredOnly = false)
         {
             //new TDestination {
             //  Prop1 = convert(src.Prop1),
@@ -202,8 +202,18 @@ namespace Mapster.Adapters
             var memberInit = exp as MemberInitExpression;
             var newInstance = memberInit?.NewExpression ?? (NewExpression)exp;
             var contructorMembers = newInstance.GetAllMemberExpressionsMemberInfo().ToArray();
-            var classModel = GetSetterModel(arg);
-            var classConverter = CreateClassConverter(source, classModel, arg);
+            ClassModel? classModel;
+            ClassMapping? classConverter;
+            if (IsRequiredOnly)
+            {
+                classModel = GetOnlyRequiredPropertySetterModel(arg);
+                classConverter = CreateClassConverter(source, classModel, arg, ctorMapping: true);
+            }
+            else
+            {
+                classModel = GetSetterModel(arg);
+                classConverter = CreateClassConverter(source, classModel, arg);
+            }
             var members = classConverter.Members;
 
             var lines = new List<MemberBinding>();

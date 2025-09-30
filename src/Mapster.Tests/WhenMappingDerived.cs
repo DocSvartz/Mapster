@@ -44,6 +44,82 @@ namespace Mapster.Tests
             Assert.AreEqual(inputEntity.Id, result.Id);
         }
 
+        /// <summary>
+        /// https://github.com/MapsterMapper/Mapster/issues/794
+        /// </summary>
+        [TestMethod]
+        public void WhenMapToTargetDerivedWithNullRegression()
+        {
+            var config = new TypeAdapterConfig();
+
+            config
+               .NewConfig<ContainerDTO794, Container794>()
+               .Map(dest => dest.Nested, src => src.NestedDTO)
+               .IgnoreNonMapped(true)
+               .IgnoreNullValues(true);
+            config
+                .NewConfig<BaseDTO794, Base794>()
+                .Map(dest => dest.SomeBaseProperty, src => src.SomeBasePropertyDTO)
+                .Include<DerivedDTO794, Base794>()
+                .IgnoreNonMapped(true)
+                .IgnoreNullValues(true);
+
+            config
+                .NewConfig<DerivedDTO794, Derived794>()
+                .Map(dest => dest.SomeDerivedProperty, src => src.SomeDerivedPropertyDTO)
+                .IgnoreNonMapped(true)
+                .IgnoreNullValues(true);
+            config
+                .NewConfig<DerivedDTO794, Base794>()
+                .MapWith(src => src.Adapt<Derived794E>());
+
+
+            var container = new Container794();
+            var containerDTO = new ContainerDTO794();
+
+            container.Nested = null;
+            containerDTO.NestedDTO = new DerivedDTO794();
+
+            containerDTO.Adapt<ContainerDTO794, Container794>(container, config);
+
+            (container.Nested is Derived794E).ShouldBeTrue(); // is not Base794 type, MapWith is working when Polymorphic mapping to null
+        }
+
+        internal class Derived794E : Derived794
+        {
+
+        }
+
+        internal class Base794
+        {
+            public string SomeBaseProperty { get; set; }
+        }
+
+        internal class BaseDTO794
+        {
+            public string SomeBasePropertyDTO { get; set; }
+        }
+
+        internal class Derived794 : Base794
+        {
+            public string SomeDerivedProperty { get; set; }
+        }
+
+        internal class DerivedDTO794 : BaseDTO794
+        {
+            public string SomeDerivedPropertyDTO { get; set; }
+        }
+
+        internal class Container794
+        {
+            public Base794 Nested { get; set; }
+        }
+
+        internal class ContainerDTO794
+        {
+            public BaseDTO794 NestedDTO { get; set; }
+        }
+
         internal class BaseDto
         {
             public long Id { get; set; }

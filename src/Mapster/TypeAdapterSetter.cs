@@ -269,9 +269,29 @@ namespace Mapster
             return setter;
         }
 
-        internal static TSetter Include<TSetter>(this TSetter setter, Type sourceType, Type destType) where TSetter : TypeAdapterSetter
+        public static TSetter Include<TSetter>(this TSetter setter, Type sourceType, Type destType) where TSetter : TypeAdapterSetter
         {
             setter.CheckCompiled();
+
+            Type baseSourceType = setter.Config.SourceType;
+            Type baseDestinationType = setter.Config.DestinationType;
+
+            if (baseSourceType.IsOpenGenericType() && baseDestinationType.IsOpenGenericType())
+            {
+                if (!sourceType.IsAssignableToGenericType(baseSourceType))
+                    throw new InvalidCastException("In order to use inherits, TSource must be inherited from TBaseSource.");
+                if (!destType.IsAssignableToGenericType(baseDestinationType))
+                    throw new InvalidCastException("In order to use inherits, TDestination must be inherited from TBaseDestination.");
+            }
+            else
+            {
+                if (!baseSourceType.GetTypeInfo().IsAssignableFrom(sourceType.GetTypeInfo()))
+                    throw new InvalidCastException("In order to use inherits, TSource must be inherited from TBaseSource.");
+
+                if (!baseDestinationType.GetTypeInfo().IsAssignableFrom(destType.GetTypeInfo()))
+                    throw new InvalidCastException("In order to use inherits, TDestination must be inherited from TBaseDestination.");
+            }
+
 
             setter.Config.Rules.LockAdd(new TypeAdapterRule
             {
@@ -283,6 +303,36 @@ namespace Mapster
 
             setter.Settings.Includes.Add(new TypeTuple(sourceType, destType));
 
+            return setter;
+        }
+
+        public static TSetter Inherits<TSetter>(this TSetter setter, Type baseSourceType, Type baseDestinationType) where TSetter : TypeAdapterSetter
+        {
+            setter.CheckCompiled();
+                      
+            Type derivedSourceType = setter.Config.SourceType;
+            Type derivedDestinationType = setter.Config.DestinationType;
+
+            if(baseSourceType.IsOpenGenericType() && baseDestinationType.IsOpenGenericType())
+            {
+                if (!derivedSourceType.IsAssignableToGenericType(baseSourceType))
+                    throw new InvalidCastException("In order to use inherits, TSource must be inherited from TBaseSource.");
+                if (!derivedDestinationType.IsAssignableToGenericType(baseDestinationType))
+                    throw new InvalidCastException("In order to use inherits, TDestination must be inherited from TBaseDestination.");
+            }
+            else
+            {
+                if (!baseSourceType.GetTypeInfo().IsAssignableFrom(derivedSourceType.GetTypeInfo()))
+                    throw new InvalidCastException("In order to use inherits, TSource must be inherited from TBaseSource.");
+
+                if (!baseDestinationType.GetTypeInfo().IsAssignableFrom(derivedDestinationType.GetTypeInfo()))
+                    throw new InvalidCastException("In order to use inherits, TDestination must be inherited from TBaseDestination.");
+            }
+
+            if (setter.Config.RuleMap.TryGetValue(new TypeTuple(baseSourceType, baseDestinationType), out var rule))
+            {
+                setter.Settings.Apply(rule.Settings);
+            }
             return setter;
         }
 
@@ -812,20 +862,8 @@ namespace Mapster
         {
             this.CheckCompiled();
 
-            Type baseSourceType = typeof(TBaseSource);
-            Type baseDestinationType = typeof(TBaseDestination);
+            return this.Inherits(typeof(TBaseSource), typeof(TBaseDestination));
 
-            if (!baseSourceType.GetTypeInfo().IsAssignableFrom(typeof(TSource).GetTypeInfo()))
-                throw new InvalidCastException("In order to use inherits, TSource must be inherited from TBaseSource.");
-
-            if (!baseDestinationType.GetTypeInfo().IsAssignableFrom(typeof(TDestination).GetTypeInfo()))
-                throw new InvalidCastException("In order to use inherits, TDestination must be inherited from TBaseDestination.");
-
-            if (Config.RuleMap.TryGetValue(new TypeTuple(baseSourceType, baseDestinationType), out var rule))
-            {
-                Settings.Apply(rule.Settings);
-            }
-            return this;
         }
 
         public TypeAdapterSetter<TSource, TDestination> Fork(Action<TypeAdapterConfig> action)

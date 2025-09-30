@@ -7,6 +7,7 @@
         <AssemblyOriginatorKeyFile>Mapster.Tests.snk</AssemblyOriginatorKeyFile>
         <SignAssembly>true</SignAssembly>
         <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
+        <LangVersion>11.0</LangVersion>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
