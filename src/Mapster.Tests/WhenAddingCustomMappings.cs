@@ -17,6 +17,8 @@ namespace Mapster.Tests
         [TestMethod]
         public void Property_Is_Mapped_To_Different_Property_Successfully()
         {
+            TypeAdapterConfigFactory.GlobalSettings.Clear();
+
             TypeAdapterConfig<SimplePoco, SimpleDto>.NewConfig()
                 .Map(dest => dest.AnotherName, src => src.Name)
                 .Map(dest => dest.LastModified, src => DateTime.Now)

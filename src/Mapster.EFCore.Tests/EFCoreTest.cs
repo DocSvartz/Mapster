@@ -37,6 +37,8 @@ namespace Mapster.EFCore.Tests
             var poco = context.Students.Include(it => it.Enrollments)
                 .First(it => it.ID == dto.ID);
 
+           // var config = new TypeAdapterConfig();
+
             dto.BuildAdapter()
                 .EntityFromContext(context)
                 .AdaptTo(poco);

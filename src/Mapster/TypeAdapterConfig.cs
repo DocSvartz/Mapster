@@ -1,19 +1,18 @@
-﻿using System;
+﻿using Mapster.Models;
+using Mapster.Utils;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using Mapster.Adapters;
-using Mapster.Models;
-using Mapster.Utils;
 
 namespace Mapster
 {
     public class TypeAdapterConfig
     {
-        public TypeAdapterConfig GlobalSettings { get; } = TypeAdapterConfigFactory.GlobalSettings;
+        public bool IsGlobalSettings { get;}
 
         public bool RequireDestinationMemberSource { get; set; }
         public bool RequireExplicitMapping { get; set; }
@@ -27,6 +26,11 @@ namespace Mapster
         public List<TypeAdapterRule> Rules { get; internal set; }
         public TypeAdapterSetter Default { get; internal set; }
         public ConcurrentDictionary<TypeTuple, TypeAdapterRule> RuleMap { get; internal set; } = new ConcurrentDictionary<TypeTuple, TypeAdapterRule>();
+
+        internal TypeAdapterConfig(bool IsGlobal): this()
+        {
+            IsGlobalSettings = IsGlobal;
+        }
 
         public TypeAdapterConfig()
         {
@@ -302,8 +306,8 @@ namespace Mapster
 
         private Expression CreateSelfExpression()
         {
-            if (this == GlobalSettings)
-                return Expression.Property(null, typeof(TypeAdapterConfig).GetProperty(nameof(GlobalSettings))!);
+            if (IsGlobalSettings)
+                return Expression.Property(null, typeof(TypeAdapterConfigFactory).GetProperty(nameof(TypeAdapterConfigFactory.GlobalSettings))!);
             else
                 return Expression.Constant(this);
         }
@@ -441,7 +445,7 @@ namespace Mapster
                 _mapDict[key] = Compiler(CreateMapExpression(key, MapType.Map));
             }
             Expression invoker;
-            if (this == GlobalSettings)
+            if (IsGlobalSettings)
             {
                 var field = typeof(TypeAdapter<,>).MakeGenericType(sourceType, destinationType).GetField("Map");
                 invoker = Expression.Field(null, field);
@@ -624,7 +628,7 @@ namespace Mapster
             var tuple = new TypeTuple(sourceType, destinationType);
             _mapDict[tuple] = Compiler(CreateMapExpression(tuple, MapType.Map));
             _mapToTargetDict[tuple] = Compiler(CreateMapExpression(tuple, MapType.MapToTarget));
-            if (this == GlobalSettings)
+            if (IsGlobalSettings)
             {
                 var field = typeof(TypeAdapter<,>).MakeGenericType(sourceType, destinationType).GetField("Map");
                 field!.SetValue(null, _mapDict[tuple]);
