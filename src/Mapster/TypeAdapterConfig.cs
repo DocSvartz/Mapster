@@ -12,7 +12,8 @@ namespace Mapster
 {
     public class TypeAdapterConfig
     {
-        public bool IsGlobalSettings { get;}
+        [AdaptIgnore]
+        public bool IsGlobalSettings { get; private set; }
 
         public bool RequireDestinationMemberSource { get; set; }
         public bool RequireExplicitMapping { get; set; }
