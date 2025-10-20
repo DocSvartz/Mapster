@@ -18,7 +18,7 @@ namespace Mapster.EFCore
 
             if (config == null)
             {
-                config = TypeAdapterConfig.GlobalSettings
+                config = TypeAdapterConfigFactory.GlobalSettings
                 .Clone()
                 .ForType(source.ElementType, typeof(TDestination))
                 .Config;

@@ -12,7 +12,7 @@ namespace TemplateTest
         [TestMethod]
         public void TestCreateMapExpression()
         {
-            TypeAdapterConfig.GlobalSettings.SelfContainedCodeGeneration = true;
+            TypeAdapterConfigFactory.GlobalSettings.SelfContainedCodeGeneration = true;
             var foo = default(Foo);
             var def = new ExpressionDefinitions
             {

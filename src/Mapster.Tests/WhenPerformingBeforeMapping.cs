@@ -11,7 +11,7 @@ namespace Mapster.Tests
         [TestCleanup]
         public void TestCleanup()
         {
-            TypeAdapterConfig.GlobalSettings.Clear();
+            TypeAdapterConfigFactory.GlobalSettings.Clear();
         }
 
         [TestMethod]

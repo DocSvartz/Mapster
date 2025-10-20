@@ -8,6 +8,12 @@ namespace Mapster.Tests
     [TestClass]
     public class WhenAddingCustomMappings
     {
+        [TestCleanup]
+        public void TestCleanup()
+        {
+            TypeAdapterConfigFactory.GlobalSettings.Clear();
+        }
+
         [TestMethod]
         public void Property_Is_Mapped_To_Different_Property_Successfully()
         {

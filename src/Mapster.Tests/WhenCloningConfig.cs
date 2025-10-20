@@ -12,7 +12,7 @@ namespace Mapster.Tests
         [TestCleanup]
         public void TestCleanup()
         {
-            TypeAdapterConfig.GlobalSettings.Clear();
+            TypeAdapterConfigFactory.GlobalSettings.Clear();
         }
 
         [TestMethod]
@@ -49,8 +49,8 @@ namespace Mapster.Tests
             var result = TypeAdapter.Adapt<SimpleDto>(poco);
             result.Name.ShouldBe("a");
 
-            var config = TypeAdapterConfig.GlobalSettings.Clone();
-            var global = TypeAdapterConfig.GlobalSettings;
+            var config = TypeAdapterConfigFactory.GlobalSettings.Clone();
+            var global = TypeAdapterConfigFactory.GlobalSettings;
             config.ShouldNotBeSameAs(global);
             config.Default.ShouldNotBeSameAs(global.Default);
             config.Default.Settings.ShouldNotBeSameAs(global.Default.Settings);

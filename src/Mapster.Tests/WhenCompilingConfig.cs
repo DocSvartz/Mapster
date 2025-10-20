@@ -13,7 +13,7 @@ namespace Mapster.Tests
         [TestInitialize]
         public void Setup()
         {
-            TypeAdapterConfig.GlobalSettings.Clear();
+            TypeAdapterConfigFactory.GlobalSettings.Clear();
         }
 
         [TestMethod]
@@ -25,7 +25,7 @@ namespace Mapster.Tests
             TypeAdapterConfig<MainSrc, MainDest>.ForType()
                 .Map(d => d.DestItems, s => s.SrcItems);
 
-            TypeAdapterConfig.GlobalSettings.Compile();
+            TypeAdapterConfigFactory.GlobalSettings.Compile();
         }
 
         public class MainSrc

@@ -14,7 +14,7 @@ namespace Mapster.Tests
         [TestInitialize]
         public void Setup()
         {
-            TypeAdapterConfig.GlobalSettings.Clear();
+            TypeAdapterConfigFactory.GlobalSettings.Clear();
         }
 
         [TestMethod]
@@ -219,7 +219,7 @@ namespace Mapster.Tests
         [TestMethod]
         public void MapToInheritedInterfaceWithoutProperties()
         {            
-            var config = TypeAdapterConfig.GlobalSettings;
+            var config = TypeAdapterConfigFactory.GlobalSettings;
             TypeAdapterConfig<IInheritedDtoWithoutProperties, InheritedDto>.NewConfig()
                 .Map(d => d.Id, s => s.Id)
                 .Map(d => d.Name, s => s.Name)

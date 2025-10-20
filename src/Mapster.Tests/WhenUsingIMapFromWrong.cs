@@ -14,7 +14,7 @@ public class WhenUsingIMapFromWrong
     {
         Should.Throw<Exception>(() =>
         {
-            TypeAdapterConfig.GlobalSettings.ScanInheritedTypes(Assembly.GetExecutingAssembly());
+            TypeAdapterConfigFactory.GlobalSettings.ScanInheritedTypes(Assembly.GetExecutingAssembly());
         });
     }
 }
@@ -26,7 +26,7 @@ public class WrongInheritedDestinationModel : IMapFrom<SourceModel>
 
     public void ConfigureMapping()
     {
-        TypeAdapterConfig.GlobalSettings
+        TypeAdapterConfigFactory.GlobalSettings
             .NewConfig<SourceModel, InheritedDestinationModel>()
             .Map(dest => dest.Value, _ => DesireValues.Number);
     }

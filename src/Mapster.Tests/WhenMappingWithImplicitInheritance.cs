@@ -11,14 +11,14 @@ namespace Mapster.Tests
         [TestInitialize]
         public void Setup()
         {
-            TypeAdapterConfig.GlobalSettings.Clear();
+            TypeAdapterConfigFactory.GlobalSettings.Clear();
         }
 
         [TestCleanup]
         public void Cleanup()
         {
-            TypeAdapterConfig.GlobalSettings.Clear();
-            TypeAdapterConfig.GlobalSettings.AllowImplicitDestinationInheritance = false;
+            TypeAdapterConfigFactory.GlobalSettings.Clear();
+            TypeAdapterConfigFactory.GlobalSettings.AllowImplicitDestinationInheritance = false;
         }
 
         [TestMethod]
@@ -187,7 +187,7 @@ namespace Mapster.Tests
                 .Compile();
 
             var tuple = new TypeTuple(typeof(DerivedPoco), typeof(SimpleDto));
-            var derivedConfig = TypeAdapterConfig.GlobalSettings.GetMergedSettings(tuple, MapType.Map);
+            var derivedConfig = TypeAdapterConfigFactory.GlobalSettings.GetMergedSettings(tuple, MapType.Map);
 
             derivedConfig.IgnoreNullValues.ShouldBe(true);
             derivedConfig.ShallowCopyForSameType.ShouldBe(true);
@@ -197,7 +197,7 @@ namespace Mapster.Tests
         [TestMethod]
         public void Derived_Config_Shares_Base_Dest_Config_Properties()
         {
-            TypeAdapterConfig.GlobalSettings.AllowImplicitDestinationInheritance = true;
+            TypeAdapterConfigFactory.GlobalSettings.AllowImplicitDestinationInheritance = true;
             TypeAdapterConfig<SimplePoco, SimpleDto>.NewConfig()
                 .IgnoreNullValues(true)
                 .ShallowCopyForSameType(true)
@@ -205,7 +205,7 @@ namespace Mapster.Tests
                 .Compile();
 
             var tuple = new TypeTuple(typeof(DerivedPoco), typeof(DerivedDto));
-            var derivedConfig = TypeAdapterConfig.GlobalSettings.GetMergedSettings(tuple, MapType.Map);
+            var derivedConfig = TypeAdapterConfigFactory.GlobalSettings.GetMergedSettings(tuple, MapType.Map);
 
             derivedConfig.IgnoreNullValues.ShouldBe(true);
             derivedConfig.ShallowCopyForSameType.ShouldBe(true);
@@ -215,7 +215,7 @@ namespace Mapster.Tests
         [TestMethod]
         public void Derived_Config_Doesnt_Share_Base_Dest_Config_Properties_If_Disabled()
         {
-            TypeAdapterConfig.GlobalSettings.AllowImplicitDestinationInheritance = false;
+            TypeAdapterConfigFactory.GlobalSettings.AllowImplicitDestinationInheritance = false;
             TypeAdapterConfig<SimplePoco, SimpleDto>.NewConfig()
                 .IgnoreNullValues(true)
                 .ShallowCopyForSameType(true)
@@ -223,7 +223,7 @@ namespace Mapster.Tests
                 .Compile();
 
             var tuple = new TypeTuple(typeof(DerivedPoco), typeof(DerivedDto));
-            var derivedConfig = TypeAdapterConfig.GlobalSettings.GetMergedSettings(tuple, MapType.Map);
+            var derivedConfig = TypeAdapterConfigFactory.GlobalSettings.GetMergedSettings(tuple, MapType.Map);
 
             derivedConfig.IgnoreNullValues.ShouldBeNull();
             derivedConfig.ShallowCopyForSameType.ShouldBeNull();
@@ -232,7 +232,7 @@ namespace Mapster.Tests
         [TestMethod]
         public void Ignores_Are_Derived_From_Base_Dest_Configurations()
         {
-            TypeAdapterConfig.GlobalSettings.AllowImplicitDestinationInheritance = true;
+            TypeAdapterConfigFactory.GlobalSettings.AllowImplicitDestinationInheritance = true;
             TypeAdapterConfig<SimplePoco, SimpleDto>.NewConfig()
                 .Map(dest => dest.Name, src => src.Name + "_Suffix")
                 .Compile();

@@ -22,7 +22,7 @@ public class WhenUsingIMapFrom
             typeof(InheritedDestinationModel),
             typeof(DestinationModel)
         };
-        TypeAdapterConfig.GlobalSettings.ScanInheritedTypes(types);
+        TypeAdapterConfigFactory.GlobalSettings.ScanInheritedTypes(types);
     }
 
     [TestMethod]

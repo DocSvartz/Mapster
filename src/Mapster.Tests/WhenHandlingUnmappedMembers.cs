@@ -12,13 +12,13 @@ namespace Mapster.Tests
         [TestCleanup]
         public void TestCleanup()
         {
-            TypeAdapterConfig.GlobalSettings.RequireDestinationMemberSource = false;
+            TypeAdapterConfigFactory.GlobalSettings.RequireDestinationMemberSource = false;
         }
 
         [TestMethod]
         public void No_Errors_Thrown_With_Default_Configuration_On_Unmapped_Primitive()
         {
-            TypeAdapterConfig.GlobalSettings.RequireDestinationMemberSource = false;
+            TypeAdapterConfigFactory.GlobalSettings.RequireDestinationMemberSource = false;
             TypeAdapterConfig<SimplePoco, SimpleDto>.NewConfig().Compile();
 
             var source = new SimplePoco {Id = Guid.NewGuid(), Name = "TestName"};
@@ -35,7 +35,7 @@ namespace Mapster.Tests
         {
             try
             {
-                TypeAdapterConfig.GlobalSettings.RequireDestinationMemberSource = true;
+                TypeAdapterConfigFactory.GlobalSettings.RequireDestinationMemberSource = true;
                 TypeAdapterConfig<SimplePoco, SimpleDto>.NewConfig().Compile();
 
                 var source = new SimplePoco {Id = Guid.NewGuid(), Name = "TestName"};
@@ -72,7 +72,7 @@ namespace Mapster.Tests
         [TestMethod]
         public void No_Errors_Thrown_With_Default_Configuration_On_Unmapped_Child_Collection()
         {
-            TypeAdapterConfig.GlobalSettings.RequireDestinationMemberSource = false;
+            TypeAdapterConfigFactory.GlobalSettings.RequireDestinationMemberSource = false;
             TypeAdapterConfig<ParentPoco, ParentDto>.NewConfig().Compile();
 
             var source = new ParentPoco { Id = Guid.NewGuid(), Name = "TestName", Children = new List<ChildPoco> { new ChildPoco { Id = Guid.NewGuid(), Name = "TestName" } } };
@@ -89,7 +89,7 @@ namespace Mapster.Tests
         {
             try
             {
-                TypeAdapterConfig.GlobalSettings.RequireDestinationMemberSource = true;
+                TypeAdapterConfigFactory.GlobalSettings.RequireDestinationMemberSource = true;
                 TypeAdapterConfig<ParentPoco, ParentDto>.NewConfig().Compile();
 
                 var source = new ParentPoco {Id = Guid.NewGuid(), Name = "TestName", Children = new List<ChildPoco> {new ChildPoco {Id = Guid.NewGuid(), Name = "TestName"}}};
@@ -108,7 +108,7 @@ namespace Mapster.Tests
         {
             try
             {
-                TypeAdapterConfig.GlobalSettings.RequireDestinationMemberSource = true;
+                TypeAdapterConfigFactory.GlobalSettings.RequireDestinationMemberSource = true;
                 TypeAdapterConfig<ListPoco, ListDto>.NewConfig()
                     .UseDestinationValue(model => model.Type.IsConstructedGenericType
                                                   && model.Type.GetGenericTypeDefinition() == typeof(List<>))
@@ -128,7 +128,7 @@ namespace Mapster.Tests
         [TestMethod]
         public void NoErrorWhenMapped()
         {
-            TypeAdapterConfig.GlobalSettings.RequireDestinationMemberSource = true;
+            TypeAdapterConfigFactory.GlobalSettings.RequireDestinationMemberSource = true;
             TypeAdapterConfig<SimpleDto, SimplePoco>.NewConfig()
                 .TwoWays()
                 .Map(dest => dest.Id, src => src.Id)

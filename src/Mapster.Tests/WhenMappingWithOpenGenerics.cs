@@ -9,7 +9,7 @@ namespace Mapster.Tests
         [TestMethod]
         public void Map_With_Open_Generics()
         {
-            TypeAdapterConfig.GlobalSettings.ForType(typeof(GenericPoco<>), typeof(GenericDto<>))
+            TypeAdapterConfigFactory.GlobalSettings.ForType(typeof(GenericPoco<>), typeof(GenericDto<>))
                 .Map("value", "Value");
 
             var poco = new GenericPoco<int> { Value = 123 };
@@ -34,11 +34,11 @@ namespace Mapster.Tests
         [TestMethod]
         public void MapOpenGenericsUseInherits()
         {
-            TypeAdapterConfig.GlobalSettings
+            TypeAdapterConfigFactory.GlobalSettings
                 .ForType(typeof(GenericPoco<>), typeof(GenericDto<>))
                 .Map("value", "Value");
 
-            TypeAdapterConfig.GlobalSettings
+            TypeAdapterConfigFactory.GlobalSettings
                 .ForType(typeof(DerivedPoco<>), typeof(DerivedDto<>))
                 .Map("derivedValue", "DerivedValue")
                 .Inherits(typeof(GenericPoco<>), typeof(GenericDto<>));
@@ -52,17 +52,17 @@ namespace Mapster.Tests
         [TestMethod]
         public void MapOpenGenericsUseInclude()
         {
-            TypeAdapterConfig.GlobalSettings.Clear();
-           
-            TypeAdapterConfig.GlobalSettings
+            TypeAdapterConfigFactory.GlobalSettings.Clear();
+
+            TypeAdapterConfigFactory.GlobalSettings
                 .ForType(typeof(DerivedPoco<>), typeof(DerivedDto<>))
                 .Map("derivedValue", "DerivedValue");
 
-            TypeAdapterConfig.GlobalSettings
+            TypeAdapterConfigFactory.GlobalSettings
                 .ForType(typeof(GenericPoco<>), typeof(GenericDto<>))
                 .Map("value", "Value");
 
-            TypeAdapterConfig.GlobalSettings
+            TypeAdapterConfigFactory.GlobalSettings
                .ForType(typeof(GenericPoco<>), typeof(GenericDto<>))
                .Include(typeof(DerivedPoco<>), typeof(DerivedDto<>));
 

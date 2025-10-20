@@ -12,7 +12,7 @@ namespace Mapster.Tests
         [TestCleanup]
         public void TestCleanup()
         {
-            TypeAdapterConfig.GlobalSettings.Default.Settings.DestinationTransforms.Clear();
+            TypeAdapterConfigFactory.GlobalSettings.Default.Settings.DestinationTransforms.Clear();
         }
 
         [TestMethod]
@@ -31,7 +31,7 @@ namespace Mapster.Tests
         [TestMethod]
         public void Global_Destination_Transform_Is_Applied_To_Class()
         {
-            TypeAdapterConfig.GlobalSettings.Default.AddDestinationTransform((string x) => x.Trim());
+            TypeAdapterConfigFactory.GlobalSettings.Default.AddDestinationTransform((string x) => x.Trim());
             TypeAdapterConfig<string, string>.Clear();
 
             var source = new SimplePoco {Id = new Guid(), Name = "TestMethod"};

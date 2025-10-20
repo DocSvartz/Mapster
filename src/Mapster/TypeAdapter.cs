@@ -11,7 +11,7 @@ namespace Mapster
     {
         public static ITypeAdapterBuilder<TSource> BuildAdapter<TSource>(this TSource source)
         {
-            return new TypeAdapterBuilder<TSource>(source, TypeAdapterConfig.GlobalSettings);
+            return new TypeAdapterBuilder<TSource>(source, TypeAdapterConfigFactory.GlobalSettings);
         }
 
         public static ITypeAdapterBuilder<TSource> BuildAdapter<TSource>(this TSource source, TypeAdapterConfig config)
@@ -28,7 +28,7 @@ namespace Mapster
         [return: NotNullIfNotNull(nameof(source))]
         public static TDestination? Adapt<TDestination>(this object? source)
         {
-            return Adapt<TDestination>(source, TypeAdapterConfig.GlobalSettings);
+            return Adapt<TDestination>(source, TypeAdapterConfigFactory.GlobalSettings);
         }
 
         /// <summary>
@@ -85,7 +85,7 @@ namespace Mapster
         /// <returns>Adapted destination type.</returns>
         public static TDestination Adapt<TSource, TDestination>(this TSource source, TDestination destination)
         {
-            return Adapt(source, destination, TypeAdapterConfig.GlobalSettings);
+            return Adapt(source, destination, TypeAdapterConfigFactory.GlobalSettings);
         }
 
         /// <summary>
@@ -143,9 +143,9 @@ namespace Mapster
                 sourceType.IsOpenGenericType() && destinationType.IsOpenGenericType())
             {
                 var arg = source.GetType().GetGenericArguments();
-                return Adapt(source, sourceType.MakeGenericType(arg), destinationType.MakeGenericType(arg), TypeAdapterConfig.GlobalSettings);
+                return Adapt(source, sourceType.MakeGenericType(arg), destinationType.MakeGenericType(arg), TypeAdapterConfigFactory.GlobalSettings);
             }
-            return Adapt(source, sourceType, destinationType, TypeAdapterConfig.GlobalSettings);
+            return Adapt(source, sourceType, destinationType, TypeAdapterConfigFactory.GlobalSettings);
         }
 
         /// <summary>
@@ -182,7 +182,7 @@ namespace Mapster
         /// <returns>Adapted destination type.</returns>
         public static object? Adapt(this object source, object destination, Type sourceType, Type destinationType)
         {
-            return Adapt(source, destination, sourceType, destinationType, TypeAdapterConfig.GlobalSettings);
+            return Adapt(source, destination, sourceType, destinationType, TypeAdapterConfigFactory.GlobalSettings);
         }
 
         /// <summary>
@@ -268,6 +268,6 @@ namespace Mapster
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Minor Code Smell", "S1104:Fields should not have public accessibility", Justification = "<Pending>")]
     public static class TypeAdapter<TSource, TDestination>
     {
-        public static Func<TSource, TDestination> Map = TypeAdapterConfig.GlobalSettings.GetMapFunction<TSource, TDestination>();
+        public static Func<TSource, TDestination> Map = TypeAdapterConfigFactory.GlobalSettings.GetMapFunction<TSource, TDestination>();
     }
 }

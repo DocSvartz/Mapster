@@ -11,13 +11,13 @@ namespace Mapster.Tests
         [TestInitialize]
         public void Setup()
         {
-            TypeAdapterConfig.GlobalSettings.Clear();
+            TypeAdapterConfigFactory.GlobalSettings.Clear();
         }
 
         [TestCleanup]
         public void TestCleanup()
         {
-            TypeAdapterConfig.GlobalSettings.Default.NameMatchingStrategy(NameMatchingStrategy.Exact);
+            TypeAdapterConfigFactory.GlobalSettings.Default.NameMatchingStrategy(NameMatchingStrategy.Exact);
         }
 
         [TestMethod]

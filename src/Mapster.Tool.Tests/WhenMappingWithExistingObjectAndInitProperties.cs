@@ -12,7 +12,7 @@ public class WhenMappingWithExistingObjectAndInitProperties : TestBase
     [Fact]
     public void MapWithReflection()
     {
-        TypeAdapterConfig.GlobalSettings
+        TypeAdapterConfigFactory.GlobalSettings
             .Scan(Assembly.GetExecutingAssembly());
         
         var userMapper = GetMappingInterface<IUserMapper>();

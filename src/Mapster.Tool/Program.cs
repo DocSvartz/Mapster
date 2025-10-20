@@ -87,7 +87,7 @@ namespace Mapster.Tool
                 typeof(MapperAttribute).Assembly.GetName(),
                 typeof(IRegister).Assembly.GetName()
             );
-            var config = TypeAdapterConfig.GlobalSettings;
+            var config = TypeAdapterConfigFactory.GlobalSettings;
             config.SelfContainedCodeGeneration = true;
             config.Scan(assembly);
 
@@ -482,7 +482,7 @@ namespace Mapster.Tool
                 typeof(MapperAttribute).Assembly.GetName(),
                 typeof(IRegister).Assembly.GetName()
             );
-            var config = TypeAdapterConfig.GlobalSettings;
+            var config = TypeAdapterConfigFactory.GlobalSettings;
             config.SelfContainedCodeGeneration = true;
             config.Scan(assembly);
             var codeGenConfig = new CodeGenerationConfig();

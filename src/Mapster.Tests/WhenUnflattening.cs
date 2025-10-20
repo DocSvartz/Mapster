@@ -10,7 +10,7 @@ namespace Mapster.Tests
         [TestInitialize]
         public void Setup()
         {
-            TypeAdapterConfig.GlobalSettings.Clear();
+            TypeAdapterConfigFactory.GlobalSettings.Clear();
         }
 
         [TestMethod]

@@ -3,9 +3,17 @@ using Shouldly;
 
 namespace Mapster.Tests
 {
+
+
     [TestClass]
     public class WhenIgnoringConditionally
     {
+
+        [TestCleanup]
+        public void TestCleanup()
+        {
+            TypeAdapterConfigFactory.GlobalSettings.Clear();
+        }
 
         #region Tests
 

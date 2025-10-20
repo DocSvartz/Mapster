@@ -68,11 +68,11 @@ namespace Benchmark
             };
         }
 
-        private static readonly Func<LambdaExpression, Delegate> _defaultCompiler = TypeAdapterConfig.GlobalSettings.Compiler;
+        private static readonly Func<LambdaExpression, Delegate> _defaultCompiler = TypeAdapterConfigFactory.GlobalSettings.Compiler;
 
         private static void SetupCompiler(MapsterCompilerType type)
         {
-            TypeAdapterConfig.GlobalSettings.Compiler = type switch
+            TypeAdapterConfigFactory.GlobalSettings.Compiler = type switch
             {
                 MapsterCompilerType.Default => _defaultCompiler,
                 MapsterCompilerType.Roslyn => exp => exp.CompileWithDebugInfo(),
@@ -83,7 +83,7 @@ namespace Benchmark
         public static void ConfigureMapster(Foo fooInstance, MapsterCompilerType type)
         {
             SetupCompiler(type);
-            TypeAdapterConfig.GlobalSettings.Compile(typeof(Foo), typeof(Foo)); //recompile
+            TypeAdapterConfigFactory.GlobalSettings.Compile(typeof(Foo), typeof(Foo)); //recompile
             fooInstance.Adapt<Foo, Foo>(); //exercise
         }
         public static void ConfigureExpressMapper(Foo fooInstance)
@@ -98,7 +98,7 @@ namespace Benchmark
         public static void ConfigureMapster(Customer customerInstance, MapsterCompilerType type)
         {
             SetupCompiler(type);
-            TypeAdapterConfig.GlobalSettings.Compile(typeof(Customer), typeof(CustomerDTO));    //recompile
+            TypeAdapterConfigFactory.GlobalSettings.Compile(typeof(Customer), typeof(CustomerDTO));    //recompile
             customerInstance.Adapt<Customer, CustomerDTO>();    //exercise
         }
         public static void ConfigureExpressMapper(Customer customerInstance)

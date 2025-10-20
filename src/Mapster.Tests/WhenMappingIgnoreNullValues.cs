@@ -9,8 +9,8 @@ namespace Mapster.Tests
         [TestMethod]
         public void Map()
         {
-            TypeAdapterConfig.GlobalSettings.Clear();
-            TypeAdapterConfig.GlobalSettings.NewConfig<SourceClass, DestClass>()
+            TypeAdapterConfigFactory.GlobalSettings.Clear();
+            TypeAdapterConfigFactory.GlobalSettings.NewConfig<SourceClass, DestClass>()
                 .IgnoreNullValues(true)
                 .Compile();
 
@@ -25,8 +25,8 @@ namespace Mapster.Tests
         [TestMethod]
         public void Map_To_Target()
         {
-            TypeAdapterConfig.GlobalSettings.Clear();
-            TypeAdapterConfig.GlobalSettings.NewConfig<SourceClass, DestClass>()
+            TypeAdapterConfigFactory.GlobalSettings.Clear();
+            TypeAdapterConfigFactory.GlobalSettings.NewConfig<SourceClass, DestClass>()
                 .IgnoreNullValues(true)
                 .Compile();
 

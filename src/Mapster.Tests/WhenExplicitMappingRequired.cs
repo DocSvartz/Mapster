@@ -12,9 +12,9 @@ namespace Mapster.Tests
         [TestCleanup]
         public void TestCleanup()
         {
-            TypeAdapterConfig.GlobalSettings.RequireExplicitMapping = false;
-            TypeAdapterConfig.GlobalSettings.RequireExplicitMappingPrimitive = false;
-            TypeAdapterConfig.GlobalSettings.Clear();
+            TypeAdapterConfigFactory.GlobalSettings.RequireExplicitMapping = false;
+            TypeAdapterConfigFactory.GlobalSettings.RequireExplicitMappingPrimitive = false;
+            TypeAdapterConfigFactory.GlobalSettings.Clear();
         }
 
 
@@ -26,7 +26,7 @@ namespace Mapster.Tests
                 //compile first to prevent type initialize exception
                 TypeAdapterConfig<SimplePoco, SimpleDto>.NewConfig().Compile();
 
-                TypeAdapterConfig.GlobalSettings.RequireExplicitMapping = true;
+                TypeAdapterConfigFactory.GlobalSettings.RequireExplicitMapping = true;
                 TypeAdapterConfig<SimplePoco, SimpleDto>.Clear();
 
                 var simplePoco = new SimplePoco {Id = Guid.NewGuid(), Name = "TestName"};
@@ -44,7 +44,7 @@ namespace Mapster.Tests
         [TestMethod]
         public void Mapped_Classes_Succeed_With_Mapped_Enum()
         {
-            TypeAdapterConfig.GlobalSettings.RequireExplicitMapping = true;
+            TypeAdapterConfigFactory.GlobalSettings.RequireExplicitMapping = true;
             TypeAdapterConfig<SimpleEnumPoco, SimpleDto>.NewConfig();
 
             var simpleEnumPoco = new SimpleEnumPoco {Id = Guid.NewGuid(), Name = NameEnum.Martha};
@@ -57,10 +57,10 @@ namespace Mapster.Tests
         [TestMethod]
         public void Mapped_Classes_With_Mapped_Enum_Compiles()
         {
-            TypeAdapterConfig.GlobalSettings.RequireExplicitMapping = true;
+            TypeAdapterConfigFactory.GlobalSettings.RequireExplicitMapping = true;
             TypeAdapterConfig<SimpleEnumPoco, SimpleDto>.NewConfig();
 
-            TypeAdapterConfig.GlobalSettings.Compile();
+            TypeAdapterConfigFactory.GlobalSettings.Compile();
 
             var simpleEnumPoco = new SimpleEnumPoco {Id = Guid.NewGuid(), Name = NameEnum.Martha};
             var simpleDto = TypeAdapter.Adapt<SimpleEnumPoco, SimpleDto>(simpleEnumPoco);
@@ -71,7 +71,7 @@ namespace Mapster.Tests
         [TestMethod]
         public void Mapped_Classes_Succeed()
         {
-            TypeAdapterConfig.GlobalSettings.RequireExplicitMapping = true;
+            TypeAdapterConfigFactory.GlobalSettings.RequireExplicitMapping = true;
 
             TypeAdapterConfig<SimplePoco, SimpleDto>.NewConfig();
 
@@ -85,7 +85,7 @@ namespace Mapster.Tests
         [TestMethod]
         public void Mapped_List_Of_Classes_Succeed()
         {
-            TypeAdapterConfig.GlobalSettings.RequireExplicitMapping = true;
+            TypeAdapterConfigFactory.GlobalSettings.RequireExplicitMapping = true;
 
             TypeAdapterConfig<SimplePoco, SimpleDto>.NewConfig();
 
@@ -103,7 +103,7 @@ namespace Mapster.Tests
         [TestMethod]
         public void Mapped_Classes_Succeed_With_Child_Mapping()
         {
-            TypeAdapterConfig.GlobalSettings.RequireExplicitMapping = true;
+            TypeAdapterConfigFactory.GlobalSettings.RequireExplicitMapping = true;
 
             TypeAdapterConfig<CollectionPoco, CollectionDto>.NewConfig();
             TypeAdapterConfig<ChildPoco, ChildDto>.NewConfig();
@@ -118,7 +118,7 @@ namespace Mapster.Tests
         [TestMethod]
         public void Mapped_Classes_Succeed_When_List_To_IList_Is_Mapped()
         {
-            TypeAdapterConfig.GlobalSettings.RequireExplicitMapping = true;
+            TypeAdapterConfigFactory.GlobalSettings.RequireExplicitMapping = true;
 
             TypeAdapterConfig<SimplePoco, SimpleDto>.NewConfig();
 
@@ -144,13 +144,13 @@ namespace Mapster.Tests
         [TestMethod]
         public void RequireExplicitMappingPrimitiveWork()
         {
-            TypeAdapterConfig.GlobalSettings.RequireExplicitMappingPrimitive = true;
+            TypeAdapterConfigFactory.GlobalSettings.RequireExplicitMappingPrimitive = true;
 
             TypeAdapterConfig<Source783, Destination783>.NewConfig();
 
             Should.Throw<CompileException>(() => 
             {
-                TypeAdapterConfig.GlobalSettings.Compile(); // throw CompileException
+                TypeAdapterConfigFactory.GlobalSettings.Compile(); // throw CompileException
             });
 
             byte byteSource = 10;

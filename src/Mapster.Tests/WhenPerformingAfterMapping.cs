@@ -10,7 +10,7 @@ namespace Mapster.Tests
         [TestCleanup]
         public void TestCleanup()
         {
-            TypeAdapterConfig.GlobalSettings.Clear();
+            TypeAdapterConfigFactory.GlobalSettings.Clear();
         }
 
         [TestMethod]
@@ -37,7 +37,7 @@ namespace Mapster.Tests
         [TestMethod]
         public void After_Mapping_With_DestinationType_Setting()
         {
-            TypeAdapterConfig.GlobalSettings.ForDestinationType<IValidatable>()
+            TypeAdapterConfigFactory.GlobalSettings.ForDestinationType<IValidatable>()
                 .AfterMapping(dest => dest.Validate());
 
             var poco = new SimplePoco
@@ -53,9 +53,9 @@ namespace Mapster.Tests
         [TestMethod]
         public void No_Compile_Error_When_ConstructUsing_ForDestinationType()
         {
-            TypeAdapterConfig.GlobalSettings.ForDestinationType<IValidatable>()
+            TypeAdapterConfigFactory.GlobalSettings.ForDestinationType<IValidatable>()
                 .ConstructUsing(() => new SimpleDto());
-            TypeAdapterConfig.GlobalSettings.Compile();
+            TypeAdapterConfigFactory.GlobalSettings.Compile();
         }
 
         [TestMethod]
