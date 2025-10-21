@@ -25,7 +25,7 @@ namespace Mapster
         public Func<LambdaExpression, Delegate> Compiler { get; set; } = lambda => lambda.Compile();
 
         public List<TypeAdapterRule> Rules { get; internal set; }
-        public TypeAdapterSetter Default { get; internal set; }
+        //public TypeAdapterSetter Default { get; internal set; }
         public ConcurrentDictionary<TypeTuple, TypeAdapterRule> RuleMap { get; internal set; } = new ConcurrentDictionary<TypeTuple, TypeAdapterRule>();
 
         internal TypeAdapterConfig(bool IsGlobal): this()
@@ -37,7 +37,7 @@ namespace Mapster
         {
             Rules = TypeAdapterConfigFactory.RulesTemplate.ToList();
             var settings = new TypeAdapterSettings();
-            Default = new TypeAdapterSetter(settings, this);
+            //Default = new TypeAdapterSetter(settings, this);
             Rules.Add(new TypeAdapterRule
             {
                 Priority = arg => -100,
@@ -752,7 +752,7 @@ namespace Mapster
         private static readonly Lazy<TypeAdapterConfig> _cloneConfig = new Lazy<TypeAdapterConfig>(() =>
         {
             var config = new TypeAdapterConfig();
-            config.Default.Settings.PreserveReference = true;
+            config.Default().Settings.PreserveReference = true;
             config.ForType<TypeAdapterSettings, TypeAdapterSettings>()
                 .MapWith(src => src.Clone(), true);
             return config;

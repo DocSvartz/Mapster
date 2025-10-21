@@ -18,7 +18,7 @@ namespace Mapster.Tests
             var b = new Bar { A = 2 };
 
             var config = new TypeAdapterConfig();
-            config.Default.ShallowCopyForSameType(true);
+            config.Default().ShallowCopyForSameType(true);
 
             config.NewConfig<double, double>().MapToTargetWith((x, y) => 5);
             a.Adapt(b, config);
@@ -31,7 +31,7 @@ namespace Mapster.Tests
             var a = new List<double> {1, 2, 3};
 
             var config = new TypeAdapterConfig();
-            config.Default.ShallowCopyForSameType(true);
+            config.Default().ShallowCopyForSameType(true);
 
             config.NewConfig<double, double>().MapWith(_ => 5);
             var b = a.Adapt<List<double>>(config);
@@ -44,7 +44,7 @@ namespace Mapster.Tests
             var a = new List<double> {1, 2, 3};
 
             var config = new TypeAdapterConfig();
-            config.Default.ShallowCopyForSameType(true);
+            config.Default().ShallowCopyForSameType(true);
 
             config.NewConfig<List<double>, List<double>>().MapWith(_ => new List<double>{ 5, 5, 5});
             var b = a.Adapt<List<double>>(config);

@@ -67,7 +67,7 @@ namespace Mapster.Tests
             { 
                 RequireDestinationMemberSource = true, 
             };
-            config.Default
+            config.Default()
                    .NameMatchingStrategy(new NameMatchingStrategy
                     {
                         SourceMemberNameConverter = input => input.ToLowerInvariant(),

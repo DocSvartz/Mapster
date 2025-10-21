@@ -27,6 +27,8 @@ namespace Mapster.Tests
 
             var poco = new SimplePoco {Id = Guid.NewGuid(), Name = "TestName", FileContent = "Foo"};
 
+            var d = TypeAdapterConfigFactory.GlobalSettings.Default;
+
             var dto = TypeAdapter.Adapt<SimplePoco, SimpleDto>(poco);
 
             dto.Id.ShouldBe(poco.Id);

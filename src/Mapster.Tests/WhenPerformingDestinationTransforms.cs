@@ -12,7 +12,7 @@ namespace Mapster.Tests
         [TestCleanup]
         public void TestCleanup()
         {
-            TypeAdapterConfigFactory.GlobalSettings.Default.Settings.DestinationTransforms.Clear();
+            TypeAdapterConfigFactory.GlobalSettings.Default().Settings.DestinationTransforms.Clear();
         }
 
         [TestMethod]
@@ -31,7 +31,7 @@ namespace Mapster.Tests
         [TestMethod]
         public void Global_Destination_Transform_Is_Applied_To_Class()
         {
-            TypeAdapterConfigFactory.GlobalSettings.Default.AddDestinationTransform((string x) => x.Trim());
+            TypeAdapterConfigFactory.GlobalSettings.Default().AddDestinationTransform((string x) => x.Trim());
             TypeAdapterConfig<string, string>.Clear();
 
             var source = new SimplePoco {Id = new Guid(), Name = "TestMethod"};
@@ -57,7 +57,7 @@ namespace Mapster.Tests
         public void Adapter_Destination_Transform_Collection()
         {
             var config = new TypeAdapterConfig();
-            config.Default.AddDestinationTransform((IReadOnlyList<ChildDto> list) => list ?? new List<ChildDto>());
+            config.Default().AddDestinationTransform((IReadOnlyList<ChildDto> list) => list ?? new List<ChildDto>());
 
             var source = new CollectionPoco();
             var destination = source.Adapt<CollectionDto>(config);
@@ -69,7 +69,7 @@ namespace Mapster.Tests
         public void Adapter_Destination_Transform_Collection_Generic()
         {
             var config = new TypeAdapterConfig();
-            config.Default.AddDestinationTransform(DestinationTransform.EmptyCollectionIfNull);
+            config.Default().AddDestinationTransform(DestinationTransform.EmptyCollectionIfNull);
 
             var source = new CollectionPoco();
             var destination = source.Adapt<CollectionDto>(config);
@@ -85,7 +85,7 @@ namespace Mapster.Tests
         public void Adapter_Destination_Transform_CreateNewIfNull()
         {
             var config = new TypeAdapterConfig();
-            config.Default.AddDestinationTransform(DestinationTransform.CreateNewIfNull);
+            config.Default().AddDestinationTransform(DestinationTransform.CreateNewIfNull);
 
             var source = new CollectionPoco();
             var destination = source.Adapt<CollectionPoco>(config);

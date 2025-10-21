@@ -11,7 +11,7 @@ namespace Mapster.Tests
         {
             var config = new TypeAdapterConfig();
 
-            config.Default.MapToConstructor(true);
+            config.Default().MapToConstructor(true);
             config
                 .NewConfig<AbstractDtoTestClass, AbstractDomainTestClass>()
                 .Include<DerivedDtoTestClass, DerivedDomainTestClass>();
@@ -44,7 +44,7 @@ namespace Mapster.Tests
         {
             var config = new TypeAdapterConfig();
 
-            config.Default.MapToConstructor(true);
+            config.Default().MapToConstructor(true);
             config
                 .NewConfig<AbstractDtoTestClass, AbstractDomainTestClass>()
                 .Include<DerivedDtoTestClass, DerivedDomainTestClass>();

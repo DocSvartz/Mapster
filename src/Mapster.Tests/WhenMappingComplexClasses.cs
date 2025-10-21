@@ -13,7 +13,7 @@ namespace Mapster.Tests
         public void Classes_With_Complex_Dependencies_Can_Be_Mapped_In_A_Reasonable_Time_When_PreserveReference_Set()
         {
             var config = new TypeAdapterConfig();
-            config.Default.PreserveReference(true);
+            config.Default().PreserveReference(true);
             new Blackberry().Adapt<Blackberry, Blackberry>(config);
         }
 
@@ -21,7 +21,7 @@ namespace Mapster.Tests
         public void Classes_With_Complex_Dependencies_Can_Be_Mapped_In_A_Reasonable_Time_When_AvoidInlineMapping_Set()
         {
             var config = new TypeAdapterConfig();
-            config.Default.AvoidInlineMapping(true);
+            config.Default().AvoidInlineMapping(true);
             new Blackberry().Adapt<Blackberry, Blackberry>(config);
         }
 

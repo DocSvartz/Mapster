@@ -1,6 +1,8 @@
 ﻿using Mapster.Models;
 using Mapster.Utils;
 using System;
+using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace Mapster
 {
@@ -99,5 +101,12 @@ namespace Mapster
             return new TypeAdapterSetter(rule.Settings, config);
         }
 
+        public static TypeAdapterSetter Default(this TypeAdapterConfig config)
+        {
+            var arg = new PreCompileArgument() { DestinationType = typeof(void), SourceType = typeof(void), MapType = MapType.Map };
+            var settings = config.Rules.Where(x => x.Priority.Invoke(arg) == -100).First().Settings;
+
+            return new TypeAdapterSetter(settings, config);
+        }
     }
 }

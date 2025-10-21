@@ -74,7 +74,7 @@ namespace Mapster.Tests
         {
             var config = new TypeAdapterConfig();
             config.NewConfig<ParentPoco, ParentPoco>()
-                .Fork(cfg => cfg.Default.PreserveReference(true));
+                .Fork(cfg => cfg.Default().PreserveReference(true));
 
             var grandChild = new GrandChildPoco
             {

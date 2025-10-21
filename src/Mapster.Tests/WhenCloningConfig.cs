@@ -52,8 +52,8 @@ namespace Mapster.Tests
             var config = TypeAdapterConfigFactory.GlobalSettings.Clone();
             var global = TypeAdapterConfigFactory.GlobalSettings;
             config.ShouldNotBeSameAs(global);
-            config.Default.ShouldNotBeSameAs(global.Default);
-            config.Default.Settings.ShouldNotBeSameAs(global.Default.Settings);
+            config.Default().ShouldNotBeSameAs(global.Default());
+            config.Default().Settings.ShouldNotBeSameAs(global.Default().Settings);
             config.RuleMap.ShouldNotBeSameAs(global.RuleMap);
             foreach (var kvp in config.RuleMap)
             {
@@ -67,7 +67,7 @@ namespace Mapster.Tests
                 config.Rules[i].ShouldNotBeSameAs(global.Rules[i]);
                 config.Rules[i].Settings.ShouldNotBeSameAs(global.Rules[i].Settings);
             }
-            config.Rules.Any(rule => object.ReferenceEquals(rule.Settings, config.Default.Settings)).ShouldBeTrue();
+            config.Rules.Any(rule => object.ReferenceEquals(rule.Settings, config.Default().Settings)).ShouldBeTrue();
             config.Rules.ShouldContain(config.RuleMap[new TypeTuple(typeof(SimplePoco), typeof(SimpleDto))]);
         }
 

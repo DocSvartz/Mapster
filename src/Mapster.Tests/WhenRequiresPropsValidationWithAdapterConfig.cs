@@ -17,7 +17,7 @@ namespace Mapster.Tests
         [TestCleanup]
         public void TestCleanup()
         {
-            TypeAdapterConfigFactory.GlobalSettings.Default.NameMatchingStrategy(NameMatchingStrategy.Exact);
+            TypeAdapterConfigFactory.GlobalSettings.Default().NameMatchingStrategy(NameMatchingStrategy.Exact);
         }
         
         [TestMethod]

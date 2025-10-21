@@ -13,7 +13,7 @@ namespace Mapster.Tests
         public void MapUsingDestinationValue()
         {
             TypeAdapterConfigFactory.GlobalSettings.Compiler = exp => exp.CompileWithDebugInfo();
-            TypeAdapterConfigFactory.GlobalSettings.Default.ShallowCopyForSameType(true);
+            TypeAdapterConfigFactory.GlobalSettings.Default().ShallowCopyForSameType(true);
             TypeAdapterConfig<Invoice, InvoiceDto>.NewConfig().TwoWays();
 
             var strings = new[] { "One, Two, Three" };

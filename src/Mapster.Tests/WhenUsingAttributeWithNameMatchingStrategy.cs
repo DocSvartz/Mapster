@@ -14,7 +14,7 @@ namespace Mapster.Tests
         [TestMethod]
         public void Using_Attributes_With_NameMatchingStrategy()
         {
-            TypeAdapterConfigFactory.GlobalSettings.Default.NameMatchingStrategy(NameMatchingStrategy.IgnoreCase);
+            TypeAdapterConfigFactory.GlobalSettings.Default().NameMatchingStrategy(NameMatchingStrategy.IgnoreCase);
 
             var id = Guid.NewGuid();
             var poco = new SimplePoco(id) { Name = "test" };

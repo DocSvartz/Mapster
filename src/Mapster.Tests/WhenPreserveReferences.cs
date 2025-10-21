@@ -10,13 +10,13 @@ namespace Mapster.Tests
         [TestCleanup]
         public void Teardown()
         {
-            TypeAdapterConfigFactory.GlobalSettings.Default.Settings.PreserveReference = false;
+            TypeAdapterConfigFactory.GlobalSettings.Default().Settings.PreserveReference = false;
         }
 
         [TestMethod]
         public void Preserve_Reference_For_List()
         {
-            TypeAdapterConfigFactory.GlobalSettings.Default.Settings.PreserveReference = true;
+            TypeAdapterConfigFactory.GlobalSettings.Default().Settings.PreserveReference = true;
 
             var poco = new SimplePoco {Id = Guid.NewGuid(), Name = "TestName"};
 
@@ -30,7 +30,7 @@ namespace Mapster.Tests
         [TestMethod]
         public void Preserve_Reference_For_Circular_Reference()
         {
-            TypeAdapterConfigFactory.GlobalSettings.Default.Settings.PreserveReference = true;
+            TypeAdapterConfigFactory.GlobalSettings.Default().Settings.PreserveReference = true;
 
             var node1 = new LinkNode {Id = Guid.NewGuid()};
             var node2 = new LinkNode {Id = Guid.NewGuid()};
@@ -45,7 +45,7 @@ namespace Mapster.Tests
         public void MapSameReferenceToDifferentTypes()
         {
             var config = new TypeAdapterConfig();
-            config.Default.PreserveReference(true);
+            config.Default().PreserveReference(true);
 
             var employee = new Employee { Id = 1, Name = "Name" };
 
