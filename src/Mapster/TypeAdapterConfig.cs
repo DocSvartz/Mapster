@@ -28,7 +28,7 @@ namespace Mapster
         //public TypeAdapterSetter Default { get; internal set; }
         public ConcurrentDictionary<TypeTuple, TypeAdapterRule> RuleMap { get; internal set; } = new ConcurrentDictionary<TypeTuple, TypeAdapterRule>();
 
-        internal TypeAdapterConfig(bool IsGlobal): this()
+        internal TypeAdapterConfig(bool IsGlobal) : this()
         {
             IsGlobalSettings = IsGlobal;
         }
@@ -667,27 +667,16 @@ namespace Mapster
         /// </summary>
         /// <param name="assemblies">assemblies to scan.</param>
         /// <returns>A list of registered mappings</returns>
-        public IList<IRegister> Scan(params Assembly[] assemblies)
-        {
-            List<IRegister> registers = assemblies.Select(assembly => assembly.GetLoadableTypes()
-                .Where(x => typeof(IRegister).GetTypeInfo().IsAssignableFrom(x.GetTypeInfo()) && x.GetTypeInfo().IsClass && !x.GetTypeInfo().IsAbstract))
-                .SelectMany(registerTypes =>
-                    registerTypes.Select(registerType => (IRegister)Activator.CreateInstance(registerType))).ToList();
+        //public IList<IRegister> Scan(params Assembly[] assemblies)
+        //{
+        //    List<IRegister> registers = assemblies.Select(assembly => assembly.GetLoadableTypes()
+        //        .Where(x => typeof(IRegister).GetTypeInfo().IsAssignableFrom(x.GetTypeInfo()) && x.GetTypeInfo().IsClass && !x.GetTypeInfo().IsAbstract))
+        //        .SelectMany(registerTypes =>
+        //            registerTypes.Select(registerType => (IRegister)Activator.CreateInstance(registerType))).ToList();
 
-            Apply(registers);
-            return registers;
-        }
-
-
-        /// <summary>
-        /// Applies type mappings.
-        /// </summary>
-        /// <param name="registers">collection of IRegister interface to apply mapping.</param>
-        public void Apply(IEnumerable<Lazy<IRegister>> registers)
-        {
-            Apply(registers.Select(register => register.Value));
-        }
-
+        //    Apply(registers);
+        //    return registers;
+        //}
 
         /// <summary>
         /// Applies type mappings.
@@ -701,24 +690,10 @@ namespace Mapster
             }
         }
 
-
-        /// <summary>
-        /// Applies type mappings.
-        /// </summary>
-        /// <param name="registers">IRegister interface params to apply mapping.</param>
-        public void Apply(params IRegister[] registers)
-        {
-            foreach (IRegister register in registers)
-            {
-                register.Register(this);
-            }
-        }
-
-
         /// <summary>
         /// Clears all type mapping rules and settings
         /// </summary>
-        internal void Clear()
+        public void Clear()
         {
             var keys = RuleMap.Keys.ToList();
             foreach (var key in keys)
@@ -733,7 +708,7 @@ namespace Mapster
         /// </summary>
         /// <param name="sourceType">Source type to remove.</param>
         /// <param name="destinationType">Destination type to remove.</param>
-        internal void Remove(Type sourceType, Type destinationType)
+        public void Remove(Type sourceType, Type destinationType)
         {
             var key = new TypeTuple(sourceType, destinationType);
             Remove(key);
