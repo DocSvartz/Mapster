@@ -7,11 +7,11 @@ namespace MapsterMapper
 {
     public class Mapper : IMapper
     {
-        public TypeAdapterConfig Config { get; }
+        public ITypeAdapterConfig Config { get; }
 
         public Mapper() : this(TypeAdapterConfigFactory.GlobalSettings) { }
 
-        public Mapper(TypeAdapterConfig config)
+        public Mapper(ITypeAdapterConfig config)
         {
             Config = config;
         }
