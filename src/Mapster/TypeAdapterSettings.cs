@@ -179,9 +179,9 @@ namespace Mapster
             get => Get<object>(nameof(MapToConstructor));
             set => Set(nameof(MapToConstructor), value);
         }
-        public Action<TypeAdapterConfig>? Fork
+        public Action<ITypeAdapterConfig>? Fork
         {
-            get => Get<Action<TypeAdapterConfig>>(nameof(Fork));
+            get => Get<Action<ITypeAdapterConfig>>(nameof(Fork));
             set => Set(nameof(Fork), value);
         }
 

@@ -10,7 +10,7 @@ using System.Runtime.CompilerServices;
 
 namespace Mapster
 {
-    public class TypeAdapterConfig
+    public class TypeAdapterConfig : ITypeAdapterConfig
     {
         [AdaptIgnore]
         public bool IsGlobalSettings { get; private set; }
@@ -315,7 +315,7 @@ namespace Mapster
 
         internal Expression CreateDynamicMapInvokeExpressionBody(Type destinationType, Expression p1)
         {
-            var method = (from m in typeof(TypeAdapterConfig).GetMethods(BindingFlags.Instance | BindingFlags.Public)
+            var method = (from m in typeof(ITypeAdapterConfig).GetMethods(BindingFlags.Instance | BindingFlags.Public)
                           where m.Name == nameof(GetDynamicMapFunction)
                           select m).First().MakeGenericMethod(destinationType);
             var getType = typeof(object).GetMethod(nameof(GetType));
@@ -327,7 +327,7 @@ namespace Mapster
         {
             var context = new CompileContext(this);
             context.Running.Add(tuple);
-            Action<TypeAdapterConfig>? fork = null;
+            Action<ITypeAdapterConfig>? fork = null;
             try
             {
                 var arg = GetCompileArgument(tuple, mapType, context);
@@ -453,7 +453,7 @@ namespace Mapster
             }
             else
             {
-                var method = (from m in typeof(TypeAdapterConfig).GetMethods(BindingFlags.Instance | BindingFlags.Public)
+                var method = (from m in typeof(ITypeAdapterConfig).GetMethods(BindingFlags.Instance | BindingFlags.Public)
                               where m.Name == nameof(GetMapFunction)
                               select m).First().MakeGenericMethod(sourceType, destinationType);
                 invoker = Expression.Call(CreateSelfExpression(), method);
@@ -468,7 +468,7 @@ namespace Mapster
                 var key = new TypeTuple(sourceType, destinationType);
                 _mapToTargetDict[key] = Compiler(CreateMapExpression(key, MapType.MapToTarget));
             }
-            var method = (from m in typeof(TypeAdapterConfig).GetMethods(BindingFlags.Instance | BindingFlags.Public)
+            var method = (from m in typeof(ITypeAdapterConfig).GetMethods(BindingFlags.Instance | BindingFlags.Public)
                           where m.Name == nameof(GetMapToTargetFunction)
                           select m).First().MakeGenericMethod(sourceType, destinationType);
             var invoker = Expression.Call(CreateSelfExpression(), method);
@@ -724,7 +724,7 @@ namespace Mapster
             _dynamicMapDict.TryRemove(key, out _);
         }
 
-        private static readonly Lazy<TypeAdapterConfig> _cloneConfig = new Lazy<TypeAdapterConfig>(() =>
+        private static readonly Lazy<ITypeAdapterConfig> _cloneConfig = new Lazy<ITypeAdapterConfig>(() =>
         {
             var config = new TypeAdapterConfig();
             config.Default().Settings.PreserveReference = true;
@@ -738,16 +738,16 @@ namespace Mapster
         /// Clones the current TypeAdapterConfig.
         /// </summary>
         /// <returns></returns>
-        public TypeAdapterConfig Clone()
+        public ITypeAdapterConfig Clone()
         {
             var fn = _cloneConfig.Value.GetMapFunction<TypeAdapterConfig, TypeAdapterConfig>();
             return fn(this);
         }
 
-        private ConcurrentDictionary<string, TypeAdapterConfig>? _inlineConfigs;
-        private ConcurrentDictionary<string, TypeAdapterConfig> InlineConfigs =>
-            _inlineConfigs ??= new ConcurrentDictionary<string, TypeAdapterConfig>();
-        public TypeAdapterConfig Fork(Action<TypeAdapterConfig> action,
+        private ConcurrentDictionary<string, ITypeAdapterConfig>? _inlineConfigs;
+        private ConcurrentDictionary<string, ITypeAdapterConfig> InlineConfigs =>
+            _inlineConfigs ??= new ConcurrentDictionary<string, ITypeAdapterConfig>();
+        public ITypeAdapterConfig Fork(Action<ITypeAdapterConfig> action,
 #if !NET40
             [CallerFilePath]
 #endif

@@ -12,7 +12,7 @@ namespace Mapster
         /// Applies type mappings.
         /// </summary>
         /// <param name="registers">IRegister interface params to apply mapping.</param>
-        public static void Apply(this TypeAdapterConfig config, params IRegister[] registers)
+        public static void Apply(this ITypeAdapterConfig config, params IRegister[] registers)
         {
             foreach (IRegister register in registers)
             {
@@ -24,7 +24,7 @@ namespace Mapster
         /// Applies type mappings.
         /// </summary>
         /// <param name="registers">collection of IRegister interface to apply mapping.</param>
-        public static void Apply(this TypeAdapterConfig config, IEnumerable<Lazy<IRegister>> registers)
+        public static void Apply(this ITypeAdapterConfig config, IEnumerable<Lazy<IRegister>> registers)
         {
             config.Apply(registers.Select(register => register.Value));
         }
@@ -34,7 +34,7 @@ namespace Mapster
         /// </summary>
         /// <param name="assemblies">assemblies to scan.</param>
         /// <returns>A list of registered mappings</returns>
-        public static IList<IRegister> Scan(this TypeAdapterConfig config, params Assembly[] assemblies)
+        public static IList<IRegister> Scan(this ITypeAdapterConfig config, params Assembly[] assemblies)
         {
             List<IRegister> registers = assemblies.Select(assembly => assembly.GetLoadableTypes()
                 .Where(x => typeof(IRegister).GetTypeInfo().IsAssignableFrom(x.GetTypeInfo()) && x.GetTypeInfo().IsClass && !x.GetTypeInfo().IsAbstract))

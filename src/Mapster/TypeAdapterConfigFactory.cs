@@ -6,7 +6,7 @@ namespace Mapster
     public static class TypeAdapterConfigFactory
     {
         public static List<TypeAdapterRule> RulesTemplate { get; } = CreateRuleTemplate();
-        public static TypeAdapterConfig GlobalSettings { get; } = new TypeAdapterConfig(true);
+        public static ITypeAdapterConfig GlobalSettings { get; } = new TypeAdapterConfig(true);
 
         private static List<TypeAdapterRule> CreateRuleTemplate()
         {

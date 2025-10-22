@@ -7,6 +7,6 @@
     /// </summary>
     public interface IRegister
     {
-        void Register(TypeAdapterConfig config);
+        void Register(ITypeAdapterConfig config);
     }
 }

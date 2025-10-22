@@ -2,7 +2,6 @@
 using Mapster.Utils;
 using System;
 using System.Linq;
-using System.Runtime.CompilerServices;
 
 namespace Mapster
 {
@@ -14,7 +13,7 @@ namespace Mapster
         /// <typeparam name="TSource"></typeparam>
         /// <typeparam name="TDestination"></typeparam>
         /// <returns></returns>
-        public static TypeAdapterSetter<TSource, TDestination> ForType<TSource, TDestination>(this TypeAdapterConfig config)
+        public static TypeAdapterSetter<TSource, TDestination> ForType<TSource, TDestination>(this ITypeAdapterConfig config)
         {
             var key = new TypeTuple(typeof(TSource), typeof(TDestination));
             var settings = config.GetSettings(key);
@@ -27,7 +26,7 @@ namespace Mapster
         /// <param name="sourceType">Source type to create new configuration.</param>
         /// <param name="destinationType">Destination type to create new configuration.</param>
         /// <returns></returns>
-        public static TypeAdapterSetter NewConfig(this TypeAdapterConfig config, Type sourceType, Type destinationType)
+        public static TypeAdapterSetter NewConfig(this ITypeAdapterConfig config, Type sourceType, Type destinationType)
         {
             config.Remove(sourceType, destinationType);
             return config.ForType(sourceType, destinationType);
@@ -39,7 +38,7 @@ namespace Mapster
         /// <typeparam name="TSource">Source type.</typeparam>
         /// <typeparam name="TDestination">Destination type.</typeparam>
         /// <returns></returns>
-        public static TypeAdapterSetter<TSource, TDestination> NewConfig<TSource, TDestination>(this TypeAdapterConfig config) 
+        public static TypeAdapterSetter<TSource, TDestination> NewConfig<TSource, TDestination>(this ITypeAdapterConfig config) 
         {
             config.Remove(typeof(TSource), typeof(TDestination));
             return config.ForType<TSource, TDestination>();
@@ -50,7 +49,7 @@ namespace Mapster
         /// </summary>
         /// <param name="destinationType">Destination type.</param>
         /// <returns></returns>
-        public static TypeAdapterSetter ForDestinationType(this TypeAdapterConfig config, Type destinationType)
+        public static TypeAdapterSetter ForDestinationType(this ITypeAdapterConfig config, Type destinationType)
         {
             var key = new TypeTuple(typeof(void), destinationType);
             var settings = config.GetSettings(key);
@@ -62,7 +61,7 @@ namespace Mapster
         /// </summary>
         /// <typeparam name="TDestination">Destination type.</typeparam>
         /// <returns></returns>
-        public static TypeAdapterSetter<TDestination> ForDestinationType<TDestination>(this TypeAdapterConfig config)
+        public static TypeAdapterSetter<TDestination> ForDestinationType<TDestination>(this ITypeAdapterConfig config)
         {
             var key = new TypeTuple(typeof(void), typeof(TDestination));
             var settings = config.GetSettings(key);
@@ -74,7 +73,7 @@ namespace Mapster
         /// </summary>
         /// <param name="canMap"></param>
         /// <returns></returns>
-        public static TypeAdapterSetter When(this TypeAdapterConfig config, Func<PreCompileArgument, bool> canMap)
+        public static TypeAdapterSetter When(this ITypeAdapterConfig config, Func<PreCompileArgument, bool> canMap)
         {
             var rule = new TypeAdapterRule
             {
@@ -90,7 +89,7 @@ namespace Mapster
         /// </summary>
         /// <param name="canMap"></param>
         /// <returns></returns>
-        public static TypeAdapterSetter When(this TypeAdapterConfig config, Func<Type, Type, MapType, bool> canMap)
+        public static TypeAdapterSetter When(this ITypeAdapterConfig config, Func<Type, Type, MapType, bool> canMap)
         {
             var rule = new TypeAdapterRule
             {
@@ -101,7 +100,7 @@ namespace Mapster
             return new TypeAdapterSetter(rule.Settings, config);
         }
 
-        public static TypeAdapterSetter Default(this TypeAdapterConfig config)
+        public static TypeAdapterSetter Default(this ITypeAdapterConfig config)
         {
             var arg = new PreCompileArgument() { DestinationType = typeof(void), SourceType = typeof(void), MapType = MapType.Map };
             var settings = config.Rules.Where(x => x.Priority.Invoke(arg) == -100).First().Settings;

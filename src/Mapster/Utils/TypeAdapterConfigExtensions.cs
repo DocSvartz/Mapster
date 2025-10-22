@@ -29,6 +29,6 @@ public static class TypeAdapterConfigExtensions
         dynamicMapper.ApplyMappingFromAssembly();
     }
 
-    public static bool HasRuleFor(this TypeAdapterConfig config, Type srcType, Type dstType) =>
+    public static bool HasRuleFor(this ITypeAdapterConfig config, Type srcType, Type dstType) =>
         config.RuleMap.ContainsKey(new TypeTuple(srcType, dstType));
 }

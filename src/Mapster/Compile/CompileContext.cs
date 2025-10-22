@@ -7,8 +7,8 @@ namespace Mapster
     public class CompileContext
     {
         public HashSet<TypeTuple> Running { get; } = new();
-        public Stack<TypeAdapterConfig> Configs { get; } = new();
-        public TypeAdapterConfig Config => Configs.Peek();
+        public Stack<ITypeAdapterConfig> Configs { get; } = new();
+        public ITypeAdapterConfig Config => Configs.Peek();
         public int? MaxDepth { get; set; }
         public int Depth { get; set; }
         public HashSet<ParameterExpression> ExtraParameters { get; } = new();
@@ -18,7 +18,7 @@ namespace Mapster
             return MaxDepth.HasValue || ExtraParameters.Count > 0;
         }
 
-        public CompileContext(TypeAdapterConfig config)
+        public CompileContext(ITypeAdapterConfig config)
         {
             Configs.Push(config);
         }
