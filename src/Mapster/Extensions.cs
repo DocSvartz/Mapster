@@ -7,7 +7,7 @@ namespace Mapster
 {
     public static class Extensions
     {
-        public static IQueryable<TDestination> ProjectToType<TDestination>(this IQueryable source, TypeAdapterConfig? config = null)
+        public static IQueryable<TDestination> ProjectToType<TDestination>(this IQueryable source, ITypeAdapterConfig? config = null)
         {
             config ??= TypeAdapterConfigFactory.GlobalSettings;
             var mockCall = config.GetProjectionCallExpression(source.ElementType, typeof(TDestination));
@@ -15,7 +15,7 @@ namespace Mapster
             return source.Provider.CreateQuery<TDestination>(sourceCall);
         }
 
-        public static IQueryable ProjectToType(this IQueryable source, Type destinationType, TypeAdapterConfig? config = null)
+        public static IQueryable ProjectToType(this IQueryable source, Type destinationType, ITypeAdapterConfig? config = null)
         {
             config ??= TypeAdapterConfigFactory.GlobalSettings;
             var mockCall = config.GetProjectionCallExpression(source.ElementType, destinationType);

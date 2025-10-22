@@ -14,7 +14,7 @@ namespace Mapster
             return new TypeAdapterBuilder<TSource>(source, TypeAdapterConfigFactory.GlobalSettings);
         }
 
-        public static ITypeAdapterBuilder<TSource> BuildAdapter<TSource>(this TSource source, TypeAdapterConfig config)
+        public static ITypeAdapterBuilder<TSource> BuildAdapter<TSource>(this TSource source, ITypeAdapterConfig config)
         {
             return new TypeAdapterBuilder<TSource>(source, config);
         }
@@ -39,7 +39,7 @@ namespace Mapster
         /// <param name="config">Configuration</param>
         /// <returns>Adapted destination type.</returns>
         [return: NotNullIfNotNull(nameof(source))]
-        public static TDestination? Adapt<TDestination>(this object? source, TypeAdapterConfig config)
+        public static TDestination? Adapt<TDestination>(this object? source, ITypeAdapterConfig config)
         {
             // ReSharper disable once ConditionIsAlwaysTrueOrFalse
             if (source == null)
@@ -69,7 +69,7 @@ namespace Mapster
         /// <param name="source">Source object to adapt.</param>
         /// <param name="config">Configuration</param>
         /// <returns>Adapted destination type.</returns>
-        public static TDestination Adapt<TSource, TDestination>(this TSource source, TypeAdapterConfig config)
+        public static TDestination Adapt<TSource, TDestination>(this TSource source, ITypeAdapterConfig config)
         {
             var fn = config.GetMapFunction<TSource, TDestination>();
             return fn(source);
@@ -97,7 +97,7 @@ namespace Mapster
         /// <param name="destination">The destination object to populate.</param>
         /// <param name="config">Configuration</param>
         /// <returns>Adapted destination type.</returns>
-        public static TDestination Adapt<TSource, TDestination>(this TSource source, TDestination destination, TypeAdapterConfig config)
+        public static TDestination Adapt<TSource, TDestination>(this TSource source, TDestination destination, ITypeAdapterConfig config)
         {
             var sourceType = source?.GetType();
             var destinationType = destination?.GetType();
@@ -112,7 +112,7 @@ namespace Mapster
             return fn(source, destination);
         }
 
-        private static TDestination UpdateFuncFromPackedinObject<TSource, TDestination>(TSource source, TDestination destination, TypeAdapterConfig config, Type sourceType, Type destinationType)
+        private static TDestination UpdateFuncFromPackedinObject<TSource, TDestination>(TSource source, TDestination destination, ITypeAdapterConfig config, Type sourceType, Type destinationType)
         {
             dynamic del = config.GetMapToTargetFunction(sourceType, destinationType);
 
@@ -156,7 +156,7 @@ namespace Mapster
         /// <param name="destinationType">The type of the destination object.</param>
         /// <param name="config">Configuration</param>
         /// <returns>Adapted destination type.</returns>
-        public static object? Adapt(this object source, Type sourceType, Type destinationType, TypeAdapterConfig config)
+        public static object? Adapt(this object source, Type sourceType, Type destinationType, ITypeAdapterConfig config)
         {
             var del = config.GetMapFunction(sourceType, destinationType);
             if (sourceType.GetTypeInfo().IsVisible && destinationType.GetTypeInfo().IsVisible)
@@ -194,7 +194,7 @@ namespace Mapster
         /// <param name="destinationType">The type of the destination object.</param>
         /// <param name="config">Configuration</param>
         /// <returns>Adapted destination type.</returns>
-        public static object? Adapt(this object source, object destination, Type sourceType, Type destinationType, TypeAdapterConfig config)
+        public static object? Adapt(this object source, object destination, Type sourceType, Type destinationType, ITypeAdapterConfig config)
         {
             var del = config.GetMapToTargetFunction(sourceType, destinationType);
             if (sourceType.GetTypeInfo().IsVisible && destinationType.GetTypeInfo().IsVisible)

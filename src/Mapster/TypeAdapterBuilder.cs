@@ -11,15 +11,15 @@ namespace Mapster
     {
         TSource Source { get; }
         TSource IAdapterBuilder<TSource>.Source => Source;
-        TypeAdapterConfig Config { get; set; }
-        TypeAdapterConfig IAdapterBuilder.Config => Config;
+        ITypeAdapterConfig Config { get; set; }
+        ITypeAdapterConfig IAdapterBuilder.Config => Config;
 
         private Dictionary<string, object>? _parameters;
         Dictionary<string, object> Parameters => _parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> IAdapterBuilder.Parameters => Parameters;
         bool IAdapterBuilder.HasParameter => _parameters != null && _parameters.Count > 0;
 
-        internal TypeAdapterBuilder(TSource source, TypeAdapterConfig config)
+        internal TypeAdapterBuilder(TSource source, ITypeAdapterConfig config)
         {
             Source = source;
             Config = config;
@@ -34,7 +34,7 @@ namespace Mapster
 		/// <param name="key2"></param>
 		/// <returns></returns>
 		[SuppressMessage("ReSharper", "ExplicitCallerInfoArgument")]
-        public ITypeAdapterBuilder<TSource> ForkConfig(Action<TypeAdapterConfig> action,
+        public ITypeAdapterBuilder<TSource> ForkConfig(Action<ITypeAdapterConfig> action,
 #if !NET40
             [CallerFilePath]
 #endif
