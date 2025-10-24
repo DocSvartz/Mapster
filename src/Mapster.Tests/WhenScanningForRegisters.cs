@@ -29,7 +29,7 @@ namespace Mapster.Tests
 
         public class TestRegister : IRegister
         {
-            public void Register(TypeAdapterConfig config)
+            public void Register(ITypeAdapterConfig config)
             {
                 config.NewConfig<Customer, CustomerDTO>();
                 config.NewConfig<Product, ProductDTO>();
@@ -41,7 +41,7 @@ namespace Mapster.Tests
 
         public class TestRegister2 : IRegister
         {
-            public void Register(TypeAdapterConfig config)
+            public void Register(ITypeAdapterConfig config)
             {
                 config.ForType<Person, PersonDTO>();
             }

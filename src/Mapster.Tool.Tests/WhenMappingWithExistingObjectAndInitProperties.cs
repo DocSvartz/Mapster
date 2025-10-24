@@ -26,7 +26,7 @@ public class WhenMappingWithExistingObjectAndInitProperties : TestBase
 
 public class UserMappingRegister : IRegister
 {
-    public void Register(TypeAdapterConfig config)
+    public void Register(ITypeAdapterConfig config)
     {
         config.NewConfig<_User, _UserDto>()
             .MapToConstructor(true)
