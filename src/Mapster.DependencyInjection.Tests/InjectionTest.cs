@@ -18,7 +18,7 @@ namespace Mapster.DependencyInjection.Tests
 
             IServiceCollection sc = new ServiceCollection();
             sc.AddScoped<IMockService, MockService>();
-            sc.AddSingleton(config);
+            sc.AddSingleton<ITypeAdapterConfig>(config);
             sc.AddScoped<IMapper, ServiceMapper>();
 
             var sp = sc.BuildServiceProvider();
@@ -71,7 +71,7 @@ namespace Mapster.DependencyInjection.Tests
             const string expectedValue = "foobar";
             var config = ConfigureMapping(expectedValue);
             ServiceCollection serviceCollection = new();
-            serviceCollection.AddSingleton(config);
+            serviceCollection.AddSingleton<ITypeAdapterConfig>(config);
             serviceCollection.AddMapster();
             var serviceProvider = serviceCollection.BuildServiceProvider();
             using var scope = serviceProvider.CreateScope();
