@@ -245,7 +245,7 @@ namespace Mapster
         /// </summary>
         /// <param name="failFast">A boolean parameter that determines whether exceptions should be thrown immediately when mapping errors occur or whether to collect and aggregate them. The default value is true.</param>
         /// <exception cref="AggregateException"></exception>
-        public void Compile(bool failFast = true)
+        internal void Compile(bool failFast = true)
         {
             var exceptions = new List<Exception>();
             var keys = _config.RuleMap.Keys.ToList();
@@ -282,7 +282,7 @@ namespace Mapster
         /// </summary>
         /// <param name="sourceType">Source type to compile.</param>
         /// <param name="destinationType">Destination type to compile.</param>
-        public void Compile(Type sourceType, Type destinationType)
+        internal void Compile(Type sourceType, Type destinationType)
         {
             var tuple = new TypeTuple(sourceType, destinationType);
             _mapDict[tuple] = _config.Compiler(_config.CreateMapExpression(tuple, MapType.Map));
@@ -297,7 +297,7 @@ namespace Mapster
         /// <summary>
         /// Validates and cache mapping instructions for queryable.
         /// </summary>
-        public void CompileProjection()
+        internal void CompileProjection()
         {
             var keys = _config.RuleMap.Keys.ToList();
             foreach (var key in keys)
@@ -311,7 +311,7 @@ namespace Mapster
         /// </summary>
         /// <param name="sourceType">Source type to compile.</param>
         /// <param name="destinationType">Destination type to compile.</param>
-        public void CompileProjection(Type sourceType, Type destinationType)
+        internal void CompileProjection(Type sourceType, Type destinationType)
         {
             var tuple = new TypeTuple(sourceType, destinationType);
             _projectionDict[tuple] = CreateProjectionCallExpression(tuple);
