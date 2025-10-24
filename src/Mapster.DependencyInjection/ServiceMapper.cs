@@ -8,7 +8,7 @@ namespace MapsterMapper
         internal const string DI_KEY = "Mapster.DependencyInjection.sp";
         private readonly IServiceProvider _serviceProvider;
 
-        public ServiceMapper(IServiceProvider serviceProvider, TypeAdapterConfig config) : base(config)
+        public ServiceMapper(IServiceProvider serviceProvider, ITypeAdapterConfig config) : base(config)
         {
             _serviceProvider = serviceProvider;
         }

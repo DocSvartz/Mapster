@@ -149,11 +149,11 @@ namespace Mapster
         }
 
         private Expression CreateSelfExpression()
-        {
-            var s = typeof(TypeAdapterConfigFactory).GetProperty(nameof(TypeAdapterConfigFactory.GlobalSettings));
-
+        {            
             if (_config.IsGlobalSettings)
-                return Expression.Property(null, typeof(TypeAdapterConfigFactory).GetProperty(nameof(TypeAdapterConfigFactory.GlobalSettings.ConfigCompile))!);
+                return Expression.Property(
+                    Expression.Property(null, typeof(TypeAdapterConfigFactory).GetProperty(nameof(TypeAdapterConfigFactory.GlobalSettings))),
+                    nameof(ITypeAdapterConfig.ConfigCompile));
             else
                 return Expression.Constant(this);
         }

@@ -22,6 +22,8 @@ namespace Mapster
         public Func<LambdaExpression, Delegate> Compiler { get; set; } = lambda => lambda.Compile();
         public List<TypeAdapterRule> Rules { get; internal set; }
         public ConcurrentDictionary<TypeTuple, TypeAdapterRule> RuleMap { get; internal set; } = new ConcurrentDictionary<TypeTuple, TypeAdapterRule>();
+        
+        [AdaptIgnore]
         public ConfigCompileStorage ConfigCompile { get; private set; }
 
         internal TypeAdapterConfig(bool IsGlobal) : this()
@@ -55,8 +57,6 @@ namespace Mapster
             return new TypeAdapterSetter(settings, this);
         }
 
-        
-
         public LambdaExpression CreateMapExpression(TypeTuple tuple, MapType mapType)
         {
             var context = new CompileContext(this);
@@ -82,17 +82,6 @@ namespace Mapster
                 context.Running.Remove(tuple);
             }
         }
-
-
-
-
-
-
-
-        
-
-        
-
 
         private CompileArgument GetCompileArgument(TypeTuple tuple, MapType mapType, CompileContext context)
         {
