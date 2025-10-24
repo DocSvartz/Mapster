@@ -204,7 +204,7 @@ namespace Mapster.Adapters
                         
                         Expression adapt;
                         if (member.DestinationMember.Type.IsRecordType())
-                            adapt = arg.Context.Config.CreateMapInvokeExpressionBody(member.Getter.Type, member.DestinationMember.Type, member.Getter);
+                            adapt = arg.Context.Config.ConfigCompile.CreateMapInvokeExpressionBody(member.Getter.Type, member.DestinationMember.Type, member.Getter);
                         else
                             adapt = CreateAdaptExpression(member.Getter, member.DestinationMember.Type, arg, member, result);
 
@@ -228,7 +228,7 @@ namespace Mapster.Adapters
                                 Expression destMemberVar2 = var2Param.DestinationMember.GetExpression(var2Param.Destination);
                                 var ParamLambdaVar2 = destMemberVar2;
                                 if(member.DestinationMember.Type.IsRecordType())
-                                    ParamLambdaVar2 = arg.Context.Config.CreateMapInvokeExpressionBody(member.Getter.Type, member.DestinationMember.Type, destMemberVar2);
+                                    ParamLambdaVar2 = arg.Context.Config.ConfigCompile.CreateMapInvokeExpressionBody(member.Getter.Type, member.DestinationMember.Type, destMemberVar2);
                                 
                                 var blocksVar2 = Expression.Block(SetValueTypeAutoPropertyByReflection(member, ParamLambdaVar2, classModel));
                                 var lambdaVar2 = Expression.Lambda(blocksVar2, parameters: new[] { (ParameterExpression)var2Param.Destination, (ParameterExpression)destination });

@@ -7,10 +7,10 @@ namespace Mapster.Utils;
 
 public class InterfaceDynamicMapper
 {
-    private readonly TypeAdapterConfig _config;
+    private readonly ITypeAdapterConfig _config;
     private readonly List<Type> _types;
 
-    public InterfaceDynamicMapper(TypeAdapterConfig config, List<Type> types)
+    public InterfaceDynamicMapper(ITypeAdapterConfig config, List<Type> types)
     {
         _config = config;
         _types = types;

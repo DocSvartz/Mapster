@@ -32,7 +32,7 @@ namespace Mapster.Adapters
                 else
                     dest = destination;
 
-                var customConvert = arg.Context.Config.CreateMapToTargetInvokeExpressionBody(source.Type, arg.DestinationType, source, dest);
+                var customConvert = arg.Context.Config.ConfigCompile.CreateMapToTargetInvokeExpressionBody(source.Type, arg.DestinationType, source, dest);
 
                 arg.MapType = MapType.MapToTarget;
                 return customConvert;

@@ -501,7 +501,7 @@ namespace Mapster.Tool
             // assemblies defines open generic only, so we have to add specialised types used in mappings
             foreach (var (key, _) in config.RuleMap)
                 types.Add(key.Source);
-            var configDict = new Dictionary<BaseAdaptAttribute, TypeAdapterConfig>();
+            var configDict = new Dictionary<BaseAdaptAttribute, ITypeAdapterConfig>();
             foreach (var builder in codeGenConfig.AdaptAttributeBuilders)
             {
                 var attr = builder.Attribute;
@@ -621,7 +621,7 @@ namespace Mapster.Tool
 
         private static void GenerateExtensionMethods(
             MapType mapType,
-            TypeAdapterConfig config,
+            ITypeAdapterConfig config,
             TypeTuple tuple,
             ExpressionTranslator translator,
             Type entityType,

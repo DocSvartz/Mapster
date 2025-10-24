@@ -45,7 +45,7 @@ namespace Mapster
             if (source == null)
                 return default;
             var type = source.GetType();
-            var fn = config.GetDynamicMapFunction<TDestination>(type);
+            var fn = config.ConfigCompile.GetDynamicMapFunction<TDestination>(type);
             return fn(source)!;
         }
 
@@ -71,7 +71,7 @@ namespace Mapster
         /// <returns>Adapted destination type.</returns>
         public static TDestination Adapt<TSource, TDestination>(this TSource source, ITypeAdapterConfig config)
         {
-            var fn = config.GetMapFunction<TSource, TDestination>();
+            var fn = config.ConfigCompile.GetMapFunction<TSource, TDestination>();
             return fn(source);
         }
 
@@ -108,13 +108,13 @@ namespace Mapster
             if (typeof(TSource) == typeof(object) || typeof(TDestination) == typeof(object))                
                 return UpdateFuncFromPackedinObject(source, destination, config, sourceType, destinationType);
                        
-            var fn = config.GetMapToTargetFunction<TSource, TDestination>();
+            var fn = config.ConfigCompile.GetMapToTargetFunction<TSource, TDestination>();
             return fn(source, destination);
         }
 
         private static TDestination UpdateFuncFromPackedinObject<TSource, TDestination>(TSource source, TDestination destination, ITypeAdapterConfig config, Type sourceType, Type destinationType)
         {
-            dynamic del = config.GetMapToTargetFunction(sourceType, destinationType);
+            dynamic del = config.ConfigCompile.GetMapToTargetFunction(sourceType, destinationType);
 
 
             if (sourceType.GetTypeInfo().IsVisible && destinationType.GetTypeInfo().IsVisible)
@@ -158,7 +158,7 @@ namespace Mapster
         /// <returns>Adapted destination type.</returns>
         public static object? Adapt(this object source, Type sourceType, Type destinationType, ITypeAdapterConfig config)
         {
-            var del = config.GetMapFunction(sourceType, destinationType);
+            var del = config.ConfigCompile.GetMapFunction(sourceType, destinationType);
             if (sourceType.GetTypeInfo().IsVisible && destinationType.GetTypeInfo().IsVisible)
             {
                 dynamic fn = del;
@@ -196,7 +196,7 @@ namespace Mapster
         /// <returns>Adapted destination type.</returns>
         public static object? Adapt(this object source, object destination, Type sourceType, Type destinationType, ITypeAdapterConfig config)
         {
-            var del = config.GetMapToTargetFunction(sourceType, destinationType);
+            var del = config.ConfigCompile.GetMapToTargetFunction(sourceType, destinationType);
             if (sourceType.GetTypeInfo().IsVisible && destinationType.GetTypeInfo().IsVisible)
             {
                 dynamic fn = del;
@@ -241,7 +241,7 @@ namespace Mapster
         /// <param name="source">Source object to adapt.</param>
         /// <param name="config">Configuration</param>
         /// <returns>Adapted destination type.</returns>
-        public static TDestination ValidateAndAdapt<TSource, TDestination>(this TSource source, TypeAdapterConfig config)
+        public static TDestination ValidateAndAdapt<TSource, TDestination>(this TSource source, ITypeAdapterConfig config)
         {
             var sourceType = typeof(TSource);
             var selectorType = typeof(TDestination);
@@ -268,6 +268,6 @@ namespace Mapster
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Minor Code Smell", "S1104:Fields should not have public accessibility", Justification = "<Pending>")]
     public static class TypeAdapter<TSource, TDestination>
     {
-        public static Func<TSource, TDestination> Map = TypeAdapterConfigFactory.GlobalSettings.GetMapFunction<TSource, TDestination>();
+        public static Func<TSource, TDestination> Map = TypeAdapterConfigFactory.GlobalSettings.ConfigCompile.GetMapFunction<TSource, TDestination>();
     }
 }

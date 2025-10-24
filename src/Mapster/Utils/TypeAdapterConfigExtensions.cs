@@ -8,7 +8,7 @@ namespace Mapster.Utils;
 
 public static class TypeAdapterConfigExtensions
 {
-    public static void ScanInheritedTypes(this TypeAdapterConfig config, Assembly assembly)
+    public static void ScanInheritedTypes(this ITypeAdapterConfig config, Assembly assembly)
     {
         var types = assembly.GetTypes()
             .Where(t =>
@@ -19,7 +19,7 @@ public static class TypeAdapterConfigExtensions
         dynamicMapper.ApplyMappingFromAssembly();
     }
 
-    internal static void ScanInheritedTypes(this TypeAdapterConfig config, List<Type> types)
+    internal static void ScanInheritedTypes(this ITypeAdapterConfig config, List<Type> types)
     {
         types = types.Where(t =>
                 t.GetInterfaces()

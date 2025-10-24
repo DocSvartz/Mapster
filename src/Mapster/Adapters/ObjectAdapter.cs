@@ -19,7 +19,7 @@ namespace Mapster.Adapters
                 return source;
             if (destType == typeof(object))
                 return Expression.Convert(source, destType);
-            return arg.Context.Config.CreateDynamicMapInvokeExpressionBody(arg.DestinationType, source);
+            return arg.Context.Config.ConfigCompile.CreateDynamicMapInvokeExpressionBody(arg.DestinationType, source);
         }
 
         protected override Expression CreateBlockExpression(Expression source, Expression destination, CompileArgument arg)

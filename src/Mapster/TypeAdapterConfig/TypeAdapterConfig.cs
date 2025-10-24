@@ -5,7 +5,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 
 namespace Mapster
@@ -14,19 +13,16 @@ namespace Mapster
     {
         [AdaptIgnore]
         public bool IsGlobalSettings { get; private set; }
-
         public bool RequireDestinationMemberSource { get; set; }
         public bool RequireExplicitMapping { get; set; }
         public bool RequireExplicitMappingPrimitive { get; set; }
         public bool AllowImplicitDestinationInheritance { get; set; }
         public bool AllowImplicitSourceInheritance { get; set; } = true;
         public bool SelfContainedCodeGeneration { get; set; }
-
         public Func<LambdaExpression, Delegate> Compiler { get; set; } = lambda => lambda.Compile();
-
         public List<TypeAdapterRule> Rules { get; internal set; }
-        //public TypeAdapterSetter Default { get; internal set; }
         public ConcurrentDictionary<TypeTuple, TypeAdapterRule> RuleMap { get; internal set; } = new ConcurrentDictionary<TypeTuple, TypeAdapterRule>();
+        public ConfigCompileStorage ConfigCompile { get; private set; }
 
         internal TypeAdapterConfig(bool IsGlobal) : this()
         {
@@ -37,87 +33,13 @@ namespace Mapster
         {
             Rules = TypeAdapterConfigFactory.RulesTemplate.ToList();
             var settings = new TypeAdapterSettings();
-            //Default = new TypeAdapterSetter(settings, this);
+            ConfigCompile = new ConfigCompileStorage(this);
             Rules.Add(new TypeAdapterRule
             {
                 Priority = arg => -100,
                 Settings = settings,
             });
         }
-
-
-        /// <summary>
-        /// allows you to specify conditions for when a mapping should occur based on source and destination types and the mapping type.
-        /// </summary>
-        /// <param name="canMap"></param>
-        /// <returns></returns>
-        //public TypeAdapterSetter When(Func<Type, Type, MapType, bool> canMap)
-        //{
-        //    var rule = new TypeAdapterRule
-        //    {
-        //        Priority = arg => canMap(arg.SourceType, arg.DestinationType, arg.MapType) ? (int?)25 : null,
-        //        Settings = new TypeAdapterSettings(),
-        //    };
-        //    Rules.LockAdd(rule);
-        //    return new TypeAdapterSetter(rule.Settings, this);
-        //}
-
-
-        /// <summary>
-        /// allows you to specify conditions for when a mapping should occur based on PreCompileArgument delegate
-        /// </summary>
-        /// <param name="canMap"></param>
-        /// <returns></returns>
-        //public TypeAdapterSetter When(Func<PreCompileArgument, bool> canMap)
-        //{
-        //    var rule = new TypeAdapterRule
-        //    {
-        //        Priority = arg => canMap(arg) ? (int?)25 : null,
-        //        Settings = new TypeAdapterSettings(),
-        //    };
-        //    Rules.LockAdd(rule);
-        //    return new TypeAdapterSetter(rule.Settings, this);
-        //}
-
-
-        /// <summary>
-        /// Creates a new configuration for mapping between source and destination types.
-        /// </summary>
-        /// <typeparam name="TSource">Source type.</typeparam>
-        /// <typeparam name="TDestination">Destination type.</typeparam>
-        /// <returns></returns>
-        //public TypeAdapterSetter<TSource, TDestination> NewConfig<TSource, TDestination>()
-        //{
-        //    Remove(typeof(TSource), typeof(TDestination));
-        //    return ForType<TSource, TDestination>();
-        //}
-
-
-        /// <summary>
-        /// Creates a new configuration for mapping between source and destination types.
-        /// </summary>
-        /// <param name="sourceType">Source type to create new configuration.</param>
-        /// <param name="destinationType">Destination type to create new configuration.</param>
-        /// <returns></returns>
-        //public TypeAdapterSetter NewConfig(Type sourceType, Type destinationType)
-        //{
-        //    Remove(sourceType, destinationType);
-        //    return ForType(sourceType, destinationType);
-        //}
-
-
-        /// <summary>
-        /// Configures a mapping for a specific source and destination type pair.
-        /// </summary>
-        /// <typeparam name="TSource"></typeparam>
-        /// <typeparam name="TDestination"></typeparam>
-        /// <returns></returns>
-        //public TypeAdapterSetter<TSource, TDestination> ForType<TSource, TDestination>()
-        //{
-        //    var key = new TypeTuple(typeof(TSource), typeof(TDestination));
-        //    var settings = GetSettings(key);
-        //    return new TypeAdapterSetter<TSource, TDestination>(settings, this);
-        //}
 
 
         /// <summary>
@@ -129,144 +51,11 @@ namespace Mapster
         public TypeAdapterSetter ForType(Type sourceType, Type destinationType)
         {
             var key = new TypeTuple(sourceType, destinationType);
-            var settings = GetSettings(key);
+            var settings = this.GetSettings(key);
             return new TypeAdapterSetter(settings, this);
         }
 
-
-        /// <summary>
-        /// Configures a mapping for a specific destination type.
-        /// </summary>
-        /// <typeparam name="TDestination">Destination type.</typeparam>
-        /// <returns></returns>
-        //public TypeAdapterSetter<TDestination> ForDestinationType<TDestination>()
-        //{
-        //    var key = new TypeTuple(typeof(void), typeof(TDestination));
-        //    var settings = GetSettings(key);
-        //    return new TypeAdapterSetter<TDestination>(settings, this);
-        //}
-
-
-        /// <summary>
-        /// Configures a mapping for a specific destination type.
-        /// </summary>
-        /// <param name="destinationType">Destination type.</param>
-        /// <returns></returns>
-        //public TypeAdapterSetter ForDestinationType(Type destinationType)
-        //{
-        //    var key = new TypeTuple(typeof(void), destinationType);
-        //    var settings = GetSettings(key);
-        //    return new TypeAdapterSetter(settings, this);
-        //}
-
-        public TypeAdapterSettings GetSettings(TypeTuple key)
-        {
-            var rule = RuleMap.GetOrAdd(key, types =>
-            {
-                var r = types.Source == typeof(void)
-                    ? CreateDestinationTypeRule(types)
-                    : CreateTypeTupleRule(types);
-                Rules.LockAdd(r);
-                return r;
-            });
-
-            rule.Settings.SourceType = key.Source;
-            rule.Settings.DestinationType = key.Destination;
-
-            return rule.Settings;
-        }
-
-        private TypeAdapterRule CreateTypeTupleRule(TypeTuple key)
-        {
-            return new TypeAdapterRule
-            {
-                Priority = arg =>
-                {
-                    var score1 = GetSubclassDistance(arg.DestinationType, key.Destination, AllowImplicitDestinationInheritance);
-                    if (score1 == null)
-                        return null;
-                    var score2 = GetSubclassDistance(arg.SourceType, key.Source, AllowImplicitSourceInheritance);
-                    if (score2 == null)
-                        return null;
-                    return score1.Value + score2.Value;
-                },
-                Settings = new TypeAdapterSettings(),
-            };
-        }
-
-        private static TypeAdapterRule CreateDestinationTypeRule(TypeTuple key)
-        {
-            return new TypeAdapterRule
-            {
-                Priority = arg => GetSubclassDistance(arg.DestinationType, key.Destination, true),
-                Settings = new TypeAdapterSettings(),
-            };
-        }
-
-        private static int? GetSubclassDistance(Type type1, Type type2, bool allowInheritance)
-        {
-            if (type1 == type2)
-                return 50;
-
-            //generic type definition
-            int score = 35;
-            if (type2.GetTypeInfo().IsGenericTypeDefinition)
-            {
-                while (type1 != null && type1.GetTypeInfo().IsGenericType && type1.GetGenericTypeDefinition() != type2)
-                {
-                    score--;
-                    type1 = type1.GetTypeInfo().BaseType;
-                }
-                return type1 != null && type1.GetTypeInfo().IsGenericType && type1.GetGenericTypeDefinition() == type2
-                    ? (int?)score
-                    : null;
-            }
-            if (!allowInheritance)
-                return null;
-
-            if (!type2.GetTypeInfo().IsAssignableFrom(type1.GetTypeInfo()))
-                return null;
-
-            //interface
-            if (type2.GetTypeInfo().IsInterface)
-                return 25;
-
-            //base type
-            score = 50;
-            while (type1 != null && type1 != type2)
-            {
-                score--;
-                type1 = type1.GetTypeInfo().BaseType;
-            }
-            return score;
-        }
-
         
-
-        
-        
-
-       
-
-        
-
-        private Expression CreateSelfExpression()
-        {
-            if (IsGlobalSettings)
-                return Expression.Property(null, typeof(TypeAdapterConfigFactory).GetProperty(nameof(TypeAdapterConfigFactory.GlobalSettings))!);
-            else
-                return Expression.Constant(this);
-        }
-
-        internal Expression CreateDynamicMapInvokeExpressionBody(Type destinationType, Expression p1)
-        {
-            var method = (from m in typeof(ITypeAdapterConfig).GetMethods(BindingFlags.Instance | BindingFlags.Public)
-                          where m.Name == nameof(GetDynamicMapFunction)
-                          select m).First().MakeGenericMethod(destinationType);
-            var getType = typeof(object).GetMethod(nameof(GetType));
-            var invoker = Expression.Call(CreateSelfExpression(), method, Expression.Call(p1, getType!));
-            return Expression.Call(invoker, "Invoke", null, p1);
-        }
 
         public LambdaExpression CreateMapExpression(TypeTuple tuple, MapType mapType)
         {
@@ -284,7 +73,7 @@ namespace Mapster
                     context.Configs.Push(cloned);
                     arg.Settings = cloned.GetMergedSettings(tuple, mapType);
                 }
-                return CreateMapExpression(arg);
+                return arg.CreateMapExpression();
             }
             finally
             {
@@ -294,226 +83,20 @@ namespace Mapster
             }
         }
 
-        private MethodCallExpression CreateProjectionCallExpression(TypeTuple tuple)
-        {
-            var lambda = CreateMapExpression(tuple, MapType.Projection);
-            var source = Expression.Parameter(typeof(IQueryable<>).MakeGenericType(tuple.Source));
-            var methodInfo = (from method in typeof(Queryable).GetMethods()
-                              where method.Name == nameof(Queryable.Select)
-                              let p = method.GetParameters()[1]
-                              where p.ParameterType.GetGenericArguments()[0].GetGenericTypeDefinition() == typeof(Func<,>)
-                              select method).First().MakeGenericMethod(tuple.Source, tuple.Destination);
-            return Expression.Call(methodInfo, source, Expression.Quote(lambda));
-        }
 
-        private static LambdaExpression CreateMapExpression(CompileArgument arg)
-        {
-            var fn = arg.MapType == MapType.MapToTarget
-                ? arg.Settings.ConverterToTargetFactory
-                : arg.Settings.ConverterFactory;
-            if (fn == null)
-                throw new CompileException(arg, new InvalidOperationException("ConverterFactory is not found"));
-            try
-            {
-                return fn(arg);
-            }
-            catch (Exception ex)
-            {
-                throw new CompileException(arg, ex);
-            }
-        }
 
-        private LambdaExpression CreateDynamicMapExpression(TypeTuple tuple)
-        {
-            var lambda = CreateMapExpression(tuple, MapType.Map);
-            var pNew = Expression.Parameter(typeof(object));
-            var pOld = lambda.Parameters[0];
-            var assign = ExpressionEx.Assign(pOld, pNew);
-            return Expression.Lambda(
-                Expression.Block(new[] { pOld }, assign, lambda.Body),
-                pNew);
-        }
 
-        internal LambdaExpression CreateInlineMapExpression(Type sourceType, Type destinationType, MapType mapType, CompileContext context, MemberMapping? mapping = null)
-        {
-            var tuple = new TypeTuple(sourceType, destinationType);
-            var subFunction = context.IsSubFunction();
 
-            if (!subFunction)
-            {
-                if (context.Running.Contains(tuple))
-                {
-                    if (mapType == MapType.Projection)
-                        throw new InvalidOperationException("Projection does not support circular reference, please use MaxDepth setting");
-                    return CreateMapInvokeExpression(sourceType, destinationType, mapType);
-                }
-                context.Running.Add(tuple);
-            }
 
-            try
-            {
-                var arg = GetCompileArgument(tuple, mapType, context);
-                if (mapping != null)
-                {
-                    arg.Settings.Resolvers.AddRange(mapping.NextResolvers);
-                    arg.Settings.Ignore.Apply(mapping.NextIgnore);
-                    arg.UseDestinationValue = mapping.UseDestinationValue;
-                }
 
-                return CreateMapExpression(arg);
-            }
-            finally
-            {
-                if (!subFunction)
-                    context.Running.Remove(tuple);
-            }
-        }
+        
 
-        internal LambdaExpression CreateMapInvokeExpression(Type sourceType, Type destinationType, MapType mapType)
-        {
-            return mapType == MapType.MapToTarget
-                ? CreateMapToTargetInvokeExpression(sourceType, destinationType)
-                : CreateMapInvokeExpression(sourceType, destinationType);
-        }
+        
 
-        private LambdaExpression CreateMapInvokeExpression(Type sourceType, Type destinationType)
-        {
-            var p = Expression.Parameter(sourceType);
-            var invoke = CreateMapInvokeExpressionBody(sourceType, destinationType, p);
-            return Expression.Lambda(invoke, p);
-        }
-
-        internal Expression CreateMapInvokeExpressionBody(Type sourceType, Type destinationType, Expression p)
-        {
-            if (RequireExplicitMapping || RequireExplicitMappingPrimitive)
-            {
-                var key = new TypeTuple(sourceType, destinationType);
-                _mapDict[key] = Compiler(CreateMapExpression(key, MapType.Map));
-            }
-            Expression invoker;
-            if (IsGlobalSettings)
-            {
-                var field = typeof(TypeAdapter<,>).MakeGenericType(sourceType, destinationType).GetField("Map");
-                invoker = Expression.Field(null, field);
-            }
-            else
-            {
-                var method = (from m in typeof(ITypeAdapterConfig).GetMethods(BindingFlags.Instance | BindingFlags.Public)
-                              where m.Name == nameof(GetMapFunction)
-                              select m).First().MakeGenericMethod(sourceType, destinationType);
-                invoker = Expression.Call(CreateSelfExpression(), method);
-            }
-            return Expression.Call(invoker, "Invoke", null, p);
-        }
-
-        internal Expression CreateMapToTargetInvokeExpressionBody(Type sourceType, Type destinationType, Expression p1, Expression p2)
-        {
-            if (RequireExplicitMapping || RequireExplicitMappingPrimitive)
-            {
-                var key = new TypeTuple(sourceType, destinationType);
-                _mapToTargetDict[key] = Compiler(CreateMapExpression(key, MapType.MapToTarget));
-            }
-            var method = (from m in typeof(ITypeAdapterConfig).GetMethods(BindingFlags.Instance | BindingFlags.Public)
-                          where m.Name == nameof(GetMapToTargetFunction)
-                          select m).First().MakeGenericMethod(sourceType, destinationType);
-            var invoker = Expression.Call(CreateSelfExpression(), method);
-            return Expression.Call(invoker, "Invoke", null, p1, p2);
-        }
-
-        private LambdaExpression CreateMapToTargetInvokeExpression(Type sourceType, Type destinationType)
-        {
-            var p1 = Expression.Parameter(sourceType);
-            var p2 = Expression.Parameter(destinationType);
-            var invoke = CreateMapToTargetInvokeExpressionBody(sourceType, destinationType, p1, p2);
-            return Expression.Lambda(invoke, p1, p2);
-        }
-
-        private IEnumerable<TypeAdapterRule> GetAttributeSettings(TypeTuple tuple, MapType mapType)
-        {
-            var rules1 = from type in tuple.Source.GetAllTypes()
-                         from o in type.GetTypeInfo().GetCustomAttributesData()
-                         where typeof(AdaptToAttribute).IsAssignableFrom(o.GetAttributeType())
-                         let attr = o.CreateCustomAttribute<AdaptToAttribute>()
-                         where attr != null && (attr.MapType & mapType) != 0
-                         where attr.Type == null || attr.Type == tuple.Destination
-                         where attr.Name == null || attr.Name.Replace("[name]", type.Name) == tuple.Destination.Name
-                         let distance = GetSubclassDistance(tuple.Source, type, true)
-                         select new TypeAdapterRule
-                         {
-                             Priority = arg => distance + 50,
-                             Settings = CreateSettings(attr)
-                         };
-            if (tuple.Source == tuple.Destination)
-                return rules1;
-            var rules2 = from type in tuple.Destination.GetAllTypes()
-                         from o in type.GetTypeInfo().GetCustomAttributesData()
-                         where typeof(AdaptFromAttribute).IsAssignableFrom(o.GetAttributeType()) ||
-                               typeof(AdaptTwoWaysAttribute).IsAssignableFrom(o.GetAttributeType())
-                         let attr = o.CreateCustomAttribute<BaseAdaptAttribute>()
-                         where attr != null && (attr.MapType & mapType) != 0
-                         where attr.Type == null || attr.Type == tuple.Source
-                         where attr.Name == null || attr.Name.Replace("[name]", type.Name) == tuple.Source.Name
-                         let distance = GetSubclassDistance(tuple.Destination, type, true)
-                         select new TypeAdapterRule
-                         {
-                             Priority = arg => distance + 50,
-                             Settings = CreateSettings(attr)
-                         };
-            return rules1.Concat(rules2);
-        }
-
-        private TypeAdapterSettings CreateSettings(BaseAdaptAttribute attr)
-        {
-            var settings = new TypeAdapterSettings();
-            var setter = new TypeAdapterSetter(settings, this);
-            setter.ApplyAdaptAttribute(attr);
-            return settings;
-        }
-
-        internal TypeAdapterSettings GetMergedSettings(TypeTuple tuple, MapType mapType)
-        {
-            var arg = new PreCompileArgument
-            {
-                SourceType = tuple.Source,
-                DestinationType = tuple.Destination,
-                MapType = mapType,
-                ExplicitMapping = RuleMap.ContainsKey(tuple),
-            };
-
-            //auto add setting if there is attr setting
-            var attrSettings = GetAttributeSettings(tuple, mapType).ToList();
-            if (!arg.ExplicitMapping && attrSettings.Any(rule => rule.Priority(arg) == 100))
-            {
-                GetSettings(tuple);
-                arg.ExplicitMapping = true;
-            }
-
-            var result = new TypeAdapterSettings();
-            lock (Rules)
-            {
-                var rules = Rules.Reverse<TypeAdapterRule>().Concat(attrSettings);
-                var settings = from rule in rules
-                               let priority = rule.Priority(arg)
-                               where priority != null
-                               orderby priority.Value descending
-                               select rule.Settings;
-                foreach (var setting in settings)
-                {
-                    result.Apply(setting);
-                }
-            }
-
-            //remove recursive include types
-            if (mapType == MapType.MapToTarget)
-                result.Includes.Remove(tuple);
-            else
-                result.Includes.RemoveAll(t => t.Source == tuple.Source);
-            return result;
-        }
 
         private CompileArgument GetCompileArgument(TypeTuple tuple, MapType mapType, CompileContext context)
         {
-            var setting = GetMergedSettings(tuple, mapType);
+            var setting = this.GetMergedSettings(tuple, mapType);
             return new CompileArgument
             {
                 SourceType = tuple.Source,
@@ -533,34 +116,7 @@ namespace Mapster
         /// <exception cref="AggregateException"></exception>
         public void Compile(bool failFast = true)
         {
-            var exceptions = new List<Exception>();
-            var keys = RuleMap.Keys.ToList();
-
-            foreach (var key in keys)
-            {
-                try
-                {
-                    if (key.Source == typeof(void))
-                        continue;
-
-                    _mapDict[key] = Compiler(CreateMapExpression(key, MapType.Map));
-                    _mapToTargetDict[key] = Compiler(CreateMapExpression(key, MapType.MapToTarget));
-                }
-                catch (Exception ex)
-                {
-                    if (failFast)
-                    {
-                        throw;
-                    }
-
-                    exceptions.Add(ex);
-                }
-            }
-
-            if (exceptions.Count > 0)
-            {
-                throw new AggregateException(exceptions);
-            }
+            ConfigCompile.Compile(failFast);
         }
 
 
@@ -571,14 +127,7 @@ namespace Mapster
         /// <param name="destinationType">Destination type to compile.</param>
         public void Compile(Type sourceType, Type destinationType)
         {
-            var tuple = new TypeTuple(sourceType, destinationType);
-            _mapDict[tuple] = Compiler(CreateMapExpression(tuple, MapType.Map));
-            _mapToTargetDict[tuple] = Compiler(CreateMapExpression(tuple, MapType.MapToTarget));
-            if (IsGlobalSettings)
-            {
-                var field = typeof(TypeAdapter<,>).MakeGenericType(sourceType, destinationType).GetField("Map");
-                field!.SetValue(null, _mapDict[tuple]);
-            }
+            ConfigCompile.Compile(sourceType, destinationType);
         }
 
 
@@ -587,11 +136,7 @@ namespace Mapster
         /// </summary>
         public void CompileProjection()
         {
-            var keys = RuleMap.Keys.ToList();
-            foreach (var key in keys)
-            {
-                _projectionDict[key] = CreateProjectionCallExpression(key);
-            }
+            ConfigCompile.CompileProjection();
         }
 
 
@@ -602,26 +147,9 @@ namespace Mapster
         /// <param name="destinationType">Destination type to compile.</param>
         public void CompileProjection(Type sourceType, Type destinationType)
         {
-            var tuple = new TypeTuple(sourceType, destinationType);
-            _projectionDict[tuple] = CreateProjectionCallExpression(tuple);
+            ConfigCompile.CompileProjection(sourceType, destinationType);
         }
 
-
-        /// <summary>
-        /// Scans and registers mappings from specified assemblies.
-        /// </summary>
-        /// <param name="assemblies">assemblies to scan.</param>
-        /// <returns>A list of registered mappings</returns>
-        //public IList<IRegister> Scan(params Assembly[] assemblies)
-        //{
-        //    List<IRegister> registers = assemblies.Select(assembly => assembly.GetLoadableTypes()
-        //        .Where(x => typeof(IRegister).GetTypeInfo().IsAssignableFrom(x.GetTypeInfo()) && x.GetTypeInfo().IsClass && !x.GetTypeInfo().IsAbstract))
-        //        .SelectMany(registerTypes =>
-        //            registerTypes.Select(registerType => (IRegister)Activator.CreateInstance(registerType))).ToList();
-
-        //    Apply(registers);
-        //    return registers;
-        //}
 
         /// <summary>
         /// Applies type mappings.
@@ -663,10 +191,7 @@ namespace Mapster
         {
             if (RuleMap.TryRemove(key, out var rule))
                 Rules.LockRemove(rule);
-            _mapDict.TryRemove(key, out _);
-            _mapToTargetDict.TryRemove(key, out _);
-            _projectionDict.TryRemove(key, out _);
-            _dynamicMapDict.TryRemove(key, out _);
+            ConfigCompile.Remove(key);
         }
 
         private static readonly Lazy<ITypeAdapterConfig> _cloneConfig = new Lazy<ITypeAdapterConfig>(() =>
@@ -685,7 +210,7 @@ namespace Mapster
         /// <returns></returns>
         public ITypeAdapterConfig Clone()
         {
-            var fn = _cloneConfig.Value.GetMapFunction<TypeAdapterConfig, TypeAdapterConfig>();
+            var fn = _cloneConfig.Value.ConfigCompile.GetMapFunction<TypeAdapterConfig, TypeAdapterConfig>();
             return fn(this);
         }
 

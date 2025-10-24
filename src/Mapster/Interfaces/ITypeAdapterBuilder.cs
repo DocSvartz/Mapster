@@ -8,7 +8,7 @@ namespace Mapster
     public interface ITypeAdapterBuilder<T> : IAdapterBuilder<T>
     {
         [SuppressMessage("ReSharper", "ExplicitCallerInfoArgument")]
-        ITypeAdapterBuilder<T> ForkConfig(Action<TypeAdapterConfig> action,
+        ITypeAdapterBuilder<T> ForkConfig(Action<ITypeAdapterConfig> action,
 #if !NET40
             [CallerFilePath]
 #endif

@@ -122,9 +122,9 @@ namespace Mapster.Adapters
                     !arg.Context.IsSubFunction())
                 {
                     if (destination == null)
-                        return arg.Context.Config.CreateMapInvokeExpressionBody(source.Type, arg.DestinationType, source);
+                        return arg.Context.Config.ConfigCompile.CreateMapInvokeExpressionBody(source.Type, arg.DestinationType, source);
                     else 
-                        return arg.Context.Config.CreateMapToTargetInvokeExpressionBody(source.Type, arg.DestinationType, source, destination);
+                        return arg.Context.Config.ConfigCompile.CreateMapToTargetInvokeExpressionBody(source.Type, arg.DestinationType, source, destination);
                 }
                 else
                     return CreateBlockExpressionBody(source, destination, arg);
@@ -458,7 +458,7 @@ namespace Mapster.Adapters
                     if (mapping.Destination != null && arg.Context.ExtraParameters.Add(mapping.Destination))
                         extraParams.Add(mapping.Destination);
                 }
-                var lambda = arg.Context.Config.CreateInlineMapExpression(source.Type, destinationType, mapType, arg.Context, mapping);
+                var lambda = arg.Context.Config.ConfigCompile.CreateInlineMapExpression(source.Type, destinationType, mapType, arg.Context, mapping);
                 var paramList = new List<Expression> {source};
                 if (destination != null)
                     paramList.Add(destination);

@@ -40,7 +40,7 @@ namespace MapsterMapper
             if (source == null)
                 return default!;
             var type = source.GetType();
-            var fn = Config.GetDynamicMapFunction<TDestination>(type);
+            var fn = Config.ConfigCompile.GetDynamicMapFunction<TDestination>(type);
             return fn(source);
         }
 
@@ -54,7 +54,7 @@ namespace MapsterMapper
 		/// <returns>type of destination mapping result</returns>
 		public virtual TDestination Map<TSource, TDestination>(TSource source)
         {
-            var fn = Config.GetMapFunction<TSource, TDestination>();
+            var fn = Config.ConfigCompile.GetMapFunction<TSource, TDestination>();
             return fn(source);
         }
 
@@ -69,7 +69,7 @@ namespace MapsterMapper
 		/// <returns>type of destination mapping result</returns>
 		public virtual TDestination Map<TSource, TDestination>(TSource source, TDestination destination)
         {
-            var fn = Config.GetMapToTargetFunction<TSource, TDestination>();
+            var fn = Config.ConfigCompile.GetMapToTargetFunction<TSource, TDestination>();
             return fn(source, destination);
         }
 
@@ -83,7 +83,7 @@ namespace MapsterMapper
         /// <returns>mapped result object</returns>
         public virtual object Map(object source, Type sourceType, Type destinationType)
         {
-            var del = Config.GetMapFunction(sourceType, destinationType);
+            var del = Config.ConfigCompile.GetMapFunction(sourceType, destinationType);
             if (sourceType.GetTypeInfo().IsVisible && destinationType.GetTypeInfo().IsVisible)
             {
                 dynamic fn = del;
@@ -108,7 +108,7 @@ namespace MapsterMapper
 		/// <returns>mapped result object</returns>
 		public virtual object Map(object source, object destination, Type sourceType, Type destinationType)
         {
-            var del = Config.GetMapToTargetFunction(sourceType, destinationType);
+            var del = Config.ConfigCompile.GetMapToTargetFunction(sourceType, destinationType);
             if (sourceType.GetTypeInfo().IsVisible && destinationType.GetTypeInfo().IsVisible)
             {
                 dynamic fn = del;

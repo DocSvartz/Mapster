@@ -99,7 +99,7 @@ namespace Mapster
 		/// <returns></returns>
 		private TDestination Map<TDestination>()
         {
-            var fn = Config.GetMapFunction<TSource, TDestination>();
+            var fn = Config.ConfigCompile.GetMapFunction<TSource, TDestination>();
             return fn(Source);
         }
 
@@ -123,7 +123,7 @@ namespace Mapster
 
         private TDestination MapToTarget<TDestination>(TDestination destination)
         {
-            var fn = Config.GetMapToTargetFunction<TSource, TDestination>();
+            var fn = Config.ConfigCompile.GetMapToTargetFunction<TSource, TDestination>();
             return fn(Source, destination);
         }
 
