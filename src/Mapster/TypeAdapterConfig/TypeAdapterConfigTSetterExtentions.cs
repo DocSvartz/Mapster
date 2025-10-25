@@ -8,19 +8,6 @@ namespace Mapster
     public static class TypeAdapterConfigTSetterExtentions
     {
         /// <summary>
-        /// Configures a mapping for a specific source and destination type pair.
-        /// </summary>
-        /// <typeparam name="TSource"></typeparam>
-        /// <typeparam name="TDestination"></typeparam>
-        /// <returns></returns>
-        public static TypeAdapterSetter<TSource, TDestination> ForType<TSource, TDestination>(this ITypeAdapterConfig config)
-        {
-            var key = new TypeTuple(typeof(TSource), typeof(TDestination));
-            var settings = config.GetSettings(key);
-            return new TypeAdapterSetter<TSource, TDestination>(settings, config);
-        }
-
-        /// <summary>
         /// Creates a new configuration for mapping between source and destination types.
         /// </summary>
         /// <param name="sourceType">Source type to create new configuration.</param>

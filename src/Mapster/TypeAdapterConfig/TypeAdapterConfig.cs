@@ -57,6 +57,19 @@ namespace Mapster
             return new TypeAdapterSetter(settings, this);
         }
 
+        /// <summary>
+        /// Configures a mapping for a specific source and destination type pair.
+        /// </summary>
+        /// <typeparam name="TSource"></typeparam>
+        /// <typeparam name="TDestination"></typeparam>
+        /// <returns></returns>
+        public TypeAdapterSetter<TSource, TDestination> ForType<TSource, TDestination>()
+        {
+            var key = new TypeTuple(typeof(TSource), typeof(TDestination));
+            var settings = this.GetSettings(key);
+            return new TypeAdapterSetter<TSource, TDestination>(settings, this);
+        }
+
         public LambdaExpression CreateMapExpression(TypeTuple tuple, MapType mapType)
         {
             var context = new CompileContext(this);

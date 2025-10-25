@@ -31,6 +31,7 @@ namespace Mapster
         LambdaExpression CreateMapExpression(TypeTuple tuple, MapType mapType);
         ITypeAdapterConfig Fork(Action<ITypeAdapterConfig> action, [CallerFilePath] string key1 = "", [CallerLineNumber] int key2 = 0);
         TypeAdapterSetter ForType(Type sourceType, Type destinationType);
+        TypeAdapterSetter<TSource, TDestination> ForType<TSource, TDestination>();
         void Remove(Type sourceType, Type destinationType);
     }
 }
