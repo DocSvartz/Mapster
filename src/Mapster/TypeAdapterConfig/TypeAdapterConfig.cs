@@ -20,7 +20,7 @@ namespace Mapster
         public bool AllowImplicitSourceInheritance { get; set; } = true;
         public bool SelfContainedCodeGeneration { get; set; }
         public Func<LambdaExpression, Delegate> Compiler { get; set; } = lambda => lambda.Compile();
-        public List<TypeAdapterRule> Rules { get; internal set; }
+        private List<TypeAdapterRule> Rules { get; set; }
         public ConcurrentDictionary<TypeTuple, TypeAdapterRule> RuleMap { get; internal set; } = new ConcurrentDictionary<TypeTuple, TypeAdapterRule>();
         public ConfigCompileStorage ConfigCompile { get; private set; }
 
@@ -234,6 +234,58 @@ namespace Mapster
                 action(cloned);
                 return cloned;
             });
+        }
+
+        public TypeAdapterSettings GetMergedSettings(TypeTuple tuple, MapType mapType)
+        {
+            var arg = new PreCompileArgument
+            {
+                SourceType = tuple.Source,
+                DestinationType = tuple.Destination,
+                MapType = mapType,
+                ExplicitMapping = RuleMap.ContainsKey(tuple),
+            };
+
+            //auto add setting if there is attr setting
+            var attrSettings =this.GetAttributeSettings(tuple, mapType).ToList();
+            if (!arg.ExplicitMapping && attrSettings.Any(rule => rule.Priority(arg) == 100))
+            {
+                this.GetSettings(tuple);
+                arg.ExplicitMapping = true;
+            }
+
+            var result = new TypeAdapterSettings();
+            lock (Rules)
+            {
+                var rules = Rules.Reverse<TypeAdapterRule>().Concat(attrSettings);
+                var settings = from rule in rules
+                               let priority = rule.Priority(arg)
+                               where priority != null
+                               orderby priority.Value descending
+                               select rule.Settings;
+                foreach (var setting in settings)
+                {
+                    result.Apply(setting);
+                }
+            }
+
+            //remove recursive include types
+            if (mapType == MapType.MapToTarget)
+                result.Includes.Remove(tuple);
+            else
+                result.Includes.RemoveAll(t => t.Source == tuple.Source);
+            return result;
+        }
+
+
+        public void AddRule(TypeAdapterRule rule)
+        {
+            Rules.LockAdd(rule);
+        }
+
+        public IEnumerable<TypeAdapterRule> GetRules (Func<TypeAdapterRule, bool> predicate)
+        {
+            return Rules.Where(predicate);
         }
     }
 

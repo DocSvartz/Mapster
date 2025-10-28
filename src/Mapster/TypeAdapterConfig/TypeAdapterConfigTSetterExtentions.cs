@@ -80,7 +80,7 @@ namespace Mapster
                 Priority = arg => canMap(arg) ? (int?)25 : null,
                 Settings = new TypeAdapterSettings(),
             };
-            config.Rules.LockAdd(rule);
+            config.AddRule(rule);
             return new TypeAdapterSetter(rule.Settings, config);
         }
 
@@ -96,14 +96,14 @@ namespace Mapster
                 Priority = arg => canMap(arg.SourceType, arg.DestinationType, arg.MapType) ? (int?)25 : null,
                 Settings = new TypeAdapterSettings(),
             };
-            config.Rules.LockAdd(rule);
+            config.AddRule(rule);
             return new TypeAdapterSetter(rule.Settings, config);
         }
 
         public static TypeAdapterSetter Default(this ITypeAdapterConfig config)
         {
             var arg = new PreCompileArgument() { DestinationType = typeof(void), SourceType = typeof(void), MapType = MapType.Map };
-            var settings = config.Rules.Where(x => x.Priority.Invoke(arg) == -100).First().Settings;
+            var settings = config.GetRules(x => x.Priority.Invoke(arg) == -100).First().Settings;
 
             return new TypeAdapterSetter(settings, config);
         }

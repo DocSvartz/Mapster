@@ -18,7 +18,10 @@ namespace Mapster
         bool RequireExplicitMapping { get; set; }
         bool RequireExplicitMappingPrimitive { get; set; }
         ConcurrentDictionary<TypeTuple, TypeAdapterRule> RuleMap { get; }
-        List<TypeAdapterRule> Rules { get; }
+        //List<TypeAdapterRule> Rules { get; }
+        void AddRule(TypeAdapterRule rule);
+        public TypeAdapterSettings GetMergedSettings(TypeTuple tuple, MapType mapType);
+        public IEnumerable<TypeAdapterRule> GetRules(Func<TypeAdapterRule, bool> predicate);
         bool SelfContainedCodeGeneration { get; set; }
 
         void Apply(IEnumerable<IRegister> registers);

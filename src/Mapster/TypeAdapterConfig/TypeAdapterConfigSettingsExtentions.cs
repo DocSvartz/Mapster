@@ -90,7 +90,7 @@ namespace Mapster
                 var r = types.Source == typeof(void)
                     ? CreateDestinationTypeRule(types)
                     : config.CreateTypeTupleRule(types);
-                config.Rules.LockAdd(r);
+                config.AddRule(r);
                 return r;
             });
 
@@ -100,7 +100,7 @@ namespace Mapster
             return rule.Settings;
         }
 
-        private static IEnumerable<TypeAdapterRule> GetAttributeSettings(this ITypeAdapterConfig config, TypeTuple tuple, MapType mapType)
+        internal static IEnumerable<TypeAdapterRule> GetAttributeSettings(this ITypeAdapterConfig config, TypeTuple tuple, MapType mapType)
         {
             var rules1 = from type in tuple.Source.GetAllTypes()
                          from o in type.GetTypeInfo().GetCustomAttributesData()
@@ -137,45 +137,6 @@ namespace Mapster
 
 
 
-        internal static TypeAdapterSettings GetMergedSettings(this ITypeAdapterConfig config,  TypeTuple tuple, MapType mapType)
-        {
-            var arg = new PreCompileArgument
-            {
-                SourceType = tuple.Source,
-                DestinationType = tuple.Destination,
-                MapType = mapType,
-                ExplicitMapping = config.RuleMap.ContainsKey(tuple),
-            };
-
-            //auto add setting if there is attr setting
-            var attrSettings = config.GetAttributeSettings(tuple, mapType).ToList();
-            if (!arg.ExplicitMapping && attrSettings.Any(rule => rule.Priority(arg) == 100))
-            {
-                config.GetSettings(tuple);
-                arg.ExplicitMapping = true;
-            }
-
-            var result = new TypeAdapterSettings();
-            lock (config.Rules)
-            {
-                var rules = config.Rules.Reverse<TypeAdapterRule>().Concat(attrSettings);
-                var settings = from rule in rules
-                               let priority = rule.Priority(arg)
-                               where priority != null
-                               orderby priority.Value descending
-                               select rule.Settings;
-                foreach (var setting in settings)
-                {
-                    result.Apply(setting);
-                }
-            }
-
-            //remove recursive include types
-            if (mapType == MapType.MapToTarget)
-                result.Includes.Remove(tuple);
-            else
-                result.Includes.RemoveAll(t => t.Source == tuple.Source);
-            return result;
-        }
+        
     }
 }

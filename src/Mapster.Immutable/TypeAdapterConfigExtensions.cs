@@ -6,7 +6,7 @@ namespace Mapster
     {
         public static void EnableImmutableMapping(this TypeAdapterConfig config)
         {
-            config.Rules.Add(new ImmutableAdapter().CreateRule());
+            config.AddRule(new ImmutableAdapter().CreateRule());
         }
     }
 }

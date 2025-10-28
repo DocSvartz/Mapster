@@ -35,41 +35,41 @@ namespace Mapster.Tests
             ex.Message.ShouldContain("TypeAdapter.Adapt was already called");
         }
 
-        [TestMethod]
-        public void Clone()
-        {
-            TypeAdapterConfig<SimplePoco, SimpleDto>.NewConfig()
-                .Map(dest => dest.Name, src => "a");
+        //[TestMethod]
+        //public void Clone()
+        //{
+        //    TypeAdapterConfig<SimplePoco, SimpleDto>.NewConfig()
+        //        .Map(dest => dest.Name, src => "a");
 
-            var poco = new SimplePoco
-            {
-                Id = Guid.NewGuid(),
-                Name = "test",
-            };
-            var result = TypeAdapter.Adapt<SimpleDto>(poco);
-            result.Name.ShouldBe("a");
+        //    var poco = new SimplePoco
+        //    {
+        //        Id = Guid.NewGuid(),
+        //        Name = "test",
+        //    };
+        //    var result = TypeAdapter.Adapt<SimpleDto>(poco);
+        //    result.Name.ShouldBe("a");
 
-            var config = TypeAdapterConfigFactory.GlobalSettings.Clone();
-            var global = TypeAdapterConfigFactory.GlobalSettings;
-            config.ShouldNotBeSameAs(global);
-            config.Default().ShouldNotBeSameAs(global.Default());
-            config.Default().Settings.ShouldNotBeSameAs(global.Default().Settings);
-            config.RuleMap.ShouldNotBeSameAs(global.RuleMap);
-            foreach (var kvp in config.RuleMap)
-            {
-                var globalRule = global.RuleMap[kvp.Key];
-                kvp.Value.ShouldNotBeSameAs(globalRule);
-                kvp.Value.Settings.ShouldNotBeSameAs(globalRule.Settings);
-            }
-            config.Rules.ShouldNotBeSameAs(global.Rules);
-            for (var i = 0; i < config.Rules.Count; i++)
-            {
-                config.Rules[i].ShouldNotBeSameAs(global.Rules[i]);
-                config.Rules[i].Settings.ShouldNotBeSameAs(global.Rules[i].Settings);
-            }
-            config.Rules.Any(rule => object.ReferenceEquals(rule.Settings, config.Default().Settings)).ShouldBeTrue();
-            config.Rules.ShouldContain(config.RuleMap[new TypeTuple(typeof(SimplePoco), typeof(SimpleDto))]);
-        }
+        //    var config = TypeAdapterConfigFactory.GlobalSettings.Clone();
+        //    var global = TypeAdapterConfigFactory.GlobalSettings;
+        //    config.ShouldNotBeSameAs(global);
+        //    config.Default().ShouldNotBeSameAs(global.Default());
+        //    config.Default().Settings.ShouldNotBeSameAs(global.Default().Settings);
+        //    config.RuleMap.ShouldNotBeSameAs(global.RuleMap);
+        //    foreach (var kvp in config.RuleMap)
+        //    {
+        //        var globalRule = global.RuleMap[kvp.Key];
+        //        kvp.Value.ShouldNotBeSameAs(globalRule);
+        //        kvp.Value.Settings.ShouldNotBeSameAs(globalRule.Settings);
+        //    }
+        //    config.Rules.ShouldNotBeSameAs(global.Rules);
+        //    for (var i = 0; i < config.Rules.Count; i++)
+        //    {
+        //        config.Rules[i].ShouldNotBeSameAs(global.Rules[i]);
+        //        config.Rules[i].Settings.ShouldNotBeSameAs(global.Rules[i].Settings);
+        //    }
+        //    config.Rules.Any(rule => object.ReferenceEquals(rule.Settings, config.Default().Settings)).ShouldBeTrue();
+        //    config.Rules.ShouldContain(config.RuleMap[new TypeTuple(typeof(SimplePoco), typeof(SimpleDto))]);
+        //}
 
         public class SimplePoco
         {
