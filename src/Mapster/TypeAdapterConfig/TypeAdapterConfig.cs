@@ -20,6 +20,8 @@ namespace Mapster
         public bool AllowImplicitSourceInheritance { get; set; } = true;
         public bool SelfContainedCodeGeneration { get; set; }
         public Func<LambdaExpression, Delegate> Compiler { get; set; } = lambda => lambda.Compile();
+        
+        [AdaptMember]
         private List<TypeAdapterRule> Rules { get; set; }
         public ConcurrentDictionary<TypeTuple, TypeAdapterRule> RuleMap { get; internal set; } = new ConcurrentDictionary<TypeTuple, TypeAdapterRule>();
         

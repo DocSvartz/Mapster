@@ -35,10 +35,14 @@ namespace Mapster
 
         public ConcurrentDictionary<TypeTuple, TypeAdapterRule> RuleMap => _Config.RuleMap;
 
-        public List<TypeAdapterRule> Rules => _Config.Rules;
 
         public bool SelfContainedCodeGeneration { get => _Config.SelfContainedCodeGeneration; set => _Config.SelfContainedCodeGeneration = value; }
         public Func<LambdaExpression, Delegate> Compiler { get => _Config.Compiler; set => _Config.Compiler = value; }
+
+        public void AddRule(TypeAdapterRule rule)
+        {
+            _Config.AddRule(rule);
+        }
 
         public virtual void Apply(IEnumerable<IRegister> registers)
         {
@@ -93,6 +97,16 @@ namespace Mapster
         public TypeAdapterSetter<TSource, TDestination> ForType<TSource, TDestination>()
         {
             return _Config.ForType<TSource, TDestination>();
+        }
+
+        public TypeAdapterSettings GetMergedSettings(TypeTuple tuple, MapType mapType)
+        {
+            return _Config.GetMergedSettings(tuple, mapType);
+        }
+
+        public IEnumerable<TypeAdapterRule> GetRules(Func<TypeAdapterRule, bool> predicate)
+        {
+            return _Config.GetRules(predicate);
         }
 
         public virtual void Remove(Type sourceType, Type destinationType)
