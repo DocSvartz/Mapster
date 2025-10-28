@@ -22,6 +22,8 @@ namespace Mapster
         public Func<LambdaExpression, Delegate> Compiler { get; set; } = lambda => lambda.Compile();
         private List<TypeAdapterRule> Rules { get; set; }
         public ConcurrentDictionary<TypeTuple, TypeAdapterRule> RuleMap { get; internal set; } = new ConcurrentDictionary<TypeTuple, TypeAdapterRule>();
+        
+        [AdaptIgnore]
         public ConfigCompileStorage ConfigCompile { get; private set; }
 
         internal TypeAdapterConfig(bool IsGlobal) : this()
@@ -55,7 +57,18 @@ namespace Mapster
             return new TypeAdapterSetter(settings, this);
         }
 
-        
+        /// <summary>
+        /// Configures a mapping for a specific source and destination type pair.
+        /// </summary>
+        /// <typeparam name="TSource"></typeparam>
+        /// <typeparam name="TDestination"></typeparam>
+        /// <returns></returns>
+        public TypeAdapterSetter<TSource, TDestination> ForType<TSource, TDestination>()
+        {
+            var key = new TypeTuple(typeof(TSource), typeof(TDestination));
+            var settings = this.GetSettings(key);
+            return new TypeAdapterSetter<TSource, TDestination>(settings, this);
+        }
 
         public LambdaExpression CreateMapExpression(TypeTuple tuple, MapType mapType)
         {
@@ -82,17 +95,6 @@ namespace Mapster
                 context.Running.Remove(tuple);
             }
         }
-
-
-
-
-
-
-
-        
-
-        
-
 
         private CompileArgument GetCompileArgument(TypeTuple tuple, MapType mapType, CompileContext context)
         {
