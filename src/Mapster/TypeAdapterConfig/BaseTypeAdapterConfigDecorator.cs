@@ -94,7 +94,7 @@ namespace Mapster
             return _Config.ForType(sourceType, destinationType);
         }
 
-        public TypeAdapterSetter<TSource, TDestination> ForType<TSource, TDestination>()
+        public virtual TypeAdapterSetter<TSource, TDestination> ForType<TSource, TDestination>()
         {
             return _Config.ForType<TSource, TDestination>();
         }
