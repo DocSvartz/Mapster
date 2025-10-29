@@ -25,6 +25,21 @@ namespace Mapster
     }
     public static class TypeAdapterSetterExtensions
     {
+
+        public static TSetter ConfigBreaker<TSetter>(this TSetter setter) where TSetter : TypeAdapterSetter
+        {
+            try
+            {
+                setter.CheckCompiled();
+                return setter;
+            }
+           finally
+            {
+                if (setter.Config.ConcurrencyEnvroment)
+                    setter.Config.Concurrency.ReleaseMutex();
+            }
+           
+        }
         internal static void CheckCompiled<TSetter>(this TSetter setter) where TSetter : TypeAdapterSetter
         {
             if (setter.Settings.Compiled)

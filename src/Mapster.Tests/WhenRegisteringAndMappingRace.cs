@@ -14,6 +14,7 @@ namespace Mapster.Tests
         {
             TypeAdapterConfig.GlobalSettings.RequireExplicitMapping = false;
             TypeAdapterConfig.GlobalSettings.RequireDestinationMemberSource = false;
+            TypeAdapterConfig.GlobalSettings.ConcurrencyEnvroment = false;
         }
 
 
@@ -89,6 +90,75 @@ namespace Mapster.Tests
             TypeAdapter.Adapt<WhenAddingCustomMappings.SimplePoco, WeirdPoco>(simplePoco);
         }
 
+        [TestMethod]
+        public void No_Race_Condition_Produces()
+        {
+            TypeAdapterConfig.GlobalSettings.RequireDestinationMemberSource = true;
+            TypeAdapterConfig.GlobalSettings.ConcurrencyEnvroment = true;
+
+            var simplePoco = new WhenAddingCustomMappings.SimplePoco { Id = Guid.NewGuid(), Name = "TestName" };
+
+            TypeAdapterConfig<WhenAddingCustomMappings.SimplePoco, WeirdPoco>.NewConfig()
+                                .Map(dest => dest.IHaveADifferentId, src => src.Id)
+                                .Map(dest => dest.MyNamePropertyIsDifferent, src => src.Name)
+                                .Ignore(dest => dest.Children)
+                                .ConfigBreaker();
+
+          
+            for (int i = 0; i < 100; i++)
+            {
+                Parallel.Invoke(
+                    () =>
+                    {
+                        TypeAdapterConfig<WhenAddingCustomMappings.SimplePoco, WeirdPoco>.NewConfig()
+                            .Map(dest => dest.IHaveADifferentId, src => src.Id)
+                            .Map(dest => dest.MyNamePropertyIsDifferent, src => src.Name)
+                            .Ignore(dest => dest.Children)
+                            .ConfigBreaker();
+                    },
+                    () => { TypeAdapter.Adapt<WeirdPoco>(simplePoco); }
+                    );
+            }
+
+            TypeAdapterConfig.GlobalSettings.ConcurrencyEnvroment = false;
+        }
+
+        [TestMethod]
+        public void Explicit_Mapping_Requirement_Cuncurency_Working()
+        {
+            TypeAdapterConfig.GlobalSettings.RequireExplicitMapping = true;
+            TypeAdapterConfig.GlobalSettings.RequireDestinationMemberSource = true;
+            TypeAdapterConfig.GlobalSettings.ConcurrencyEnvroment = true;
+
+            var simplePoco = new WhenAddingCustomMappings.SimplePoco { Id = Guid.NewGuid(), Name = "TestName" };
+
+            TypeAdapterConfig<WhenAddingCustomMappings.SimplePoco, WeirdPoco>.NewConfig()
+                                .Map(dest => dest.IHaveADifferentId, src => src.Id)
+                                .Map(dest => dest.MyNamePropertyIsDifferent, src => src.Name)
+                                .Ignore(dest => dest.Children)
+                                .ConfigBreaker();
+
+            for (int i = 0; i < 1000; i++)
+            {
+                Parallel.Invoke(
+                        () =>
+                        {
+                            TypeAdapterConfig<WhenAddingCustomMappings.SimplePoco, WeirdPoco>.NewConfig()
+                                .Map(dest => dest.IHaveADifferentId, src => src.Id)
+                                .Map(dest => dest.MyNamePropertyIsDifferent, src => src.Name)
+                                .Ignore(dest => dest.Children)
+                                .ConfigBreaker();
+                        },
+                        () => { TypeAdapter.Adapt<WeirdPoco>(simplePoco); }
+                        );
+            }
+           
+
+            //Type should map at the end because mapping has completed.
+            TypeAdapter.Adapt<WhenAddingCustomMappings.SimplePoco, WeirdPoco>(simplePoco);
+
+            TypeAdapterConfig.GlobalSettings.ConcurrencyEnvroment = false;
+        }
 
     }
 

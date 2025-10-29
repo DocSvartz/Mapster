@@ -5,6 +5,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using Mapster.Adapters;
 using Mapster.Models;
 using Mapster.Utils;
@@ -87,6 +88,10 @@ namespace Mapster
         public bool AllowImplicitSourceInheritance { get; set; } = true;
         public bool SelfContainedCodeGeneration { get; set; }
 
+        public bool ConcurrencyEnvroment { get; set; }
+        public Mutex Concurrency {  get; private set; }
+
+
         public Func<LambdaExpression, Delegate> Compiler { get; set; } = lambda => lambda.Compile();
 
         public List<TypeAdapterRule> Rules { get; internal set; }
@@ -95,6 +100,7 @@ namespace Mapster
 
         public TypeAdapterConfig()
         {
+            Concurrency = new Mutex();
             Rules = RulesTemplate.ToList();
             var settings = new TypeAdapterSettings();
             Default = new TypeAdapterSetter(settings, this);
@@ -174,6 +180,9 @@ namespace Mapster
 		/// <returns></returns>
 		public TypeAdapterSetter<TSource, TDestination> ForType<TSource, TDestination>()
         {
+            if (ConcurrencyEnvroment)
+                Concurrency.WaitOne();
+
             var key = new TypeTuple(typeof(TSource), typeof(TDestination));
             var settings = GetSettings(key);
             return new TypeAdapterSetter<TSource, TDestination>(settings, this);
@@ -188,6 +197,9 @@ namespace Mapster
 		/// <returns></returns>
 		public TypeAdapterSetter ForType(Type sourceType, Type destinationType)
         {
+            if (ConcurrencyEnvroment)
+                Concurrency.WaitOne();
+
             var key = new TypeTuple(sourceType, destinationType);
             var settings = GetSettings(key);
             return new TypeAdapterSetter(settings, this);
@@ -385,6 +397,9 @@ namespace Mapster
 
         public LambdaExpression CreateMapExpression(TypeTuple tuple, MapType mapType)
         {
+            if (ConcurrencyEnvroment)
+                Concurrency.WaitOne();
+
             var context = new CompileContext(this);
             context.Running.Add(tuple);
             Action<TypeAdapterConfig>? fork = null;
@@ -406,6 +421,9 @@ namespace Mapster
                 if (fork != null)
                     context.Configs.Pop();
                 context.Running.Remove(tuple);
+
+                if (ConcurrencyEnvroment)
+                    Concurrency.ReleaseMutex();
             }
         }
 
