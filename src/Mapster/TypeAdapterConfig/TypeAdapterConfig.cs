@@ -67,7 +67,7 @@ namespace Mapster
         public TypeAdapterSetter ForType(Type sourceType, Type destinationType)
         {
             if (ConcurencyEnviroment &&
-                WaitHandle.WaitAll(new WaitHandle[] { AdaptMutex, Configure }, 100, false))
+                WaitHandle.WaitAll(new WaitHandle[] { AdaptMutex, Configure }, 10, false))
             {
                 AdaptMutex.Reset();
                 Configure.Set();
@@ -91,7 +91,7 @@ namespace Mapster
             
 
             if (ConcurencyEnviroment &&
-                WaitHandle.WaitAll(new WaitHandle[] { AdaptMutex, Configure }, 100, false))
+                WaitHandle.WaitAll(new WaitHandle[] { AdaptMutex, Configure }, 10, false))
             {
                 AdaptMutex.Reset();
                 Configure.Set();
@@ -105,7 +105,7 @@ namespace Mapster
 
         public LambdaExpression CreateMapExpression(TypeTuple tuple, MapType mapType)
         {
-            if (ConcurencyEnviroment && WaitHandle.WaitAll(new WaitHandle[] { AdaptMutex, Configure }, 5, false))
+            if (ConcurencyEnviroment && WaitHandle.WaitAll(new WaitHandle[] { AdaptMutex, Configure }))
             {
                 AdaptMutex.Set();
                 Configure.Reset();
