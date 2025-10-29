@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
+using System.Threading;
 
 namespace Mapster
 {
@@ -28,6 +29,15 @@ namespace Mapster
         [AdaptIgnore]
         public ConfigCompileStorage ConfigCompile { get; private set; }
 
+        public bool ConcurencyEnviroment {  get; set; }
+        
+        [AdaptIgnore]
+        public AutoResetEvent Configure { get; private set; }
+        
+        [AdaptIgnore]
+        public AutoResetEvent AdaptMutex { get; private set; }   
+
+
         internal TypeAdapterConfig(bool IsGlobal) : this()
         {
             IsGlobalSettings = IsGlobal;
@@ -35,6 +45,8 @@ namespace Mapster
 
         public TypeAdapterConfig()
         {
+            Configure = new(true);
+            AdaptMutex = new(false);
             Rules = TypeAdapterConfigFactory.RulesTemplate.ToList();
             var settings = new TypeAdapterSettings();
             ConfigCompile = new ConfigCompileStorage(this);
@@ -54,6 +66,15 @@ namespace Mapster
         /// <returns></returns>
         public TypeAdapterSetter ForType(Type sourceType, Type destinationType)
         {
+            if (ConcurencyEnviroment &&
+                WaitHandle.WaitAll(new WaitHandle[] { AdaptMutex, Configure }, 10, false))
+            {
+                AdaptMutex.Reset();
+                Configure.Set();
+                Configure.WaitOne();
+            }
+            
+
             var key = new TypeTuple(sourceType, destinationType);
             var settings = this.GetSettings(key);
             return new TypeAdapterSetter(settings, this);
@@ -67,6 +88,16 @@ namespace Mapster
         /// <returns></returns>
         public TypeAdapterSetter<TSource, TDestination> ForType<TSource, TDestination>()
         {
+            
+
+            if (ConcurencyEnviroment &&
+                WaitHandle.WaitAll(new WaitHandle[] { AdaptMutex, Configure }, 10, false))
+            {
+                AdaptMutex.Reset();
+                Configure.Set();
+                Configure.WaitOne();
+            }
+            
             var key = new TypeTuple(typeof(TSource), typeof(TDestination));
             var settings = this.GetSettings(key);
             return new TypeAdapterSetter<TSource, TDestination>(settings, this);
@@ -74,6 +105,13 @@ namespace Mapster
 
         public LambdaExpression CreateMapExpression(TypeTuple tuple, MapType mapType)
         {
+            if (ConcurencyEnviroment && WaitHandle.WaitAll(new WaitHandle[] { AdaptMutex, Configure }, 5, false))
+            {
+                AdaptMutex.Set();
+                Configure.Reset();
+                AdaptMutex.WaitOne();
+            }
+            
             var context = new CompileContext(this);
             context.Running.Add(tuple);
             Action<ITypeAdapterConfig>? fork = null;
@@ -92,6 +130,12 @@ namespace Mapster
             }
             finally
             {
+                if (ConcurencyEnviroment)
+                {
+                    AdaptMutex.Set();
+                    Configure.Set();
+                }
+                    
                 if (fork != null)
                     context.Configs.Pop();
                 context.Running.Remove(tuple);
@@ -220,7 +264,7 @@ namespace Mapster
 
         private ConcurrentDictionary<string, ITypeAdapterConfig>? _inlineConfigs;
         private ConcurrentDictionary<string, ITypeAdapterConfig> InlineConfigs =>
-            _inlineConfigs ??= new ConcurrentDictionary<string, ITypeAdapterConfig>();
+            _inlineConfigs ??= new ConcurrentDictionary<string, ITypeAdapterConfig>(); 
         public ITypeAdapterConfig Fork(Action<ITypeAdapterConfig> action,
 #if !NET40
             [CallerFilePath]

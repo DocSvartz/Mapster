@@ -4,6 +4,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
+using System.Threading;
 
 namespace Mapster
 {
@@ -23,6 +24,10 @@ namespace Mapster
         public TypeAdapterSettings GetMergedSettings(TypeTuple tuple, MapType mapType);
         public IEnumerable<TypeAdapterRule> GetRules(Func<TypeAdapterRule, bool> predicate);
         bool SelfContainedCodeGeneration { get; set; }
+
+        bool ConcurencyEnviroment { get; set; }
+        AutoResetEvent Configure {  get;}
+        AutoResetEvent AdaptMutex { get; }
 
         void Apply(IEnumerable<IRegister> registers);
         void Clear();

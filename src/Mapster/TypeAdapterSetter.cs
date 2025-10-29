@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Threading;
 
 namespace Mapster
 {
@@ -29,6 +30,24 @@ namespace Mapster
         {
             if (setter.Settings.Compiled)
                 throw new InvalidOperationException("TypeAdapter.Adapt was already called, please clone or create new TypeAdapterConfig.");
+        }
+
+        public static TSetter BreakConfig<TSetter>(this TSetter setter) where TSetter : TypeAdapterSetter
+        {
+            try
+            {
+                setter.CheckCompiled();
+                return setter;
+            }
+            finally
+            {
+                if (setter.Config.ConcurencyEnviroment)
+                {
+                    setter.Config.Configure.Set();
+                    setter.Config.AdaptMutex.Set();
+                }
+                    
+            }
         }
 
         public static TSetter AddDestinationTransform<TSetter, TDestinationMember>(this TSetter setter, Expression<Func<TDestinationMember, TDestinationMember>> transform) where TSetter : TypeAdapterSetter
@@ -377,14 +396,14 @@ namespace Mapster
 
         public TypeAdapterSetter<TDestination> Ignore(params Expression<Func<TDestination, object>>[] members)
         {
-            this.CheckCompiled();
+                this.CheckCompiled();
 
-            foreach (var member in members)
-            {
-                Settings.Ignore[member.GetMemberPath()!] = new IgnoreDictionary.IgnoreItem();
+                foreach (var member in members)
+                {
+                    Settings.Ignore[member.GetMemberPath()!] = new IgnoreDictionary.IgnoreItem();
+                }
+                return this;
             }
-            return this;
-        }
 
         public TypeAdapterSetter<TDestination> Map<TDestinationMember, TSourceMember>(
             Expression<Func<TDestination, TDestinationMember>> member,
