@@ -79,7 +79,7 @@ namespace Mapster
             _Config.CompileProjection(sourceType, destinationType);
         }
 
-        public LambdaExpression CreateMapExpression(TypeTuple tuple, MapType mapType)
+        public virtual LambdaExpression CreateMapExpression(TypeTuple tuple, MapType mapType)
         {
             return _Config.CreateMapExpression(tuple, mapType);
         }
