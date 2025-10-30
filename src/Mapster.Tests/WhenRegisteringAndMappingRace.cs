@@ -107,7 +107,7 @@ namespace Mapster.Tests
                                  .Map(dest => dest.IHaveADifferentId, src => src.Id)
                                  .Map(dest => dest.MyNamePropertyIsDifferent, src => src.Name)
                                  .Ignore(dest => dest.Children)
-                                 .BreakConfig()
+                                 .FinalizeConfig()
                                  ;
 
             
@@ -120,7 +120,7 @@ namespace Mapster.Tests
                                  .Map(dest => dest.IHaveADifferentId, src => src.Id)
                                  .Map(dest => dest.MyNamePropertyIsDifferent, src => src.Name)
                                  .Ignore(dest => dest.Children)
-                                 .BreakConfig()
+                                 .FinalizeConfig()
                                  ;
 
                          },

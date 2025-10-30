@@ -32,7 +32,7 @@ namespace Mapster
                 throw new InvalidOperationException("TypeAdapter.Adapt was already called, please clone or create new TypeAdapterConfig.");
         }
 
-        public static TSetter BreakConfig<TSetter>(this TSetter setter) where TSetter : TypeAdapterSetter
+        public static TSetter FinalizeConfig<TSetter>(this TSetter setter) where TSetter : TypeAdapterSetter
         {
             try
             {
