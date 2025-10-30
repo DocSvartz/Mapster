@@ -43,8 +43,6 @@ namespace Mapster
 
         public AutoResetEvent Configure => _Config.Configure;
 
-        public AutoResetEvent AdaptMutex => _Config.AdaptMutex;
-
         public void AddRule(TypeAdapterRule rule)
         {
             _Config.AddRule(rule);

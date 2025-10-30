@@ -5,7 +5,6 @@ using System;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Threading;
 
 namespace Mapster
 {
@@ -44,7 +43,6 @@ namespace Mapster
                 if (setter.Config.ConcurrencyEnvironment)
                 {
                     setter.Config.Configure.Set();
-                    setter.Config.AdaptMutex.Set();
                 }
                     
             }

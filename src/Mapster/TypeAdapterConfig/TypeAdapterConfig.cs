@@ -33,11 +33,7 @@ namespace Mapster
         
         [AdaptIgnore]
         public AutoResetEvent Configure { get; private set; }
-        
-        [AdaptIgnore]
-        public AutoResetEvent AdaptMutex { get; private set; }   
-
-
+      
         internal TypeAdapterConfig(bool IsGlobal) : this()
         {
             IsGlobalSettings = IsGlobal;
@@ -46,7 +42,6 @@ namespace Mapster
         public TypeAdapterConfig()
         {
             Configure = new(true);
-            AdaptMutex = new(true);
             Rules = TypeAdapterConfigFactory.RulesTemplate.ToList();
             var settings = new TypeAdapterSettings();
             ConfigCompile = new ConfigCompileStorage(this);
@@ -89,7 +84,6 @@ namespace Mapster
             if (ConcurrencyEnvironment)
             {
                 Configure.WaitOne(-1);
-               /// AdaptMutex.WaitOne(-1, false);
             }
             
             var context = new CompileContext(this);
@@ -112,7 +106,6 @@ namespace Mapster
             {
                 if (ConcurrencyEnvironment)
                 {
-                    AdaptMutex.Set();
                     Configure.Set();
                 }
                     
