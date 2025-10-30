@@ -46,7 +46,7 @@ namespace Mapster
         public TypeAdapterConfig()
         {
             Configure = new(true);
-            AdaptMutex = new(false);
+            AdaptMutex = new(true);
             Rules = TypeAdapterConfigFactory.RulesTemplate.ToList();
             var settings = new TypeAdapterSettings();
             ConfigCompile = new ConfigCompileStorage(this);
@@ -66,15 +66,6 @@ namespace Mapster
         /// <returns></returns>
         public TypeAdapterSetter ForType(Type sourceType, Type destinationType)
         {
-            if (ConcurencyEnviroment &&
-                WaitHandle.WaitAll(new WaitHandle[] { AdaptMutex, Configure }, 0, false))
-            {
-                AdaptMutex.Reset();
-                Configure.Set();
-                Configure.WaitOne();
-            }
-            
-
             var key = new TypeTuple(sourceType, destinationType);
             var settings = this.GetSettings(key);
             return new TypeAdapterSetter(settings, this);
@@ -88,16 +79,6 @@ namespace Mapster
         /// <returns></returns>
         public TypeAdapterSetter<TSource, TDestination> ForType<TSource, TDestination>()
         {
-            
-
-            if (ConcurencyEnviroment &&
-                WaitHandle.WaitAll(new WaitHandle[] { AdaptMutex, Configure }, 0, false))
-            {
-                AdaptMutex.Reset();
-                Configure.Set();
-                Configure.WaitOne();
-            }
-            
             var key = new TypeTuple(typeof(TSource), typeof(TDestination));
             var settings = this.GetSettings(key);
             return new TypeAdapterSetter<TSource, TDestination>(settings, this);
@@ -105,11 +86,10 @@ namespace Mapster
 
         public LambdaExpression CreateMapExpression(TypeTuple tuple, MapType mapType)
         {
-            if (ConcurencyEnviroment && WaitHandle.WaitAll(new WaitHandle[] { AdaptMutex, Configure }))
+            if (ConcurencyEnviroment)
             {
-                AdaptMutex.Set();
-                Configure.Reset();
-                AdaptMutex.WaitOne();
+                Configure.WaitOne(-1);
+                AdaptMutex.WaitOne(-1, false);
             }
             
             var context = new CompileContext(this);

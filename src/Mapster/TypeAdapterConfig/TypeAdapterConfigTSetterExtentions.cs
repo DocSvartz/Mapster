@@ -15,6 +15,12 @@ namespace Mapster
         /// <returns></returns>
         public static TypeAdapterSetter NewConfig(this ITypeAdapterConfig config, Type sourceType, Type destinationType)
         {
+            if (config.ConcurencyEnviroment)
+            {
+                config.AdaptMutex.WaitOne(-1);
+                config.Configure.WaitOne(-1, false);
+            }
+
             config.Remove(sourceType, destinationType);
             return config.ForType(sourceType, destinationType);
         }
@@ -27,6 +33,12 @@ namespace Mapster
         /// <returns></returns>
         public static TypeAdapterSetter<TSource, TDestination> NewConfig<TSource, TDestination>(this ITypeAdapterConfig config) 
         {
+            if (config.ConcurencyEnviroment)
+            {
+                config.AdaptMutex.WaitOne(-1);
+                config.Configure.WaitOne(-1, false);
+            }
+
             config.Remove(typeof(TSource), typeof(TDestination));
             return config.ForType<TSource, TDestination>();
         }
