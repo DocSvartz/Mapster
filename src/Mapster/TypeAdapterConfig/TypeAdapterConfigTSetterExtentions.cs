@@ -15,10 +15,10 @@ namespace Mapster
         /// <returns></returns>
         public static TypeAdapterSetter NewConfig(this ITypeAdapterConfig config, Type sourceType, Type destinationType)
         {
-            if (config.ConcurrencyEnvironment)
+            if (config.ConcurrencyEnvironment && config is IConfigConcurrency cfg)
             {
-               // config.AdaptMutex.WaitOne(-1);
-                config.Configure.WaitOne(-1, false);
+               if(!cfg.IsScanConcurrency)
+                  config.Configure.WaitOne(-1, false);
             }
 
             config.Remove(sourceType, destinationType);
@@ -33,10 +33,10 @@ namespace Mapster
         /// <returns></returns>
         public static TypeAdapterSetter<TSource, TDestination> NewConfig<TSource, TDestination>(this ITypeAdapterConfig config) 
         {
-            if (config.ConcurrencyEnvironment)
+            if (config.ConcurrencyEnvironment && config is IConfigConcurrency cfg)
             {
-              //  config.AdaptMutex.WaitOne(-1);
-                config.Configure.WaitOne(-1, false);
+                if (!cfg.IsScanConcurrency)
+                    config.Configure.WaitOne(-1, false);
             }
 
             config.Remove(typeof(TSource), typeof(TDestination));

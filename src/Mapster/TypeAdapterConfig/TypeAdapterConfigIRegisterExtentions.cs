@@ -36,13 +36,44 @@ namespace Mapster
         /// <returns>A list of registered mappings</returns>
         public static IList<IRegister> Scan(this ITypeAdapterConfig config, params Assembly[] assemblies)
         {
-            List<IRegister> registers = assemblies.Select(assembly => assembly.GetLoadableTypes()
+            if (config.ConcurrencyEnvironment)
+            {
+                config.Configure.WaitOne(-1, false);
+            }
+
+                List<IRegister> registers = assemblies.Select(assembly => assembly.GetLoadableTypes()
                 .Where(x => typeof(IRegister).GetTypeInfo().IsAssignableFrom(x.GetTypeInfo()) && x.GetTypeInfo().IsClass && !x.GetTypeInfo().IsAbstract))
                 .SelectMany(registerTypes =>
                     registerTypes.Select(registerType => (IRegister)Activator.CreateInstance(registerType))).ToList();
 
             config.Apply(registers);
             return registers;
+        }
+
+        public static IList<IRegister> ScanConcurrency(this ITypeAdapterConfig config, params Assembly[] assemblies)
+        {
+           
+
+            if (config is IConfigConcurrency cfg)
+            {
+                cfg.ConcurrencyEnvironment = true;
+                config.Configure.WaitOne(-1);
+                cfg.IsScanConcurrency = true;
+            }
+
+            try
+            {
+                return config.Scan(assemblies);
+            }
+            finally
+            {
+                if (config is IConfigConcurrency cfg2)
+                {
+                    config.Configure.Set();
+                    cfg2.ConcurrencyEnvironment = false;
+                }
+            }
+
         }
     }
 }

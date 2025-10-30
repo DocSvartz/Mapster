@@ -237,7 +237,10 @@ namespace Mapster
 
         private ConcurrentDictionary<string, ITypeAdapterConfig>? _inlineConfigs;
         private ConcurrentDictionary<string, ITypeAdapterConfig> InlineConfigs =>
-            _inlineConfigs ??= new ConcurrentDictionary<string, ITypeAdapterConfig>(); 
+            _inlineConfigs ??= new ConcurrentDictionary<string, ITypeAdapterConfig>();
+
+        bool IConfigConcurrency.IsScanConcurrency { get; set; }
+
         public ITypeAdapterConfig Fork(Action<ITypeAdapterConfig> action,
 #if !NET40
             [CallerFilePath]
@@ -386,5 +389,7 @@ namespace Mapster
     internal interface IConfigConcurrency
     {
         public bool ConcurrencyEnvironment { get; set; }
+
+        public bool IsScanConcurrency { get; set; }
     }
 }

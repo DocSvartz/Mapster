@@ -1,8 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Shouldly;
+using System;
+using System.Collections.Generic;
+using System.Reflection;
+using System.Threading.Tasks;
 
 namespace Mapster.Tests
 {
@@ -131,10 +132,52 @@ namespace Mapster.Tests
                 }
         }
 
+        [TestMethod]
+        public void Scan_Explicit_Mapping_Requirementd()
+        {
+
+            TypeAdapterConfigFactory.GlobalSettings.RequireExplicitMapping = true;
+            TypeAdapterConfigFactory.GlobalSettings.RequireDestinationMemberSource = true;
+
+            var simplePoco = new WhenAddingCustomMappings.SimplePoco { Id = Guid.NewGuid(), Name = "TestName" };
+
+            TypeAdapterConfigFactory.GlobalSettings.Scan(Assembly.GetExecutingAssembly());
+
+            //TypeAdapter.Adapt<WhenAddingCustomMappings.SimplePoco, WeirdPoco>(simplePoco);
+
+            for (int i = 0; i < 100; i++)
+            {
+                Parallel.Invoke(
+                     () =>
+                     {
+                         TypeAdapterConfigFactory.GlobalSettings.ScanConcurrency(Assembly.GetExecutingAssembly());
+
+                     },
+                     () =>
+                     {
+                         TypeAdapter.Adapt<WeirdPoco>(simplePoco);
+                     }
+                     );
+            }
+        }
+
     }
 
 
     #region TestClasses
+
+    public class RegData : IRegister
+    {
+        public void Register(ITypeAdapterConfig config)
+        {
+            config.NewConfig<WhenAddingCustomMappings.SimplePoco, WeirdPoco>()
+            .Map(dest => dest.IHaveADifferentId, src => src.Id)
+            .Map(dest => dest.MyNamePropertyIsDifferent, src => src.Name)
+            .Ignore(dest => dest.Children);
+            
+        }
+    }
+
 
     public class SimplePoco
     {
