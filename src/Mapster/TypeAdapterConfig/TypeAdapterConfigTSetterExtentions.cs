@@ -17,7 +17,7 @@ namespace Mapster
         {
             if (config.ConcurencyEnviroment)
             {
-                config.AdaptMutex.WaitOne(-1);
+               // config.AdaptMutex.WaitOne(-1);
                 config.Configure.WaitOne(-1, false);
             }
 
@@ -35,7 +35,7 @@ namespace Mapster
         {
             if (config.ConcurencyEnviroment)
             {
-                config.AdaptMutex.WaitOne(-1);
+              //  config.AdaptMutex.WaitOne(-1);
                 config.Configure.WaitOne(-1, false);
             }
 

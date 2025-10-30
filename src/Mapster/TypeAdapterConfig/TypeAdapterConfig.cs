@@ -89,7 +89,7 @@ namespace Mapster
             if (ConcurencyEnviroment)
             {
                 Configure.WaitOne(-1);
-                AdaptMutex.WaitOne(-1, false);
+               /// AdaptMutex.WaitOne(-1, false);
             }
             
             var context = new CompileContext(this);
