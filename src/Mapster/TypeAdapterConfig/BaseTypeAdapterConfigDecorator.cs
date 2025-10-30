@@ -39,7 +39,7 @@ namespace Mapster
 
         public bool SelfContainedCodeGeneration { get => _Config.SelfContainedCodeGeneration; set => _Config.SelfContainedCodeGeneration = value; }
         public Func<LambdaExpression, Delegate> Compiler { get => _Config.Compiler; set => _Config.Compiler = value; }
-        public bool ConcurencyEnviroment { get => _Config.ConcurencyEnviroment; set => _Config.ConcurencyEnviroment = value; }
+        public bool ConcurrencyEnvironment { get => _Config.ConcurrencyEnvironment; }
 
         public AutoResetEvent Configure => _Config.Configure;
 

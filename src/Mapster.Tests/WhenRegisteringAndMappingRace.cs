@@ -15,7 +15,8 @@ namespace Mapster.Tests
             TypeAdapterConfigFactory.GlobalSettings.Clear();
             TypeAdapterConfigFactory.GlobalSettings.RequireExplicitMapping = false;
             TypeAdapterConfigFactory.GlobalSettings.RequireDestinationMemberSource = false;
-            TypeAdapterConfigFactory.GlobalSettings.ConcurencyEnviroment = false;
+            if(TypeAdapterConfigFactory.GlobalSettings is IConfigConcurrency config)
+                config.ConcurrencyEnvironment = false;
         }
 
 
@@ -98,11 +99,10 @@ namespace Mapster.Tests
             
             TypeAdapterConfigFactory.GlobalSettings.RequireExplicitMapping = true;
             TypeAdapterConfigFactory.GlobalSettings.RequireDestinationMemberSource = true;
-            TypeAdapterConfigFactory.GlobalSettings.ConcurencyEnviroment = true;
 
             var simplePoco = new WhenAddingCustomMappings.SimplePoco { Id = Guid.NewGuid(), Name = "TestName" };
 
-            TypeAdapterConfig<WhenAddingCustomMappings.SimplePoco, WeirdPoco>.NewConfig()
+            TypeAdapterConfigConcurrency<WhenAddingCustomMappings.SimplePoco, WeirdPoco>.NewConfig()
                 
                                  .Map(dest => dest.IHaveADifferentId, src => src.Id)
                                  .Map(dest => dest.MyNamePropertyIsDifferent, src => src.Name)
@@ -116,8 +116,7 @@ namespace Mapster.Tests
                     Parallel.Invoke(
                          () =>
                          {
-                             TypeAdapterConfig<WhenAddingCustomMappings.SimplePoco, WeirdPoco>.NewConfig()
-                             //.Ignore(dest => dest.Children)
+                             TypeAdapterConfigConcurrency<WhenAddingCustomMappings.SimplePoco, WeirdPoco>.NewConfig()
                                  .Map(dest => dest.IHaveADifferentId, src => src.Id)
                                  .Map(dest => dest.MyNamePropertyIsDifferent, src => src.Name)
                                  .Ignore(dest => dest.Children)

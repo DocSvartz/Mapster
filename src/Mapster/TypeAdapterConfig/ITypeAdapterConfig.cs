@@ -25,7 +25,7 @@ namespace Mapster
         public IEnumerable<TypeAdapterRule> GetRules(Func<TypeAdapterRule, bool> predicate);
         bool SelfContainedCodeGeneration { get; set; }
 
-        bool ConcurencyEnviroment { get; set; }
+        bool ConcurrencyEnvironment { get; }
         AutoResetEvent Configure {  get;}
         AutoResetEvent AdaptMutex { get; }
 

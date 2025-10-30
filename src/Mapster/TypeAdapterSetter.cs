@@ -41,7 +41,7 @@ namespace Mapster
             }
             finally
             {
-                if (setter.Config.ConcurencyEnviroment)
+                if (setter.Config.ConcurrencyEnvironment)
                 {
                     setter.Config.Configure.Set();
                     setter.Config.AdaptMutex.Set();

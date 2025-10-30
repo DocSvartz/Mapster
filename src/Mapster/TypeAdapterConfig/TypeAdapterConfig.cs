@@ -10,7 +10,7 @@ using System.Threading;
 
 namespace Mapster
 {
-    public class TypeAdapterConfig : ITypeAdapterConfig
+    public class TypeAdapterConfig : ITypeAdapterConfig, IConfigConcurrency
     {
         [AdaptIgnore]
         public bool IsGlobalSettings { get; private set; }
@@ -29,7 +29,7 @@ namespace Mapster
         [AdaptIgnore]
         public ConfigCompileStorage ConfigCompile { get; private set; }
 
-        public bool ConcurencyEnviroment {  get; set; }
+        public bool ConcurrencyEnvironment {  get;  set; }
         
         [AdaptIgnore]
         public AutoResetEvent Configure { get; private set; }
@@ -86,7 +86,7 @@ namespace Mapster
 
         public LambdaExpression CreateMapExpression(TypeTuple tuple, MapType mapType)
         {
-            if (ConcurencyEnviroment)
+            if (ConcurrencyEnvironment)
             {
                 Configure.WaitOne(-1);
                /// AdaptMutex.WaitOne(-1, false);
@@ -110,7 +110,7 @@ namespace Mapster
             }
             finally
             {
-                if (ConcurencyEnviroment)
+                if (ConcurrencyEnvironment)
                 {
                     AdaptMutex.Set();
                     Configure.Set();
@@ -325,6 +325,9 @@ namespace Mapster
 		/// <returns></returns>
 		public static TypeAdapterSetter<TSource, TDestination> NewConfig()
         {
+            if (TypeAdapterConfigFactory.GlobalSettings is IConfigConcurrency config)
+                config.ConcurrencyEnvironment = false;
+
             return TypeAdapterConfigFactory.GlobalSettings.NewConfig<TSource, TDestination>();
         }
 
@@ -335,6 +338,9 @@ namespace Mapster
 		/// <returns></returns>
 		public static TypeAdapterSetter<TSource, TDestination> ForType()
         {
+            if (TypeAdapterConfigFactory.GlobalSettings is IConfigConcurrency config)
+                config.ConcurrencyEnvironment = false;
+
             return TypeAdapterConfigFactory.GlobalSettings.ForType<TSource, TDestination>();
         }
 
@@ -346,5 +352,46 @@ namespace Mapster
         {
             TypeAdapterConfigFactory.GlobalSettings.Remove(typeof(TSource), typeof(TDestination));
         }
+    }
+
+    public static class TypeAdapterConfigConcurrency<TSource, TDestination>
+    {
+        /// <summary>
+        ///  Creates a new configuration for mapping between the source and destination types.
+        /// </summary>
+        /// <returns></returns>
+        public static TypeAdapterSetter<TSource, TDestination> NewConfig()
+        {
+            if (TypeAdapterConfigFactory.GlobalSettings is IConfigConcurrency config)
+                config.ConcurrencyEnvironment = true;
+
+            return TypeAdapterConfigFactory.GlobalSettings.NewConfig<TSource, TDestination>();
+        }
+
+
+        /// <summary>
+        /// Creates a configuration for mapping between the source and destination types.
+        /// </summary>
+        /// <returns></returns>
+        public static TypeAdapterSetter<TSource, TDestination> ForType()
+        {
+            if (TypeAdapterConfigFactory.GlobalSettings is IConfigConcurrency config)
+                config.ConcurrencyEnvironment = true;
+            return TypeAdapterConfigFactory.GlobalSettings.ForType<TSource, TDestination>();
+        }
+
+
+        /// <summary>
+        /// Clears the type mapping configuration for the specified source and destination types.
+        /// </summary>
+        public static void Clear()
+        {
+            TypeAdapterConfigFactory.GlobalSettings.Remove(typeof(TSource), typeof(TDestination));
+        }
+    }
+
+    internal interface IConfigConcurrency
+    {
+        public bool ConcurrencyEnvironment { get; set; }
     }
 }
