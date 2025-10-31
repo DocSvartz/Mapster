@@ -39,6 +39,12 @@ namespace Mapster.Tests
 
             var simplePoco = new WhenAddingCustomMappings.SimplePoco {Id = Guid.NewGuid(), Name = "TestName"};
 
+            //first state (i = 0) Must be configured
+            TypeAdapterConfig<WhenAddingCustomMappings.SimplePoco, WeirdPoco>.NewConfig()
+                               .Map(dest => dest.IHaveADifferentId, src => src.Id)
+                               .Map(dest => dest.MyNamePropertyIsDifferent, src => src.Name)
+                               .Ignore(dest => dest.Children);
+
             var exception = Should.Throw<AggregateException>(() =>
             {
                 for (int i = 0; i < 100; i++)
@@ -65,6 +71,12 @@ namespace Mapster.Tests
         {
             TypeAdapterConfig.GlobalSettings.RequireExplicitMapping = true;
             TypeAdapterConfig.GlobalSettings.RequireDestinationMemberSource = true;
+
+            //first state (i = 0) Must be configured
+            TypeAdapterConfig<WhenAddingCustomMappings.SimplePoco, WeirdPoco>.NewConfig()
+                               .Map(dest => dest.IHaveADifferentId, src => src.Id)
+                               .Map(dest => dest.MyNamePropertyIsDifferent, src => src.Name)
+                               .Ignore(dest => dest.Children);
 
             var simplePoco = new WhenAddingCustomMappings.SimplePoco { Id = Guid.NewGuid(), Name = "TestName" };
 
