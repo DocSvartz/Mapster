@@ -8,7 +8,7 @@
     <SignAssembly>True</SignAssembly>
     <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
     <AssemblyOriginatorKeyFile>Mapster.EFCore.snk</AssemblyOriginatorKeyFile>
-    <Version>9.0.0-pre01</Version>
+    <Version>9.0.0-pre02</Version>
   </PropertyGroup>
 
   <ItemGroup>

@@ -16,7 +16,7 @@
     <PackageLicenseUrl></PackageLicenseUrl>
 	<IsPackable>true</IsPackable>
     <RootNamespace>Mapster</RootNamespace>
-    <Version>9.0.0-pre01</Version>
+    <Version>9.0.0-pre02</Version>
     <Nullable>enable</Nullable>
     <NoWarn>1701;1702;8618</NoWarn>
   </PropertyGroup>
