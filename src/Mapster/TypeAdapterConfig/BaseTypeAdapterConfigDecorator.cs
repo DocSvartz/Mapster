@@ -43,6 +43,8 @@ namespace Mapster
 
         public AutoResetEvent Configure => _Config.Configure;
 
+        public AutoResetEvent ApplySync => _Config.ApplySync;
+
         public void AddRule(TypeAdapterRule rule)
         {
             _Config.AddRule(rule);

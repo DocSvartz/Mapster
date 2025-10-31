@@ -27,7 +27,8 @@ namespace Mapster
 
         bool ConcurrencyEnvironment { get; }
         AutoResetEvent Configure {  get;}
-       
+        AutoResetEvent ApplySync { get; }
+
         void Apply(IEnumerable<IRegister> registers);
         void Clear();
         ITypeAdapterConfig Clone();

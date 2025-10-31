@@ -3,6 +3,7 @@ using Mapster.Utils;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
@@ -33,7 +34,10 @@ namespace Mapster
         
         [AdaptIgnore]
         public AutoResetEvent Configure { get; private set; }
-      
+
+        [AdaptIgnore]
+        public AutoResetEvent ApplySync { get; private set; }
+
         internal TypeAdapterConfig(bool IsGlobal) : this()
         {
             IsGlobalSettings = IsGlobal;
@@ -42,6 +46,7 @@ namespace Mapster
         public TypeAdapterConfig()
         {
             Configure = new(true);
+            ApplySync = new(true);
             Rules = TypeAdapterConfigFactory.RulesTemplate.ToList();
             var settings = new TypeAdapterSettings();
             ConfigCompile = new ConfigCompileStorage(this);
@@ -85,6 +90,11 @@ namespace Mapster
             {
                 Configure.WaitOne(-1);
             }
+            if(this is IConfigConcurrency config)
+            {
+                if (config.IsScanConcurrency)
+                    ApplySync.WaitOne(-1);
+            }
             
             var context = new CompileContext(this);
             context.Running.Add(tuple);
@@ -105,6 +115,7 @@ namespace Mapster
             finally
             {
                 Configure.Set();
+                ApplySync.Set();
 
                 if (fork != null)
                     context.Configs.Pop();
@@ -175,10 +186,14 @@ namespace Mapster
         /// <param name="registers">collection of IRegister interface to apply mapping.</param>
         public void Apply(IEnumerable<IRegister> registers)
         {
+            ApplySync.WaitOne(-1, false);
+
             foreach (IRegister register in registers)
             {
                 register.Register(this);
             }
+
+            ApplySync.Set();
         }
 
         /// <summary>
