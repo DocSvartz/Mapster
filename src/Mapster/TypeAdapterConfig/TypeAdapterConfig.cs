@@ -104,11 +104,8 @@ namespace Mapster
             }
             finally
             {
-                if (ConcurrencyEnvironment)
-                {
-                    Configure.Set();
-                }
-                    
+                Configure.Set();
+
                 if (fork != null)
                     context.Configs.Pop();
                 context.Running.Remove(tuple);

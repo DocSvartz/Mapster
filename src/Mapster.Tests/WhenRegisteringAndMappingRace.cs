@@ -104,7 +104,6 @@ namespace Mapster.Tests
             var simplePoco = new WhenAddingCustomMappings.SimplePoco { Id = Guid.NewGuid(), Name = "TestName" };
 
             TypeAdapterConfigConcurrency<WhenAddingCustomMappings.SimplePoco, WeirdPoco>.NewConfig()
-                
                                  .Map(dest => dest.IHaveADifferentId, src => src.Id)
                                  .Map(dest => dest.MyNamePropertyIsDifferent, src => src.Name)
                                  .Ignore(dest => dest.Children)
@@ -142,8 +141,6 @@ namespace Mapster.Tests
             var simplePoco = new WhenAddingCustomMappings.SimplePoco { Id = Guid.NewGuid(), Name = "TestName" };
 
             TypeAdapterConfigFactory.GlobalSettings.Scan(Assembly.GetExecutingAssembly());
-
-            //TypeAdapter.Adapt<WhenAddingCustomMappings.SimplePoco, WeirdPoco>(simplePoco);
 
             for (int i = 0; i < 100; i++)
             {
