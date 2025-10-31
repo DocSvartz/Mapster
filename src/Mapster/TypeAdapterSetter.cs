@@ -31,6 +31,23 @@ namespace Mapster
                 throw new InvalidOperationException("TypeAdapter.Adapt was already called, please clone or create new TypeAdapterConfig.");
         }
 
+        public static TSetter FinalizeConfig<TSetter>(this TSetter setter) where TSetter : TypeAdapterSetter
+        {
+            try
+            {
+                setter.CheckCompiled();
+                return setter;
+            }
+            finally
+            {
+                if (setter.Config.IsConcurrencyEnvironment)
+                {
+                    setter.Config.ConfigureSync.Set();
+                }
+
+            }
+        }
+
         public static TSetter AddDestinationTransform<TSetter, TDestinationMember>(this TSetter setter, Expression<Func<TDestinationMember, TDestinationMember>> transform) where TSetter : TypeAdapterSetter
         {
             setter.CheckCompiled();

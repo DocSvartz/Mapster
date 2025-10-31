@@ -1,18 +1,32 @@
-﻿using System;
+﻿using Mapster.Adapters;
+using Mapster.Models;
+using Mapster.Utils;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using Mapster.Adapters;
-using Mapster.Models;
-using Mapster.Utils;
+using System.Threading;
 
 namespace Mapster
 {
     public class TypeAdapterConfig
     {
+        #region ConcurrencyMod
+
+        [AdaptIgnore]
+        public AutoResetEvent ConfigureSync { get; set; }
+
+        [AdaptIgnore]
+        public AutoResetEvent ApplySync { get; set; }
+
+        public bool IsConcurrencyEnvironment { get; set; }
+        public bool IsScanConcurrency { get; set; }
+
+        #endregion ConcurrencyMod
+
         public static List<TypeAdapterRule> RulesTemplate { get; } = CreateRuleTemplate();
         public static TypeAdapterConfig GlobalSettings { get; } = new TypeAdapterConfig();
 
@@ -95,6 +109,9 @@ namespace Mapster
 
         public TypeAdapterConfig()
         {
+            ConfigureSync = new(true);
+            ApplySync = new(true);
+
             Rules = RulesTemplate.ToList();
             var settings = new TypeAdapterSettings();
             Default = new TypeAdapterSetter(settings, this);
@@ -148,6 +165,9 @@ namespace Mapster
 		/// <returns></returns>
 		public TypeAdapterSetter<TSource, TDestination> NewConfig<TSource, TDestination>()
         {
+            if (IsConcurrencyEnvironment && !IsScanConcurrency)
+                ConfigureSync.WaitOne(-1, false);
+
             Remove(typeof(TSource), typeof(TDestination));
             return ForType<TSource, TDestination>();
         }
@@ -161,6 +181,9 @@ namespace Mapster
 		/// <returns></returns>
 		public TypeAdapterSetter NewConfig(Type sourceType, Type destinationType)
         {
+            if (IsConcurrencyEnvironment && !IsScanConcurrency)
+                ConfigureSync.WaitOne(-1, false);
+
             Remove(sourceType, destinationType);
             return ForType(sourceType, destinationType);
         }
@@ -385,6 +408,12 @@ namespace Mapster
 
         public LambdaExpression CreateMapExpression(TypeTuple tuple, MapType mapType)
         {
+            if (IsConcurrencyEnvironment)
+                ConfigureSync.WaitOne(-1);
+
+            if (IsScanConcurrency)
+                ApplySync.WaitOne(-1);
+
             var context = new CompileContext(this);
             context.Running.Add(tuple);
             Action<TypeAdapterConfig>? fork = null;
@@ -403,6 +432,9 @@ namespace Mapster
             }
             finally
             {
+                ApplySync.Set();
+                ConfigureSync.Set();
+
                 if (fork != null)
                     context.Configs.Pop();
                 context.Running.Remove(tuple);
@@ -738,12 +770,29 @@ namespace Mapster
             return registers;
         }
 
+        public IList<IRegister> ScanConcurrency(params Assembly[] assemblies)
+        {
 
-		/// <summary>
-		/// Applies type mappings.
-		/// </summary>
-		/// <param name="registers">collection of IRegister interface to apply mapping.</param>
-		public void Apply(IEnumerable<Lazy<IRegister>> registers)
+            IsConcurrencyEnvironment = true;
+            ConfigureSync.WaitOne(-1);
+            IsScanConcurrency = true;
+
+            try
+            {
+                return Scan(assemblies);
+            }
+            finally
+            {
+                ConfigureSync.Set();
+                IsConcurrencyEnvironment = false;
+            }
+        }
+
+        /// <summary>
+        /// Applies type mappings.
+        /// </summary>
+        /// <param name="registers">collection of IRegister interface to apply mapping.</param>
+        public void Apply(IEnumerable<Lazy<IRegister>> registers)
         {
             Apply(registers.Select(register => register.Value));
         }
@@ -755,10 +804,14 @@ namespace Mapster
 		/// <param name="registers">collection of IRegister interface to apply mapping.</param>
 		public void Apply(IEnumerable<IRegister> registers)
         {
+            ApplySync.WaitOne(-1, false);
+
             foreach (IRegister register in registers)
             {
                 register.Register(this);
             }
+
+            ApplySync.Set();
         }
 
 
@@ -878,6 +931,39 @@ namespace Mapster
 		/// Clears the type mapping configuration for the specified source and destination types.
 		/// </summary>
 		public static void Clear()
+        {
+            TypeAdapterConfig.GlobalSettings.Remove(typeof(TSource), typeof(TDestination));
+        }
+    }
+
+    public static class TypeAdapterConfigConcurrency<TSource, TDestination>
+    {
+        /// <summary>
+        ///  Creates a new configuration for mapping between the source and destination types.
+        /// </summary>
+        /// <returns></returns>
+        public static TypeAdapterSetter<TSource, TDestination> NewConfig()
+        {
+            TypeAdapterConfig.GlobalSettings.IsConcurrencyEnvironment = true;
+            return TypeAdapterConfig.GlobalSettings.NewConfig<TSource, TDestination>();
+        }
+
+
+        /// <summary>
+        /// Creates a configuration for mapping between the source and destination types.
+        /// </summary>
+        /// <returns></returns>
+        public static TypeAdapterSetter<TSource, TDestination> ForType()
+        {
+            TypeAdapterConfig.GlobalSettings.IsConcurrencyEnvironment = true;
+            return TypeAdapterConfig.GlobalSettings.ForType<TSource, TDestination>();
+        }
+
+
+        /// <summary>
+        /// Clears the type mapping configuration for the specified source and destination types.
+        /// </summary>
+        public static void Clear()
         {
             TypeAdapterConfig.GlobalSettings.Remove(typeof(TSource), typeof(TDestination));
         }

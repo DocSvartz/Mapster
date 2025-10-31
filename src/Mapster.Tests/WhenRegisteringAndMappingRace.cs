@@ -15,6 +15,7 @@ namespace Mapster.Tests
         {
             TypeAdapterConfig.GlobalSettings.RequireExplicitMapping = false;
             TypeAdapterConfig.GlobalSettings.RequireDestinationMemberSource = false;
+            TypeAdapterConfig.GlobalSettings.IsConcurrencyEnvironment = false;
         }
 
 
@@ -111,10 +112,11 @@ namespace Mapster.Tests
             var simplePoco = new WhenAddingCustomMappings.SimplePoco { Id = Guid.NewGuid(), Name = "TestName" };
 
             //first state (i = 0) Must be configured
-            TypeAdapterConfig<WhenAddingCustomMappings.SimplePoco, WeirdPoco>.NewConfig()
+            TypeAdapterConfigConcurrency<WhenAddingCustomMappings.SimplePoco, WeirdPoco>.NewConfig()
                                .Map(dest => dest.IHaveADifferentId, src => src.Id)
                                .Map(dest => dest.MyNamePropertyIsDifferent, src => src.Name)
-                               .Ignore(dest => dest.Children);
+                               .Ignore(dest => dest.Children)
+                               .FinalizeConfig();
 
            
             for (int i = 0; i < 100; i++)
@@ -122,10 +124,11 @@ namespace Mapster.Tests
                 Parallel.Invoke(
                     () =>
                     {
-                        TypeAdapterConfig<WhenAddingCustomMappings.SimplePoco, WeirdPoco>.NewConfig()
+                        TypeAdapterConfigConcurrency<WhenAddingCustomMappings.SimplePoco, WeirdPoco>.NewConfig()
                             .Map(dest => dest.IHaveADifferentId, src => src.Id)
                             .Map(dest => dest.MyNamePropertyIsDifferent, src => src.Name)
-                            .Ignore(dest => dest.Children);
+                            .Ignore(dest => dest.Children)
+                            .FinalizeConfig();
                     },
                     () => { TypeAdapter.Adapt<WeirdPoco>(simplePoco); }
                     );
@@ -150,7 +153,7 @@ namespace Mapster.Tests
                 Parallel.Invoke(
                     () =>
                     {
-                        TypeAdapterConfig.GlobalSettings.Scan(Assembly.GetExecutingAssembly());
+                        TypeAdapterConfig.GlobalSettings.ScanConcurrency(Assembly.GetExecutingAssembly());
                     },
                     () => { TypeAdapter.Adapt<WeirdPoco>(simplePoco); }
                     );
