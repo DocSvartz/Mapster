@@ -106,7 +106,7 @@ namespace Mapster.Tests
         [TestMethod]
         public void Race_Condition_Working()
         {
-            TypeAdapterConfig.GlobalSettings.RequireDestinationMemberSource = true;
+            TypeAdapterConfig.GlobalSettings.RequireExplicitMapping = true;
             TypeAdapterConfig.GlobalSettings.RequireDestinationMemberSource = true;
 
             var simplePoco = new WhenAddingCustomMappings.SimplePoco { Id = Guid.NewGuid(), Name = "TestName" };
@@ -139,7 +139,7 @@ namespace Mapster.Tests
         [TestMethod]
         public void Scan_Race_Condition_Working()
         {
-            TypeAdapterConfig.GlobalSettings.RequireDestinationMemberSource = true;
+            TypeAdapterConfig.GlobalSettings.RequireExplicitMapping = true;
             TypeAdapterConfig.GlobalSettings.RequireDestinationMemberSource = true;
 
             var simplePoco = new WhenAddingCustomMappings.SimplePoco { Id = Guid.NewGuid(), Name = "TestName" };
