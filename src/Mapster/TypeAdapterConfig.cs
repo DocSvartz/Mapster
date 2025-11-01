@@ -345,10 +345,23 @@ namespace Mapster
         }
         internal Delegate GetMapFunction(Type sourceType, Type destinationType)
         {
-            var key = new TypeTuple(sourceType, destinationType);
-            if (!_mapDict.TryGetValue(key, out var del))
-                del = AddToHash(_mapDict, key, tuple => Compiler(CreateMapExpression(tuple, MapType.Map)));
-            return del;
+            if (IsConcurrencyEnvironment)
+                ConfigureSync.WaitOne(-1);
+
+            if (IsScanConcurrency)
+                ApplySync.WaitOne(-1);
+            try
+            {
+                var key = new TypeTuple(sourceType, destinationType);
+                if (!_mapDict.TryGetValue(key, out var del))
+                    del = AddToHash(_mapDict, key, tuple => Compiler(CreateMapExpression(tuple, MapType.Map)));
+                return del;
+            }
+            finally
+            {
+                ApplySync.Set();
+                ConfigureSync.Set();
+            }
         }
 
         private readonly ConcurrentDictionary<TypeTuple, Delegate> _mapToTargetDict = new ConcurrentDictionary<TypeTuple, Delegate>();
@@ -358,10 +371,25 @@ namespace Mapster
         }
         internal Delegate GetMapToTargetFunction(Type sourceType, Type destinationType)
         {
-            var key = new TypeTuple(sourceType, destinationType);
-            if (!_mapToTargetDict.TryGetValue(key, out var del))
-                del = AddToHash(_mapToTargetDict, key, tuple => Compiler(CreateMapExpression(tuple, MapType.MapToTarget)));
-            return del;
+            if (IsConcurrencyEnvironment)
+                ConfigureSync.WaitOne(-1);
+
+            if (IsScanConcurrency)
+                ApplySync.WaitOne(-1);
+
+            try
+            {
+                var key = new TypeTuple(sourceType, destinationType);
+                if (!_mapToTargetDict.TryGetValue(key, out var del))
+                    del = AddToHash(_mapToTargetDict, key, tuple => Compiler(CreateMapExpression(tuple, MapType.MapToTarget)));
+                return del;
+            }
+            finally
+            {
+                ApplySync.Set();
+                ConfigureSync.Set();
+            }
+            
         }
 
         private readonly ConcurrentDictionary<TypeTuple, MethodCallExpression> _projectionDict = new ConcurrentDictionary<TypeTuple, MethodCallExpression>();
@@ -373,19 +401,47 @@ namespace Mapster
         }
         internal MethodCallExpression GetProjectionCallExpression(Type sourceType, Type destinationType)
         {
-            var key = new TypeTuple(sourceType, destinationType);
-            if (!_projectionDict.TryGetValue(key, out var del))
-                del = AddToHash(_projectionDict, key, CreateProjectionCallExpression);
-            return del;
+            if (IsConcurrencyEnvironment)
+                ConfigureSync.WaitOne(-1);
+
+            if (IsScanConcurrency)
+                ApplySync.WaitOne(-1);
+
+            try
+            {
+                var key = new TypeTuple(sourceType, destinationType);
+                if (!_projectionDict.TryGetValue(key, out var del))
+                    del = AddToHash(_projectionDict, key, CreateProjectionCallExpression);
+                return del;
+            }
+            finally
+            {
+                ApplySync.Set();
+                ConfigureSync.Set();
+            }
         }
 
         private readonly ConcurrentDictionary<TypeTuple, Delegate> _dynamicMapDict = new ConcurrentDictionary<TypeTuple, Delegate>();
         public Func<object, TDestination> GetDynamicMapFunction<TDestination>(Type sourceType)
         {
-            var key = new TypeTuple(sourceType, typeof(TDestination));
-            if (!_dynamicMapDict.TryGetValue(key, out var del))
-                del = AddToHash(_dynamicMapDict, key, tuple => Compiler(CreateDynamicMapExpression(tuple)));
-            return (Func<object, TDestination>)del;
+            if (IsConcurrencyEnvironment)
+                ConfigureSync.WaitOne(-1);
+
+            if (IsScanConcurrency)
+                ApplySync.WaitOne(-1);
+
+            try
+            {
+                var key = new TypeTuple(sourceType, typeof(TDestination));
+                if (!_dynamicMapDict.TryGetValue(key, out var del))
+                    del = AddToHash(_dynamicMapDict, key, tuple => Compiler(CreateDynamicMapExpression(tuple)));
+                return (Func<object, TDestination>)del;
+            }
+            finally
+            {
+                ApplySync.Set();
+                ConfigureSync.Set();
+            }
         }
 
         private Expression CreateSelfExpression()
@@ -408,12 +464,6 @@ namespace Mapster
 
         public LambdaExpression CreateMapExpression(TypeTuple tuple, MapType mapType)
         {
-            if (IsConcurrencyEnvironment)
-                ConfigureSync.WaitOne(-1);
-
-            if (IsScanConcurrency)
-                ApplySync.WaitOne(-1);
-
             var context = new CompileContext(this);
             context.Running.Add(tuple);
             Action<TypeAdapterConfig>? fork = null;
@@ -432,9 +482,7 @@ namespace Mapster
             }
             finally
             {
-                ApplySync.Set();
-                ConfigureSync.Set();
-
+               
                 if (fork != null)
                     context.Configs.Pop();
                 context.Running.Remove(tuple);
