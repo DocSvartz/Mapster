@@ -112,28 +112,35 @@ namespace Mapster.Tests
             var simplePoco = new WhenAddingCustomMappings.SimplePoco { Id = Guid.NewGuid(), Name = "TestName" };
 
             //first state (i = 0) Must be configured
-            TypeAdapterConfigConcurrency<WhenAddingCustomMappings.SimplePoco, WeirdPoco>.NewConfig()
-                               .Map(dest => dest.IHaveADifferentId, src => src.Id)
-                               .Map(dest => dest.MyNamePropertyIsDifferent, src => src.Name)
-                               .Ignore(dest => dest.Children)
-                               .FinalizeConfig();
+            TypeAdapterConfigConcurrency<WhenAddingCustomMappings.SimplePoco, WeirdPoco>
+                .NewConfig(cfg =>
+                {
+                    cfg
+                        .Map(dest => dest.IHaveADifferentId, src => src.Id)
+                        .Map(dest => dest.IHaveADifferentId, src => src.Id)
+                        .Map(dest => dest.MyNamePropertyIsDifferent, src => src.Name)
+                        .Ignore(dest => dest.Children);
+                });
 
-           
-            for (int i = 0; i < 100; i++)
+            for (int i = 0; i < 1000; i++)
             {
                 Parallel.Invoke(
                     () =>
                     {
-                        TypeAdapterConfigConcurrency<WhenAddingCustomMappings.SimplePoco, WeirdPoco>.NewConfig()
-                            .Map(dest => dest.IHaveADifferentId, src => src.Id)
-                            .Map(dest => dest.MyNamePropertyIsDifferent, src => src.Name)
-                            .Ignore(dest => dest.Children)
-                            .FinalizeConfig();
+                        TypeAdapterConfigConcurrency<WhenAddingCustomMappings.SimplePoco, WeirdPoco>
+                            .NewConfig(cfg =>
+                            {
+                                cfg
+                                    .Map(dest => dest.IHaveADifferentId, src => src.Id)
+                                    .Map(dest => dest.IHaveADifferentId, src => src.Id)
+                                    .Map(dest => dest.MyNamePropertyIsDifferent, src => src.Name)
+                                    .Ignore(dest => dest.Children);
+                            });
                     },
                     () => { TypeAdapter.Adapt<WeirdPoco>(simplePoco); }
                     );
             }
-         
+
         }
 
         [TestMethod]
@@ -148,7 +155,7 @@ namespace Mapster.Tests
             TypeAdapterConfig.GlobalSettings.Scan(Assembly.GetExecutingAssembly());
 
 
-            for (int i = 0; i < 100; i++)
+            for (int i = 0; i < 1000; i++)
             {
                 Parallel.Invoke(
                     () =>

@@ -165,9 +165,6 @@ namespace Mapster
 		/// <returns></returns>
 		public TypeAdapterSetter<TSource, TDestination> NewConfig<TSource, TDestination>()
         {
-            if (IsConcurrencyEnvironment && !IsScanConcurrency)
-                ConfigureSync.WaitOne(-1, false);
-
             Remove(typeof(TSource), typeof(TDestination));
             return ForType<TSource, TDestination>();
         }
@@ -181,9 +178,6 @@ namespace Mapster
 		/// <returns></returns>
 		public TypeAdapterSetter NewConfig(Type sourceType, Type destinationType)
         {
-            if (IsConcurrencyEnvironment && !IsScanConcurrency)
-                ConfigureSync.WaitOne(-1, false);
-
             Remove(sourceType, destinationType);
             return ForType(sourceType, destinationType);
         }
@@ -345,8 +339,7 @@ namespace Mapster
         }
         internal Delegate GetMapFunction(Type sourceType, Type destinationType)
         {
-            if (IsConcurrencyEnvironment)
-                ConfigureSync.WaitOne(-1);
+            ConfigureSync.WaitOne(-1);
 
             if (IsScanConcurrency)
                 ApplySync.WaitOne(-1);
@@ -371,8 +364,7 @@ namespace Mapster
         }
         internal Delegate GetMapToTargetFunction(Type sourceType, Type destinationType)
         {
-            if (IsConcurrencyEnvironment)
-                ConfigureSync.WaitOne(-1);
+            ConfigureSync.WaitOne(-1);
 
             if (IsScanConcurrency)
                 ApplySync.WaitOne(-1);
@@ -401,8 +393,7 @@ namespace Mapster
         }
         internal MethodCallExpression GetProjectionCallExpression(Type sourceType, Type destinationType)
         {
-            if (IsConcurrencyEnvironment)
-                ConfigureSync.WaitOne(-1);
+            ConfigureSync.WaitOne(-1);
 
             if (IsScanConcurrency)
                 ApplySync.WaitOne(-1);
@@ -424,8 +415,7 @@ namespace Mapster
         private readonly ConcurrentDictionary<TypeTuple, Delegate> _dynamicMapDict = new ConcurrentDictionary<TypeTuple, Delegate>();
         public Func<object, TDestination> GetDynamicMapFunction<TDestination>(Type sourceType)
         {
-            if (IsConcurrencyEnvironment)
-                ConfigureSync.WaitOne(-1);
+            ConfigureSync.WaitOne(-1);
 
             if (IsScanConcurrency)
                 ApplySync.WaitOne(-1);
@@ -986,34 +976,21 @@ namespace Mapster
 
     public static class TypeAdapterConfigConcurrency<TSource, TDestination>
     {
-        /// <summary>
-        ///  Creates a new configuration for mapping between the source and destination types.
-        /// </summary>
-        /// <returns></returns>
-        public static TypeAdapterSetter<TSource, TDestination> NewConfig()
+        public static void NewConfig(Action<TypeAdapterSetter<TSource, TDestination>> cfg)
         {
-            TypeAdapterConfig.GlobalSettings.IsConcurrencyEnvironment = true;
-            return TypeAdapterConfig.GlobalSettings.NewConfig<TSource, TDestination>();
-        }
+            var config = TypeAdapterConfig.GlobalSettings;
 
+            config.IsConcurrencyEnvironment = true;
+            config.ConfigureSync.WaitOne(-1, false);
 
-        /// <summary>
-        /// Creates a configuration for mapping between the source and destination types.
-        /// </summary>
-        /// <returns></returns>
-        public static TypeAdapterSetter<TSource, TDestination> ForType()
-        {
-            TypeAdapterConfig.GlobalSettings.IsConcurrencyEnvironment = true;
-            return TypeAdapterConfig.GlobalSettings.ForType<TSource, TDestination>();
-        }
-
-
-        /// <summary>
-        /// Clears the type mapping configuration for the specified source and destination types.
-        /// </summary>
-        public static void Clear()
-        {
-            TypeAdapterConfig.GlobalSettings.Remove(typeof(TSource), typeof(TDestination));
+            try
+            {
+                cfg.Invoke(TypeAdapterConfig<TSource, TDestination>.NewConfig());
+            }
+            finally
+            {
+                config.ConfigureSync.Set();
+            }
         }
     }
 }
