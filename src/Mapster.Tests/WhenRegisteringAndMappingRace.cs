@@ -15,7 +15,6 @@ namespace Mapster.Tests
         {
             TypeAdapterConfig.GlobalSettings.RequireExplicitMapping = false;
             TypeAdapterConfig.GlobalSettings.RequireDestinationMemberSource = false;
-            TypeAdapterConfig.GlobalSettings.IsConcurrencyEnvironment = false;
         }
 
 

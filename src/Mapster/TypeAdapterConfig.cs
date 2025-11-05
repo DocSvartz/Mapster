@@ -17,13 +17,11 @@ namespace Mapster
         #region ConcurrencyMod
 
         [AdaptIgnore]
-        public AutoResetEvent ConfigureSync { get; set; }
+        internal AutoResetEvent ConfigureSync { get; set; }
 
         [AdaptIgnore]
-        public AutoResetEvent ApplySync { get; set; }
-
-        public bool IsConcurrencyEnvironment { get; set; }
-        public bool IsScanConcurrency { get; set; }
+        internal AutoResetEvent ApplySync { get; set; }
+        internal bool IsScanConcurrency { get; set; }
 
         #endregion ConcurrencyMod
 
@@ -810,8 +808,6 @@ namespace Mapster
 
         public IList<IRegister> ScanConcurrency(params Assembly[] assemblies)
         {
-
-            IsConcurrencyEnvironment = true;
             ConfigureSync.WaitOne(-1);
             IsScanConcurrency = true;
 
@@ -822,7 +818,6 @@ namespace Mapster
             finally
             {
                 ConfigureSync.Set();
-                IsConcurrencyEnvironment = false;
             }
         }
 
@@ -980,7 +975,6 @@ namespace Mapster
         {
             var config = TypeAdapterConfig.GlobalSettings;
 
-            config.IsConcurrencyEnvironment = true;
             config.ConfigureSync.WaitOne(-1, false);
 
             try
