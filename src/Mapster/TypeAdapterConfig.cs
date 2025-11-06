@@ -19,10 +19,6 @@ namespace Mapster
         [AdaptIgnore]
         internal AutoResetEvent ConfigureSync { get; set; }
 
-        [AdaptIgnore]
-        internal AutoResetEvent ApplySync { get; set; }
-        internal bool IsScanConcurrency { get; set; }
-
         #endregion ConcurrencyMod
 
         public static List<TypeAdapterRule> RulesTemplate { get; } = CreateRuleTemplate();
@@ -108,8 +104,7 @@ namespace Mapster
         public TypeAdapterConfig()
         {
             ConfigureSync = new(true);
-            ApplySync = new(true);
-
+           
             Rules = RulesTemplate.ToList();
             var settings = new TypeAdapterSettings();
             Default = new TypeAdapterSetter(settings, this);
@@ -339,8 +334,6 @@ namespace Mapster
         {
             ConfigureSync.WaitOne();
 
-            if (IsScanConcurrency)
-                ApplySync.WaitOne();
             try
             {
                 var key = new TypeTuple(sourceType, destinationType);
@@ -350,7 +343,6 @@ namespace Mapster
             }
             finally
             {
-                ApplySync.Set();
                 ConfigureSync.Set();
             }
         }
@@ -364,9 +356,6 @@ namespace Mapster
         {
             ConfigureSync.WaitOne();
 
-            if (IsScanConcurrency)
-                ApplySync.WaitOne();
-
             try
             {
                 var key = new TypeTuple(sourceType, destinationType);
@@ -376,7 +365,6 @@ namespace Mapster
             }
             finally
             {
-                ApplySync.Set();
                 ConfigureSync.Set();
             }
             
@@ -393,9 +381,6 @@ namespace Mapster
         {
             ConfigureSync.WaitOne();
 
-            if (IsScanConcurrency)
-                ApplySync.WaitOne();
-
             try
             {
                 var key = new TypeTuple(sourceType, destinationType);
@@ -405,7 +390,6 @@ namespace Mapster
             }
             finally
             {
-                ApplySync.Set();
                 ConfigureSync.Set();
             }
         }
@@ -414,9 +398,6 @@ namespace Mapster
         public Func<object, TDestination> GetDynamicMapFunction<TDestination>(Type sourceType)
         {
             ConfigureSync.WaitOne();
-
-            if (IsScanConcurrency)
-                ApplySync.WaitOne(-1);
 
             try
             {
@@ -427,7 +408,6 @@ namespace Mapster
             }
             finally
             {
-                ApplySync.Set();
                 ConfigureSync.Set();
             }
         }
@@ -809,8 +789,7 @@ namespace Mapster
         public IList<IRegister> ScanConcurrency(params Assembly[] assemblies)
         {
             ConfigureSync.WaitOne();
-            IsScanConcurrency = true;
-
+           
             try
             {
                 return Scan(assemblies);
@@ -837,14 +816,10 @@ namespace Mapster
 		/// <param name="registers">collection of IRegister interface to apply mapping.</param>
 		public void Apply(IEnumerable<IRegister> registers)
         {
-            ApplySync.WaitOne();
-
             foreach (IRegister register in registers)
             {
                 register.Register(this);
             }
-
-            ApplySync.Set();
         }
 
 
