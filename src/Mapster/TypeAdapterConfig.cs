@@ -337,10 +337,10 @@ namespace Mapster
         }
         internal Delegate GetMapFunction(Type sourceType, Type destinationType)
         {
-            ConfigureSync.WaitOne(-1);
+            ConfigureSync.WaitOne();
 
             if (IsScanConcurrency)
-                ApplySync.WaitOne(-1);
+                ApplySync.WaitOne();
             try
             {
                 var key = new TypeTuple(sourceType, destinationType);
@@ -362,10 +362,10 @@ namespace Mapster
         }
         internal Delegate GetMapToTargetFunction(Type sourceType, Type destinationType)
         {
-            ConfigureSync.WaitOne(-1);
+            ConfigureSync.WaitOne();
 
             if (IsScanConcurrency)
-                ApplySync.WaitOne(-1);
+                ApplySync.WaitOne();
 
             try
             {
@@ -391,10 +391,10 @@ namespace Mapster
         }
         internal MethodCallExpression GetProjectionCallExpression(Type sourceType, Type destinationType)
         {
-            ConfigureSync.WaitOne(-1);
+            ConfigureSync.WaitOne();
 
             if (IsScanConcurrency)
-                ApplySync.WaitOne(-1);
+                ApplySync.WaitOne();
 
             try
             {
@@ -413,7 +413,7 @@ namespace Mapster
         private readonly ConcurrentDictionary<TypeTuple, Delegate> _dynamicMapDict = new ConcurrentDictionary<TypeTuple, Delegate>();
         public Func<object, TDestination> GetDynamicMapFunction<TDestination>(Type sourceType)
         {
-            ConfigureSync.WaitOne(-1);
+            ConfigureSync.WaitOne();
 
             if (IsScanConcurrency)
                 ApplySync.WaitOne(-1);
@@ -808,7 +808,7 @@ namespace Mapster
 
         public IList<IRegister> ScanConcurrency(params Assembly[] assemblies)
         {
-            ConfigureSync.WaitOne(-1);
+            ConfigureSync.WaitOne();
             IsScanConcurrency = true;
 
             try
@@ -837,7 +837,7 @@ namespace Mapster
 		/// <param name="registers">collection of IRegister interface to apply mapping.</param>
 		public void Apply(IEnumerable<IRegister> registers)
         {
-            ApplySync.WaitOne(-1, false);
+            ApplySync.WaitOne();
 
             foreach (IRegister register in registers)
             {
@@ -975,7 +975,7 @@ namespace Mapster
         {
             var config = TypeAdapterConfig.GlobalSettings;
 
-            config.ConfigureSync.WaitOne(-1, false);
+            config.ConfigureSync.WaitOne();
 
             try
             {
