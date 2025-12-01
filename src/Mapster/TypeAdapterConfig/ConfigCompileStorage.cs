@@ -9,7 +9,7 @@ using System.Reflection;
 
 namespace Mapster
 {
-    public class ConfigCompileStorage
+    public class ConfigCompileStorage : IConfigCompileStorage
     {
 
         private readonly ITypeAdapterConfig _config;
@@ -18,7 +18,7 @@ namespace Mapster
         private readonly ConcurrentDictionary<TypeTuple, Delegate> _mapToTargetDict = new ConcurrentDictionary<TypeTuple, Delegate>();
         private readonly ConcurrentDictionary<TypeTuple, MethodCallExpression> _projectionDict = new ConcurrentDictionary<TypeTuple, MethodCallExpression>();
         private readonly ConcurrentDictionary<TypeTuple, Delegate> _dynamicMapDict = new ConcurrentDictionary<TypeTuple, Delegate>();
-        
+
         public ConfigCompileStorage(ITypeAdapterConfig config)
         {
             _config = config;
@@ -36,7 +36,7 @@ namespace Mapster
             return del;
         }
 
-        
+
         public Func<TSource, TDestination, TDestination> GetMapToTargetFunction<TSource, TDestination>()
         {
             return (Func<TSource, TDestination, TDestination>)GetMapToTargetFunction(typeof(TSource), typeof(TDestination));
@@ -49,7 +49,7 @@ namespace Mapster
             return del;
         }
 
-        
+
         internal Expression<Func<TSource, TDestination>> GetProjectionExpression<TSource, TDestination>()
         {
             var del = GetProjectionCallExpression(typeof(TSource), typeof(TDestination));
@@ -64,7 +64,7 @@ namespace Mapster
             return del;
         }
 
-        
+
         public Func<object, TDestination> GetDynamicMapFunction<TDestination>(Type sourceType)
         {
             var key = new TypeTuple(sourceType, typeof(TDestination));
@@ -149,7 +149,7 @@ namespace Mapster
         }
 
         private Expression CreateSelfExpression()
-        {            
+        {
             if (_config.IsGlobalSettings)
                 return Expression.Property(
                     Expression.Property(null, typeof(TypeAdapterConfigFactory).GetProperty(nameof(TypeAdapterConfigFactory.GlobalSettings))),
@@ -302,7 +302,7 @@ namespace Mapster
             var keys = _config.RuleMap.Keys.ToList();
             foreach (var key in keys)
             {
-                _projectionDict[key] =  CreateProjectionCallExpression(key);
+                _projectionDict[key] = CreateProjectionCallExpression(key);
             }
         }
 

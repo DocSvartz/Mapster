@@ -12,7 +12,7 @@ namespace Mapster
         bool AllowImplicitDestinationInheritance { get; set; }
         bool AllowImplicitSourceInheritance { get; set; }
         Func<LambdaExpression, Delegate> Compiler { get; set; }
-        ConfigCompileStorage ConfigCompile { get; }
+        IConfigCompileStorage ConfigCompile { get; }
         bool IsGlobalSettings { get; }
         bool RequireDestinationMemberSource { get; set; }
         bool RequireExplicitMapping { get; set; }
