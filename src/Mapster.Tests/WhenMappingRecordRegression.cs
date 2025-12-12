@@ -23,9 +23,9 @@ namespace Mapster.Tests
             var _destination = new TestRecordY() { X = 500 , Y = 200 };
 
             var _destination2 = new TestRecordY() { X = 300, Y = 400 };
-            var _result = _source.Adapt(_destination);
+            var _result = _source.MapToTargetAdapt(_destination);
 
-            var result2 = _destination.Adapt(_destination2);
+            var result2 = _destination.MapToTargetAdapt(_destination2);
 
             _result.X.ShouldBe(700);
             _result.Y.ShouldBe(200);
@@ -37,7 +37,7 @@ namespace Mapster.Tests
         {
             var _sourcePositional = new TestRecordPositional(600);
             var _destinationPositional = new TestRecordPositional(900);
-            var _positionalResult = _sourcePositional.Adapt(_destinationPositional);
+            var _positionalResult = _sourcePositional.MapToTargetAdapt(_destinationPositional);
 
             _positionalResult.X.ShouldBe(600);
             object.ReferenceEquals(_destinationPositional, _positionalResult).ShouldBeFalse();
@@ -48,7 +48,7 @@ namespace Mapster.Tests
         {
             var _sourceStruct = new TestRecordStruct() { X = 1000 };
             var _destinationStruct = new TestRecordStruct() { X = 800 };
-            var _structResult = _sourceStruct.Adapt(_destinationStruct);
+            var _structResult = _sourceStruct.MapToTargetAdapt(_destinationStruct);
 
             _structResult.X.ShouldBe(1000);
             _destinationStruct.X.Equals(_structResult.X).ShouldBeFalse();
@@ -59,7 +59,7 @@ namespace Mapster.Tests
         {
             var _sourсe = new TestRecordPositional(200);
             var _destination = new TestClassProtectedCtr(400);
-            var _result = _sourсe.Adapt(_destination);
+            var _result = _sourсe.MapToTargetAdapt(_destination);
 
             _destination.ShouldBeOfType<TestClassProtectedCtr>();
             _destination.X.ShouldBe(200);
@@ -71,7 +71,7 @@ namespace Mapster.Tests
         {
             var _sourсe = new TestClassProtectedCtr(200);
             var _destination = new TestRecordPositional(400);
-            var _result = _sourсe.Adapt(_destination);
+            var _result = _sourсe.MapToTargetAdapt(_destination);
 
             _destination.ShouldBeOfType<TestRecordPositional>();
             _result.X.ShouldBe(200);
@@ -83,7 +83,7 @@ namespace Mapster.Tests
         {
             var _sourceRecord = new TestRecord() { X = 2000 };
             var _destinationSealtedRecord = new TestSealedRecord() { X = 3000 };
-            var _RecordResult = _sourceRecord.Adapt(_destinationSealtedRecord);
+            var _RecordResult = _sourceRecord.MapToTargetAdapt(_destinationSealtedRecord);
 
             _RecordResult.X.ShouldBe(2000);
             object.ReferenceEquals(_destinationSealtedRecord, _RecordResult).ShouldBeFalse();
@@ -94,7 +94,7 @@ namespace Mapster.Tests
         {
             var _sourceRecord = new TestRecord() { X = 2000 };
             var _destinationSealtedPositionalRecord = new TestSealedRecordPositional(4000);
-            var _RecordResult = _sourceRecord.Adapt(_destinationSealtedPositionalRecord);
+            var _RecordResult = _sourceRecord.MapToTargetAdapt(_destinationSealtedPositionalRecord);
 
             _RecordResult.X.ShouldBe(2000);
             object.ReferenceEquals(_destinationSealtedPositionalRecord, _RecordResult).ShouldBeFalse();
@@ -105,7 +105,7 @@ namespace Mapster.Tests
         {
             var _source = new TestClassPublicCtr(200);
             var _destination = new TestClassPublicCtr(400);
-            var _result = _source.Adapt(_destination);
+            var _result = _source.MapToTargetAdapt(_destination);
 
             _destination.ShouldBeOfType<TestClassPublicCtr>();
             _destination.X.ShouldBe(200);
@@ -117,7 +117,7 @@ namespace Mapster.Tests
         {
             var _source = new TestClassPublicCtr(200);
             var _destination = new TestClassProtectedCtr(400);
-            var _result = _source.Adapt(_destination);
+            var _result = _source.MapToTargetAdapt(_destination);
 
             _destination.ShouldBeOfType<TestClassProtectedCtr>();
             _destination.X.ShouldBe(200);
@@ -154,7 +154,7 @@ namespace Mapster.Tests
         {
             var _source = new TestClassPublicCtr(200);
             var _destination = new TestClassProtectedCtrPrivateProperty(400, "Me");
-            var _result = _source.Adapt(_destination);
+            var _result = _source.MapToTargetAdapt(_destination);
 
             _destination.ShouldBeOfType<TestClassProtectedCtrPrivateProperty>();
             _destination.X.ShouldBe(200);
@@ -191,7 +191,7 @@ namespace Mapster.Tests
             config.ForType<UpdateUser, UserAccount>()
                 .IgnoreNullValues(true);
 
-            var _resultEmail = _updateEmail.Adapt(_sourceEmailUpdate, config);
+            var _resultEmail = _updateEmail.MapToTargetAdapt(_sourceEmailUpdate, config);
 
             _source.Id.ShouldBe("123");
             _source.Created.ShouldBe(new DateTime(2023, 9, 24));
@@ -220,7 +220,7 @@ namespace Mapster.Tests
             pocoWithId1.Id.ToString().Equals(guid.ToString()).ShouldBeTrue();
             pocoWithGuid2.Id.Equals(guid).ShouldBeTrue();
 
-            var _result = pocoWithId1.Adapt(pocoWithGuid2);
+            var _result = pocoWithId1.MapToTargetAdapt(pocoWithGuid2);
 
             _result.Id.ToString().Equals(guid.ToString()).ShouldBeTrue(); // Guid value transmitted
             object.ReferenceEquals(_result, pocoWithGuid2).ShouldBeTrue(); // Not created new instanse from class pocoWithGuid2
@@ -233,7 +233,7 @@ namespace Mapster.Tests
         {
             var _source = new TestClassPublicCtr(200);
             var _destination = new FakeRecord { X = 300 };
-            var _result = _source.Adapt(_destination);
+            var _result = _source.MapToTargetAdapt(_destination);
             _destination.X.ShouldBe(200);
             object.ReferenceEquals(_destination, _result).ShouldBeTrue();
         }
@@ -245,7 +245,7 @@ namespace Mapster.Tests
             var _sourceOnlyInitRecord = new OnlyInitRecord501 { MyInt = 2, MyString = "Hello World" };
 
             var _resultOnlyinitRecord = _sourcePoco.Adapt<OnlyInitRecord501>();
-            var _updateResult = _sourceOnlyInitRecord.Adapt(_resultOnlyinitRecord);
+            var _updateResult = _sourceOnlyInitRecord.MapToTargetAdapt(_resultOnlyinitRecord);
 
             _resultOnlyinitRecord.MyInt.ShouldBe(1);
             _resultOnlyinitRecord.MyString.ShouldBe("Hello");
@@ -260,7 +260,7 @@ namespace Mapster.Tests
             var _sourceMultyCtorRecord = new MultiCtorRecord (2, "Hello World");
 
             var _resultMultyCtorRecord = _sourcePoco.Adapt<MultiCtorRecord>();
-            var _updateResult = _sourceMultyCtorRecord.Adapt(_resultMultyCtorRecord);
+            var _updateResult = _sourceMultyCtorRecord.MapToTargetAdapt(_resultMultyCtorRecord);
 
             _resultMultyCtorRecord.MyInt.ShouldBe(1);
             _resultMultyCtorRecord.MyString.ShouldBe("Hello");
@@ -275,7 +275,7 @@ namespace Mapster.Tests
             var _sourceMultiCtorAndInline = new MultiCtorAndInlineRecord(2, "Hello World") { InitData = "Worked", MyEmail = "243@gmail.com" };
 
             var _resultMultiCtorAndInline = _sourcePoco.Adapt<MultiCtorAndInlineRecord>();
-            var _updateResult = _sourceMultiCtorAndInline.Adapt(_resultMultiCtorAndInline);
+            var _updateResult = _sourceMultiCtorAndInline.MapToTargetAdapt(_resultMultiCtorAndInline);
 
             _resultMultiCtorAndInline.MyInt.ShouldBe(1);
             _resultMultiCtorAndInline.MyString.ShouldBe("Hello");
@@ -340,12 +340,12 @@ namespace Mapster.Tests
 
             var TargetBase = sourceBase.Adapt<SampleInterfaceClsBase>();
             var targetDerived = sourceDerived.Adapt<SampleInterfaceClsDerived>();
-            var update = targetDerived.Adapt(TargetBase);
+            var update = targetDerived.MapToTargetAdapt(TargetBase);
 
             var targetExtention = sourceExt.Adapt<SampleInterfaceClsExtentions>();
 
 
-            var updExt = targetDerived.Adapt(targetExtention);
+            var updExt = targetDerived.MapToTargetAdapt(targetExtention);
 
             targetDerived.ShouldNotBeNull();
             targetDerived.ShouldSatisfyAllConditions(
@@ -381,9 +381,9 @@ namespace Mapster.Tests
             var UserInsider = new UserInside(user, new UserRecord456("Skot"));
 
             var map = userDto.Adapt<UserRecord456>();
-            var maptoTarget = userDto.Adapt(user);
+            var maptoTarget = userDto.MapToTargetAdapt(user);
 
-            var MapToTargetInsider = DtoInsider.Adapt(UserInsider);
+            var MapToTargetInsider = DtoInsider.MapToTargetAdapt(UserInsider);
 
             map.Name.ShouldBeNullOrEmpty(); // Ignore is work set default value
             maptoTarget.Name.ShouldBe("John"); // Ignore is work ignored member save value from Destination
@@ -409,7 +409,7 @@ namespace Mapster.Tests
 
             var txt = _sourceFromMapToTarget.BuildAdapter().CreateMapToTargetExpression<TestRecordUseDestValue>();
 
-            var _resultMapToTarget = _sourceFromMapToTarget.Adapt(result);
+            var _resultMapToTarget = _sourceFromMapToTarget.MapToTargetAdapt(result);
 
             result.A.ShouldBe(0);               // default Value - not match
             result.S.ShouldBe("Inside Data");   // is not AutoProperty not mod by source
@@ -436,7 +436,7 @@ namespace Mapster.Tests
            
 
             var result = new CreateOrderRequest771(sourceRequestOrderDto).Adapt<CreateOrderCommand771>();
-            var resultID = db.Adapt(new Database746());
+            var resultID = db.MapToTargetAdapt(new Database746());
            
 
             result.Order.Payment.CVV.ShouldBe("234");
@@ -455,7 +455,7 @@ namespace Mapster.Tests
 
             var s = source.BuildAdapter().CreateMapToTargetExpression<Person554>();
 
-            var result = source.Adapt(destination);
+            var result = source.MapToTargetAdapt(destination);
 
             result.ID.ShouldBe(245);
             result.FirstMidName.ShouldBe(source.FirstMidName);
@@ -477,7 +477,7 @@ namespace Mapster.Tests
                 new(234)
             };
             var destination = new List<TestClassPublicCtr>();
-            var _result = sources.Adapt(destination);
+            var _result = sources.MapToTargetAdapt(destination);
 
             destination.Count.ShouldBe(_result.Count);
         }

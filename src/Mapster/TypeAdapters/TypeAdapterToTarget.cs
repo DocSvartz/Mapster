@@ -12,52 +12,23 @@ namespace Mapster
         /// <typeparam name="TDestination">Destination type.</typeparam>
         /// <param name="source">Source object to adapt.</param>
         /// <param name="destination">The destination object to populate.</param>
-        /// <returns>Adapted destination type.</returns>
-        public static TDestination Adapt<TSource, TDestination>(this TSource source, TDestination destination)
-        {
-            return Adapt(source, destination, TypeAdapterConfig.GlobalSettings);
-        }
-
-        /// <summary>
-        /// Adapt the source object to the existing destination object.
-        /// </summary>
-        /// <typeparam name="TSource">Source type.</typeparam>
-        /// <typeparam name="TDestination">Destination type.</typeparam>
-        /// <param name="source">Source object to adapt.</param>
-        /// <param name="destination">The destination object to populate.</param>
         /// <param name="config">Configuration</param>
-        /// <returns>Adapted destination type.</returns>
-        public static TDestination Adapt<TSource, TDestination>(this TSource source, TDestination destination, TypeAdapterConfig config)
+        public static void Adapt<TSource, TDestination>(this TSource source, TDestination destination, TypeAdapterConfig? config = null) where TDestination : class 
         {
             var sourceType = source?.GetType();
             var destinationType = destination?.GetType();
 
+            if(config is null)
+                config = TypeAdapterConfig.GlobalSettings; 
+
             if (sourceType == typeof(object)) // Infinity loop in ObjectAdapter if Runtime Type of source is Object 
-                return destination;
+                return;
 
             if (typeof(TSource) == typeof(object) || typeof(TDestination) == typeof(object))
-                return UpdateFuncFromPackedinObject(source, destination, config, sourceType, destinationType);
+                UpdateFuncFromPackedinObject(source, destination, config, sourceType, destinationType);
 
             var fn = config.GetMapToTargetFunction<TSource, TDestination>();
-            return fn(source, destination);
-        }
-
-        private static TDestination UpdateFuncFromPackedinObject<TSource, TDestination>(TSource source, TDestination destination, TypeAdapterConfig config, Type sourceType, Type destinationType)
-        {
-            dynamic del = config.GetMapToTargetFunction(sourceType, destinationType);
-
-
-            if (sourceType.GetTypeInfo().IsVisible && destinationType.GetTypeInfo().IsVisible)
-            {
-                dynamic objfn = del;
-                return objfn((dynamic)source, (dynamic)destination);
-            }
-            else
-            {
-                //NOTE: if type is non-public, we cannot use dynamic
-                //DynamicInvoke is slow, but works with non-public
-                return (TDestination)del.DynamicInvoke(source, destination);
-            }
+            fn(source, destination);
         }
 
         /// <summary>
@@ -98,5 +69,49 @@ namespace Mapster
             }
         }
 
+        /// <summary>
+        /// Adapt the source object to the Immutable type base object.
+        /// </summary>
+        /// <typeparam name="TSource">Source type.</typeparam>
+        /// <typeparam name="TDestination">Destination type.</typeparam>
+        /// <param name="source">Source object to adapt.</param>
+        /// <param name="baseValue">Instance of Immutable type.</param>
+        /// <param name="config">Configuration</param>
+        /// <returns>Nondestructive mutation baseValue using tranformed from source object values</returns>
+        public static TDestination MapToTargetAdapt<TSource, TDestination>(this TSource source, TDestination baseValue, TypeAdapterConfig? config = null)
+        {
+            var sourceType = source?.GetType();
+            var destinationType = baseValue?.GetType();
+
+            if (config is null)
+                config = TypeAdapterConfig.GlobalSettings;
+
+            if (sourceType == typeof(object)) // Infinity loop in ObjectAdapter if Runtime Type of source is Object 
+                return baseValue;
+
+            if (typeof(TSource) == typeof(object) || typeof(TDestination) == typeof(object))
+                return UpdateFuncFromPackedinObject(source, baseValue, config, sourceType, destinationType);
+
+            var fn = config.GetMapToTargetFunction<TSource, TDestination>();
+            return fn(source, baseValue);
+        }
+
+        private static TDestination UpdateFuncFromPackedinObject<TSource, TDestination>(TSource source, TDestination destination, TypeAdapterConfig config, Type sourceType, Type destinationType)
+        {
+            dynamic del = config.GetMapToTargetFunction(sourceType, destinationType);
+
+
+            if (sourceType.GetTypeInfo().IsVisible && destinationType.GetTypeInfo().IsVisible)
+            {
+                dynamic objfn = del;
+                return objfn((dynamic)source, (dynamic)destination);
+            }
+            else
+            {
+                //NOTE: if type is non-public, we cannot use dynamic
+                //DynamicInvoke is slow, but works with non-public
+                return (TDestination)del.DynamicInvoke(source, destination);
+            }
+        }
     }
 }
