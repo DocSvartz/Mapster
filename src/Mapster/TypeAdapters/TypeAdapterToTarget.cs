@@ -15,6 +15,9 @@ namespace Mapster
         /// <param name="config">Configuration</param>
         public static void Adapt<TSource, TDestination>(this TSource source, TDestination destination, TypeAdapterConfig? config = null) where TDestination : class 
         {
+            if (typeof(TDestination).IsRecordType())
+                throw new InvalidOperationException($"Type: {typeof(TDestination).Name} is Immutable Using AdaptToTarget");
+
             var sourceType = source?.GetType();
             var destinationType = destination?.GetType();
 
@@ -78,7 +81,7 @@ namespace Mapster
         /// <param name="baseValue">Instance of Immutable type.</param>
         /// <param name="config">Configuration</param>
         /// <returns>Nondestructive mutation baseValue using tranformed from source object values</returns>
-        public static TDestination MapToTargetAdapt<TSource, TDestination>(this TSource source, TDestination baseValue, TypeAdapterConfig? config = null)
+        public static TDestination AdaptToTarget<TSource, TDestination>(this TSource source, TDestination baseValue, TypeAdapterConfig? config = null)
         {
             var sourceType = source?.GetType();
             var destinationType = baseValue?.GetType();
