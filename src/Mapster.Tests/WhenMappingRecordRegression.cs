@@ -21,15 +21,14 @@ namespace Mapster.Tests
 
             var _source = new TestRecord() { X = 700 };
             var _destination = new TestRecordY() { X = 500 , Y = 200 };
-
             var _destination2 = new TestRecordY() { X = 300, Y = 400 };
-             _source.Adapt(_destination);
-
+            
+            var _result = _source.AdaptToTarget(_destination);
             var result2 = _destination.AdaptToTarget(_destination2);
 
-           // _result.X.ShouldBe(700);
-           // _result.Y.ShouldBe(200);
-           // object.ReferenceEquals(_result, _destination).ShouldBeFalse();
+            _result.X.ShouldBe(700);
+            _result.Y.ShouldBe(200);
+            object.ReferenceEquals(_result, _destination).ShouldBeFalse();
         }
 
         [TestMethod]
