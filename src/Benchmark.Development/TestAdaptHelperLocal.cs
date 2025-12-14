@@ -4,7 +4,7 @@ using System.Linq.Expressions;
 
 namespace Benchmark
 {
-    public static class TestAdaptHelper
+    public static class TestAdaptHelperLocal
     {
         
         public static Customer SetupCustomerInstance()
@@ -87,24 +87,31 @@ namespace Benchmark
             where TSrc : class
             where TDest : class, new()
         {
-            Loop(item, get => get.Adapt<TSrc, TDest>(), iterations);
+            Loop(item, get => get.Adapt<TSrc, TDest>(setter =>
+            {
+                setter.Ignore("Hello");
+            }),
+                
+                iterations);
+
         }
+
+        private static TDestination Adapt<TSource, TDestination>(this TSource source, Action<TypeAdapterSetter<TSource, TDestination>> configAction)
+        {
+            var config = TypeAdapterConfig.GlobalSettings.Clone();
+            var setter = config.ForType<TSource, TDestination>();
+            configAction(setter);
+            setter.Settings.Resolvers.Reverse();
+            return source.Adapt<TSource,TDestination>(config);
+        }
+
+
 
         private static void Loop<T>(T item, Action<T> action, int iterations)
         {
             for (var i = 0; i < iterations; i++) action(item);
         }
 
-       
-
-
-
-    }
-
-    public enum MapsterCompilerType
-    {
-        Default,
-        Roslyn,
-        FEC,
+        
     }
 }
