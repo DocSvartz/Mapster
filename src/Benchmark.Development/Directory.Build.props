@@ -1,0 +1,18 @@
+<Project>
+	<PropertyGroup>
+		<!-- Properties related to build/pack -->
+        <IsPackable>false</IsPackable>
+    </PropertyGroup>
+    <PropertyGroup>
+		<!-- Metadata -->
+		<Authors>chaowlert;eric_swann;andrerav</Authors>
+		<Copyright>Copyright (c) $([System.DateTime]::Now.ToString(`yyyy`)) Chaowlert Chaisrichalermpol, Eric Swann, Andreas Ravnestad</Copyright>
+		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+		<PackageReleaseNotes></PackageReleaseNotes>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<SignAssembly>false</SignAssembly>
+		<PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
+		<IsPackable>false</IsPackable>
+        <LangVersion>12</LangVersion>	
+    </PropertyGroup>
+</Project>
