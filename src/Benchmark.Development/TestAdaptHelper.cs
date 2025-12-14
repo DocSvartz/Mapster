@@ -64,7 +64,7 @@ namespace Benchmark
             TypeAdapterConfig.GlobalSettings.Compiler = type switch
             {
                 MapsterCompilerType.Default => _defaultCompiler,
-                MapsterCompilerType.Roslyn => exp => exp.CompileWithDebugInfo(),
+               // MapsterCompilerType.Roslyn => exp => exp.CompileWithDebugInfo(),
                // MapsterCompilerType.FEC => exp => exp.CompileFast(),
                 _ => throw new ArgumentOutOfRangeException(nameof(type)),
             };
@@ -75,59 +75,19 @@ namespace Benchmark
             TypeAdapterConfig.GlobalSettings.Compile(typeof(Foo), typeof(Foo)); //recompile
             fooInstance.Adapt<Foo, Foo>(); //exercise
         }
-        public static void ConfigureExpressMapper(Foo fooInstance)
-        {
-            //ExpressMapper.Mapper.Map<Foo, Foo>(fooInstance); //exercise
-        }
-        public static void ConfigureAutoMapper(Foo fooInstance)
-        {
-            //_mapper.Map<Foo, Foo>(fooInstance); //exercise
-        }
-
+     
         public static void ConfigureMapster(Customer customerInstance, MapsterCompilerType type)
         {
             SetupCompiler(type);
             TypeAdapterConfig.GlobalSettings.Compile(typeof(Customer), typeof(CustomerDTO));    //recompile
             customerInstance.Adapt<Customer, CustomerDTO>();    //exercise
         }
-        public static void ConfigureExpressMapper(Customer customerInstance)
-        {
-            //ExpressMapper.Mapper.Map<Customer, CustomerDTO>(customerInstance);  //exercise
-        }
-        public static void ConfigureAutoMapper(Customer customerInstance)
-        {
-            //_mapper.Map<Customer, CustomerDTO>(customerInstance);    //exercise
-        }
-
+      
         public static void TestMapsterAdapter<TSrc, TDest>(TSrc item, int iterations)
             where TSrc : class
             where TDest : class, new()
         {
             Loop(item, get => get.Adapt<TSrc, TDest>(), iterations);
-        }
-
-        public static void TestExpressMapper<TSrc, TDest>(TSrc item, int iterations)
-            where TSrc : class
-            where TDest : class, new()
-        {
-            //Loop(item, get => ExpressMapper.Mapper.Map<TSrc, TDest>(get), iterations);
-        }
-
-        public static void TestAutoMapper<TSrc, TDest>(TSrc item, int iterations)
-            where TSrc : class
-            where TDest : class, new()
-        {
-           // Loop(item, get => _mapper.Map<TSrc, TDest>(get), iterations);
-        }
-
-        public static void TestCodeGen(Foo item, int iterations)
-        {
-            //Loop(item, get => FooMapper.Map(get), iterations);
-        }
-
-        public static void TestCodeGen(Customer item, int iterations)
-        {
-            //Loop(item, get => CustomerMapper.Map(get), iterations);
         }
 
         private static void Loop<T>(T item, Action<T> action, int iterations)
