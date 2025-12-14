@@ -28,11 +28,11 @@ namespace Benchmark.Benchmarks
             TestAdaptHelper.TestMapsterAdapter<Customer, CustomerDTO>(_customerInstance, Iterations);
         }
 
-        [Benchmark]
-        public void CodegenTest()
-        {
-            TestAdaptHelper.TestCodeGen(_customerInstance, Iterations);
-        }
+        //[Benchmark]
+        //public void CodegenTest()
+        //{
+        //    TestAdaptHelper.TestCodeGen(_customerInstance, Iterations);
+        //}
 
         [Benchmark]
         public void ExpressMapperTest()
@@ -67,12 +67,12 @@ namespace Benchmark.Benchmarks
             TestAdaptHelper.ConfigureMapster(_customerInstance, MapsterCompilerType.FEC);
         }
 
-        [GlobalSetup(Target = nameof(CodegenTest))]
+       /* [GlobalSetup(Target = nameof(CodegenTest))]
         public void SetupCodegen()
         {
             //_customerInstance = TestAdaptHelper.SetupCustomerInstance();
             //CustomerMapper.Map(_customerInstance);
-        }
+        }*/
 
         [GlobalSetup(Target = nameof(ExpressMapperTest))]
         public void SetupExpressMapper()
@@ -81,11 +81,11 @@ namespace Benchmark.Benchmarks
             TestAdaptHelper.ConfigureExpressMapper(_customerInstance);
         }
 
-        [GlobalSetup(Target = nameof(AutoMapperTest))]
-        public void SetupAutoMapper()
-        {
-            _customerInstance = TestAdaptHelper.SetupCustomerInstance();
-            TestAdaptHelper.ConfigureAutoMapper(_customerInstance);
-        }
+        //[GlobalSetup(Target = nameof(AutoMapperTest))]
+        //public void SetupAutoMapper()
+        //{
+        //    _customerInstance = TestAdaptHelper.SetupCustomerInstance();
+        //    TestAdaptHelper.ConfigureAutoMapper(_customerInstance);
+        //}
     }
 }

@@ -1,23 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
-using AutoMapper;
-using Benchmark.Classes;
-using FastExpressionCompiler;
+﻿using Benchmark.Classes;
 using Mapster;
+using System.Linq.Expressions;
 
 namespace Benchmark
 {
     public static class TestAdaptHelper
     {
-        private static readonly IMapper _mapper = new Mapper(new MapperConfiguration(cfg =>
-        {
-            cfg.CreateMap<Foo, Foo>();
-            cfg.CreateMap<Address, Address>();
-            cfg.CreateMap<Address, AddressDTO>();
-            cfg.CreateMap<Customer, CustomerDTO>();
-        }));
-
+        
         public static Customer SetupCustomerInstance()
         {
             return new Customer
@@ -76,7 +65,7 @@ namespace Benchmark
             {
                 MapsterCompilerType.Default => _defaultCompiler,
                 MapsterCompilerType.Roslyn => exp => exp.CompileWithDebugInfo(),
-                MapsterCompilerType.FEC => exp => exp.CompileFast(),
+               // MapsterCompilerType.FEC => exp => exp.CompileFast(),
                 _ => throw new ArgumentOutOfRangeException(nameof(type)),
             };
         }
@@ -92,7 +81,7 @@ namespace Benchmark
         }
         public static void ConfigureAutoMapper(Foo fooInstance)
         {
-            _mapper.Map<Foo, Foo>(fooInstance); //exercise
+            //_mapper.Map<Foo, Foo>(fooInstance); //exercise
         }
 
         public static void ConfigureMapster(Customer customerInstance, MapsterCompilerType type)
@@ -107,7 +96,7 @@ namespace Benchmark
         }
         public static void ConfigureAutoMapper(Customer customerInstance)
         {
-            _mapper.Map<Customer, CustomerDTO>(customerInstance);    //exercise
+            //_mapper.Map<Customer, CustomerDTO>(customerInstance);    //exercise
         }
 
         public static void TestMapsterAdapter<TSrc, TDest>(TSrc item, int iterations)
@@ -128,7 +117,7 @@ namespace Benchmark
             where TSrc : class
             where TDest : class, new()
         {
-            Loop(item, get => _mapper.Map<TSrc, TDest>(get), iterations);
+           // Loop(item, get => _mapper.Map<TSrc, TDest>(get), iterations);
         }
 
         public static void TestCodeGen(Foo item, int iterations)
