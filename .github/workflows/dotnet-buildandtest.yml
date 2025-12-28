@@ -25,6 +25,6 @@ jobs:
         dotnet --list-sdks
         dotnet --list-runtimes
     - name: Build with dotnet
-      run: dotnet build ./src/Mapster.sln
+      run: dotnet build --configuration Release ./src/Mapster.sln
     - name: Run tests on .NET 10.0
       run: dotnet test --verbosity normal ./src/Mapster.sln
