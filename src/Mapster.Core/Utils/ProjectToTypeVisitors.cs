@@ -5,7 +5,7 @@ namespace Mapster.Utils
 {
     public sealed class TopLevelMemberNameVisitor : ExpressionVisitor
     {
-        public string? MemeberName { get; private set; }
+        public string MemeberName { get; private set; }
 
         public override Expression Visit(Expression node)
         {
@@ -28,7 +28,7 @@ namespace Mapster.Utils
 
     public sealed class QuoteVisitor : ExpressionVisitor
     {
-        public List<UnaryExpression> Quotes { get; private set; } = new();
+        public List<UnaryExpression> Quotes { get; private set; } = new List<UnaryExpression>();
 
         public override Expression Visit(Expression node)
         {

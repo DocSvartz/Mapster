@@ -61,7 +61,7 @@ namespace Mapster
 		/// <param name="targetPropertyType">The type of the target property to which the source property should be mapped during the mapping process.</param>
 		/// <param name="targetPropertyName">The name of the target property to which the source property should be mapped.</param>
 		/// <returns></returns>
-		public PropertySettingBuilder<T> Map<TReturn>(Expression<Func<T, TReturn>> member, Type targetPropertyType, string? targetPropertyName = null)
+		public PropertySettingBuilder<T> Map<TReturn>(Expression<Func<T, TReturn>> member, Type targetPropertyType, string targetPropertyName = null)
         {
             var setting = ForProperty(member.GetMemberName());
             setting.TargetPropertyType = targetPropertyType;
@@ -79,7 +79,7 @@ namespace Mapster
 		/// <param name="mapFunc">A lambda expression that defines the custom mapping function.</param>
 		/// <param name="targetPropertyName">The name of the target property to which the source property should be mapped.</param>
 		/// <returns></returns>
-		public PropertySettingBuilder<T> Map<TReturn, TReturn2>(Expression<Func<T, TReturn>> member, Expression<Func<T, TReturn2>> mapFunc, string? targetPropertyName = null)
+		public PropertySettingBuilder<T> Map<TReturn, TReturn2>(Expression<Func<T, TReturn>> member, Expression<Func<T, TReturn2>> mapFunc, string targetPropertyName = null)
         {
             var setting = ForProperty(member.GetMemberName());
             setting.MapFunc = mapFunc;

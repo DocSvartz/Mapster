@@ -5,7 +5,6 @@
     <AssemblyName>Mapster.Core</AssemblyName>
     <PackageTags>Mapster</PackageTags>
     <Version>10.0.0-pre01</Version>
-    <Nullable>enable</Nullable>
 	<IsPackable>true</IsPackable>
 	<SignAssembly>true</SignAssembly>
 	<AssemblyOriginatorKeyFile>Mapster.Core.snk</AssemblyOriginatorKeyFile>

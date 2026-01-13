@@ -9,7 +9,7 @@ namespace Mapster
     {
         public BaseAdaptAttribute Attribute { get; }
         public Dictionary<Type, Dictionary<string, PropertySetting>> TypeSettings { get; } = new Dictionary<Type, Dictionary<string, PropertySetting>>();
-        public List<Func<Type, Type?>> AlterTypes { get; } = new List<Func<Type, Type?>>();
+        public List<Func<Type, Type>> AlterTypes { get; } = new List<Func<Type, Type>>();
 
         public AdaptAttributeBuilder(BaseAdaptAttribute attribute)
         {
@@ -59,7 +59,7 @@ namespace Mapster
 		/// <typeparam name="T"></typeparam>
 		/// <param name="propertyConfig">An optional action for configuring properties of the specified type.</param>
 		/// <returns></returns>
-		public AdaptAttributeBuilder ForType<T>(Action<PropertySettingBuilder<T>>? propertyConfig = null)
+		public AdaptAttributeBuilder ForType<T>(Action<PropertySettingBuilder<T>> propertyConfig = null)
         {
             if (!this.TypeSettings.TryGetValue(typeof(T), out var settings))
             {

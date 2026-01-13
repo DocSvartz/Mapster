@@ -10,7 +10,7 @@ namespace Mapster
     public class PropertyTypeAttribute : Attribute
     {
         public Type Type { get; }
-        public Type[]? ForAttributes { get; set; }
+        public Type[] ForAttributes { get; set; }
 
         public PropertyTypeAttribute(Type type)
         {

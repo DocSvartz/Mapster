@@ -19,11 +19,11 @@ namespace Mapster
             this.MapType = MapType.Map | MapType.MapToTarget;
         }
 
-        public Type? Type { get; }
-        public string? Name { get; }
-        public Type[]? IgnoreAttributes { get; set; }
-        public Type[]? IgnoreNoAttributes { get; set; }
-        public string[]? IgnoreNamespaces { get; set; }
+        public Type Type { get; }
+        public string Name { get; }
+        public Type[] IgnoreAttributes { get; set; }
+        public Type[] IgnoreNoAttributes { get; set; }
+        public string[] IgnoreNamespaces { get; set; }
         public int MaxDepth { get; set; }
         public MapType MapType { get; set; }
 

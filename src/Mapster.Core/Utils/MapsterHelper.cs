@@ -8,13 +8,13 @@ namespace Mapster.Utils
     {
         public static U GetValueOrDefault<T, U>(IDictionary<T, U> dict, T key)
         {
-            return dict.TryGetValue(key, out var value) ? value : default!;
+            return dict.TryGetValue(key, out var value) ? value : default;
         }
 
 #if !NET40
         public static U GetValueOrDefault<T, U>(IReadOnlyDictionary<T, U> dict, T key)
         {
-            return dict.TryGetValue(key, out var value) ? value : default!;
+            return dict.TryGetValue(key, out var value) ? value : default;
         }
 #endif
 
