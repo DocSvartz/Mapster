@@ -45,15 +45,14 @@ namespace Mapster.Async.Tests
             }
         }
 
-        [TestMethod, ExpectedException(typeof(InvalidOperationException))]
+        [TestMethod]
         public void Sync()
         {
             TypeAdapterConfig<Poco, Dto>.NewConfig()
                 .AfterMappingAsync(async dest => { dest.Name = await GetName(); });
 
             var poco = new Poco {Id = "foo"};
-            var dto = poco.Adapt<Dto>();
-            dto.Name.ShouldBe("bar");
+            Should.Throw<InvalidOperationException>(() => poco.Adapt<Dto>());
         }
 
         [TestMethod]

@@ -31,11 +31,12 @@ namespace Mapster.DependencyInjection.Tests
             }
         }
 
-        [TestMethod, ExpectedException(typeof(InvalidOperationException))]
+        [TestMethod]
         public void NoServiceAdapter_InjectionError()
         {
-            var expectedValue = MapContext.Current.GetService<IMockService>().GetName();
-            var config = ConfigureMapping(expectedValue);
+            var config = new TypeAdapterConfig();
+            config.NewConfig<Poco, Dto>()
+                .Map(dto => dto.Name, _ => MapContext.Current.GetService<IMockService>().GetName());
 
             IServiceCollection sc = new ServiceCollection();
             sc.AddScoped<IMockService, MockService>();
@@ -46,8 +47,9 @@ namespace Mapster.DependencyInjection.Tests
 
             var sp = sc.BuildServiceProvider();
             using var scope = sp.CreateScope();
-            var mapper = scope.ServiceProvider.GetService<IMapper>();
-            MapToDto(mapper, expectedValue);
+            var mapper = scope.ServiceProvider.GetRequiredService<IMapper>();
+            var ex = Should.Throw<InvalidOperationException>(() => mapper.Map<Poco, Dto>(new Poco { Id = "bar" }));
+            ex.Message.ShouldBe("Mapping must be called using ServiceAdapter");
         }
 
         private static TypeAdapterConfig ConfigureMapping(string expectedValue)

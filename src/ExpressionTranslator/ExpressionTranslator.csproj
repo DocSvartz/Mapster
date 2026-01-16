@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net10.0;net9.0;net8.0</TargetFrameworks>
+    <TargetFrameworks>net10.0;net9.0;net8.0;net48</TargetFrameworks>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Authors>Chaowlert Chaisrichalermpol</Authors>
     <Description>Translate from linq expressions to C# code</Description>
@@ -17,7 +17,7 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageIcon>icon.png</PackageIcon>
     <PackageLicenseUrl></PackageLicenseUrl>
-    <LangVersion>8.0</LangVersion>
+    <LangVersion>12</LangVersion>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
@@ -25,7 +25,7 @@
     <None Include="icon.png" Pack="true" PackagePath="\" />
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' != 'net48'">
     <PackageReference Include="System.Runtime.Experimental" Version="6.0.2" />
   </ItemGroup>
 </Project>

@@ -115,20 +115,14 @@ namespace Mapster
 
         private static TDestination UpdateFuncFromPackedinObject<TSource, TDestination>(TSource source, TDestination destination, TypeAdapterConfig config, Type sourceType, Type destinationType)
         {
-            dynamic del = config.GetMapToTargetFunction(sourceType, destinationType);
-
+            var del = config.GetMapToTargetFunction(sourceType, destinationType);
 
             if (sourceType.GetTypeInfo().IsVisible && destinationType.GetTypeInfo().IsVisible)
-            {
-                dynamic objfn = del;
-                return objfn((dynamic)source, (dynamic)destination);
-            }
-            else
-            {
-                //NOTE: if type is non-public, we cannot use dynamic
-                //DynamicInvoke is slow, but works with non-public
-                return (TDestination)del.DynamicInvoke(source, destination);
-            }
+                return ((dynamic)del)((dynamic)source, (dynamic)destination);
+
+            //NOTE: if type is non-public, we cannot use dynamic
+            //DynamicInvoke is slow, but works with non-public
+            return (TDestination)del.DynamicInvoke(source, destination);
         }
 
         /// <summary>

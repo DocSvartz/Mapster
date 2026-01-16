@@ -10,7 +10,7 @@
     <AssemblyOriginatorKeyFile>Benchmark.Development.snk</AssemblyOriginatorKeyFile>
     <DelaySign>False</DelaySign>
 	<SciVersion Condition="'$(SciVersion)' == ''">7.4.0</SciVersion>
-	<LangVersion>12.0</LangVersion>
+	<LangVersion>12</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>

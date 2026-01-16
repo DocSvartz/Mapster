@@ -99,13 +99,15 @@ namespace Mapster
 
         public static IEnumerable<T> DropHiddenMembers<T>(this IEnumerable<T> allMembers, ICollection<MemberInfo> currentTypeMembers) where T : MemberInfo
         {
-            var compareMemberNames = allMembers.IntersectBy(currentTypeMembers.Select(x => x.Name), x => x.Name).Select(x => x.Name);
+            var currentTypeMemberMetadataTokenByName = currentTypeMembers
+                .GroupBy(x => x.Name)
+                .ToDictionary(x => x.Key, x => x.First().MetadataToken);
 
             foreach (var member in allMembers)
             {
-                if (compareMemberNames.Contains(member.Name))
+                if (currentTypeMemberMetadataTokenByName.TryGetValue(member.Name, out var metadataToken))
                 {
-                    if (currentTypeMembers.First(x => x.Name == member.Name).MetadataToken == member.MetadataToken)
+                    if (metadataToken == member.MetadataToken)
                         yield return member;
                 }
                 else

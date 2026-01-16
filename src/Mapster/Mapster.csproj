@@ -4,7 +4,7 @@
     <Description>A fast, fun and stimulating object to object mapper.  Kind of like AutoMapper, just simpler and way, way faster.</Description>
     <Copyright>Copyright (c) 2016 Chaowlert Chaisrichalermpol, Eric Swann</Copyright>
     <Authors>chaowlert;eric_swann</Authors>
-    <TargetFrameworks>net10.0;net9.0;net8.0;</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;net10.0;net9.0;net8.0;</TargetFrameworks>
     <AssemblyName>Mapster</AssemblyName>
     <Description>A fast, fun and stimulating object to object mapper. Kind of like AutoMapper, just simpler and way, way faster.</Description>
     <PackageId>Mapster</PackageId>
@@ -17,6 +17,7 @@
 	<IsPackable>true</IsPackable>
     <RootNamespace>Mapster</RootNamespace>
     <Version>10.0.0-pre01</Version>
+    <LangVersion>12</LangVersion>
     <Nullable>enable</Nullable>
     <NoWarn>1701;1702;8618</NoWarn>
   </PropertyGroup>
@@ -25,6 +26,11 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="icon.png" Pack="true" PackagePath="\" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+    <PackageReference Include="System.Reflection.Emit" Version="4.7.0" />
+    <PackageReference Include="System.Reflection.Emit.ILGeneration" Version="4.7.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Mapster.Core\Mapster.Core.csproj" />

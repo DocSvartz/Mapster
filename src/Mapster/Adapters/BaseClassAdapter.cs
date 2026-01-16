@@ -50,7 +50,7 @@ namespace Mapster.Adapters
 
                     s.Visit(getter);
 
-                    var match = arg.Settings.ProjectToTypeResolvers.GetValueOrDefault(s.MemeberName);
+                    arg.Settings.ProjectToTypeResolvers.TryGetValue(s.MemeberName, out var match);
 
                     if (match != null)
                     {
@@ -119,7 +119,7 @@ namespace Mapster.Adapters
                     && destinationMember.Info is PropertyInfo propinfo)
                 {
                     if (propinfo.GetCustomAttributes()
-                        .Any(y => y.GetType() == typeof(System.Runtime.CompilerServices.RequiredMemberAttribute)))
+                        .Any(y => y.GetType().FullName == "System.Runtime.CompilerServices.RequiredMemberAttribute"))
                     {
                         getter = destinationMember.Type.CreateDefault();
                     }
@@ -281,11 +281,8 @@ namespace Mapster.Adapters
 
         protected void IgnoreNonMapped (ClassModel classModel, CompileArgument arg)
         {
-            var notMappingToIgnore = classModel.Members
-                .ExceptBy(arg.Settings.Resolvers.Select(x => x.DestinationMemberName), 
-                y => y.Name);
-
-            foreach (var item in notMappingToIgnore)
+            var mappedMembers = new HashSet<string>(arg.Settings.Resolvers.Select(x => x.DestinationMemberName));
+            foreach (var item in classModel.Members.Where(x => !mappedMembers.Contains(x.Name)))
             {
                 arg.Settings.Ignore.TryAdd(item.Name, new IgnoreDictionary.IgnoreItem());
             }
@@ -298,7 +295,7 @@ namespace Mapster.Adapters
                 Members = arg.DestinationType.GetFieldsAndProperties(true)
                     .Where(x => x.GetType() == typeof(PropertyModel))
                     .Where(y => ((PropertyInfo)y.Info).GetCustomAttributes()
-                    .Any(y => y.GetType() == typeof(System.Runtime.CompilerServices.RequiredMemberAttribute)))
+                    .Any(y => y.GetType().FullName == "System.Runtime.CompilerServices.RequiredMemberAttribute"))
             };
         }
 

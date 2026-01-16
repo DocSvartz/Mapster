@@ -133,12 +133,12 @@ namespace Mapster.Tests
             results.Count.ShouldBe(2);
         }
 
-        [TestMethod, ExpectedException(typeof(CompileException))]
+        [TestMethod]
         public void UnmappedChildPocoShouldFailed()
         {
             var config = new TypeAdapterConfig {RequireExplicitMapping = true};
             var setter = config.NewConfig<CollectionPoco, CollectionDto>();
-            setter.Compile(); // Should fail here
+            Should.Throw<CompileException>(() => setter.Compile());
         }
 
         [TestMethod]

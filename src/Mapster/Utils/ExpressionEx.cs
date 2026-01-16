@@ -4,7 +4,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Reflection;
 
 namespace Mapster.Utils
@@ -40,7 +39,9 @@ namespace Mapster.Utils
 
                 // For dynamically built types, it is possible to have periods in the property name.
                 // Rejoin an incrementing number of parts with periods to try and find a property match. 
-                if (IsPropertyOrFieldPathWithPeriods(current, props[i..], out next, out int combinationLength))
+                var remaining = new string[props.Length - i];
+                Array.Copy(props, i, remaining, 0, remaining.Length);
+                if (IsPropertyOrFieldPathWithPeriods(current, remaining, out next, out int combinationLength))
                 {
                     current = next;
                     i += combinationLength - 1;
@@ -64,7 +65,7 @@ namespace Mapster.Utils
 
             for (int count = 2; count <= path.Length; count++)
             {
-                string prop = string.Join('.', path[..count]);
+                string prop = string.Join(".", path, 0, count);
                 if (IsPropertyOrField(expr, prop, out propExpr))
                 {
                     combinationLength = count;

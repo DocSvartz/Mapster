@@ -46,7 +46,7 @@ namespace Mapster.Tests
             };
 
             // check expression is successfully compiled
-            Assert.ThrowsException<NullReferenceException>(() => poco.Adapt<SimpleDto>());
+            Should.Throw<NullReferenceException>(() => poco.Adapt<SimpleDto>());
         }
 
         [TestMethod]
