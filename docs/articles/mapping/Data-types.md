@@ -94,6 +94,13 @@ var dict = point.Adapt<Dictionary<string, int>>();
 dict["Y"].ShouldBe(3);
 ```
 
+## Record types
+
+> [!Warning]
+> Mapster treats Record type as an immutable type.
+> In this regard, only a with-like non-destructive mutation is available.
+> var result = source.adapt(record) equal var result = record with {source.X.Adapt(), ...}
+
 Example for record types:
 
 ```csharp
@@ -110,5 +117,3 @@ class Person {
 var src = new { Name = "Mapster", Age = 3 };
 var target = src.Adapt<Person>();
 ```
-
-There are limitations to map Record type automatically. Record type must not have a setter and have only one non-empty constructor, and all parameter names must match with properties. Otherwise you need to add [`MapToConstructor` configuration](xref:Mapster.Settings.ConstructorMapping#map-to-constructor).
