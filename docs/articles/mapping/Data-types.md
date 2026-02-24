@@ -101,7 +101,7 @@ dict["Y"].ShouldBe(3);
 > In this regard, only a with-like non-destructive mutation is available.
 >
 > ```csharp
-> var result = source.adapt(record) //equal var result = record with {source.X.Adapt(), ...}
+> var result = source.adapt(record) //equal var result = record with { X = source.X.Adapt(), ...}
 >```
 
 Example for record types:
