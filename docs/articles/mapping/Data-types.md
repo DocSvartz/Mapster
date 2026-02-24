@@ -105,7 +105,7 @@ dict["Y"].ShouldBe(3);
 >```
 
 
-> [!Note]
+> [!Version <= 7.4.0]
 > <details>
 > <summary>How do I dropdown?</summary>
 > <br>
