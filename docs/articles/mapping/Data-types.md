@@ -99,7 +99,10 @@ dict["Y"].ShouldBe(3);
 > [!Warning]
 > Mapster treats Record type as an immutable type.
 > In this regard, only a with-like non-destructive mutation is available.
-> var result = source.adapt(record) equal var result = record with {source.X.Adapt(), ...}
+>
+> ```csharp
+> var result = source.adapt(record) //equal var result = record with {source.X.Adapt(), ...}
+>```
 
 Example for record types:
 
