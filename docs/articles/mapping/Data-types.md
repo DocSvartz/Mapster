@@ -106,11 +106,11 @@ dict["Y"].ShouldBe(3);
 
 ### Features and Limitations:
 
-# [v10.0](#tab/Records/v10)
+# [v10.0](#tab/Recordsv10)
 
 
 
-# [v7.4.0](#tab/Records/v7.4.0)
+# [v7.4.0](#tab/Recordsv7.4.0)
 
 Record type must not have a setter and have only one non-empty constructor, and all parameter names must match with properties. 
 
