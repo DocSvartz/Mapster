@@ -109,8 +109,12 @@ dict["Y"].ShouldBe(3);
 # [v10.0](#tab/Records/v10)
 
 
+
 # [v7.4.0](#tab/Records/v7.4.0)
 
+Record type must not have a setter and have only one non-empty constructor, and all parameter names must match with properties. 
+
+Otherwise you need to add [`MapToConstructor` configuration](xref:Mapster.Settings.ConstructorMapping#map-to-constructor).
 
 Example for record types:
 
@@ -128,3 +132,4 @@ class Person {
 var src = new { Name = "Mapster", Age = 3 };
 var target = src.Adapt<Person>();
 ```
+
