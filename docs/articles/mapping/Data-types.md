@@ -96,7 +96,7 @@ dict["Y"].ShouldBe(3);
 
 ## Record types
 
-> [!Warning]
+>[!IMPORTANT]
 > Mapster treats Record type as an immutable type.
 > In this regard, only a with-like non-destructive mutation is available.
 >
@@ -108,11 +108,16 @@ dict["Y"].ShouldBe(3);
 
 # [v10.0](#tab/Recordsv10)
 
+>[!NOTE]
+> By default, all [C# Records] (https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/record) are defined as a record type.
+> Limitations by count of constructors and constructor parameters from the version do not matter.
+
 
 
 # [v7.4.0](#tab/Recordsv7.4.0)
 
-Record type must not have a setter and have only one non-empty constructor, and all parameter names must match with properties. 
+>[!NOTE]
+>Record type must not have a setter and have only one non-empty constructor, and all parameter names must match with properties.
 
 Otherwise you need to add [`MapToConstructor` configuration](xref:Mapster.Settings.ConstructorMapping#map-to-constructor).
 
@@ -132,4 +137,3 @@ class Person {
 var src = new { Name = "Mapster", Age = 3 };
 var target = src.Adapt<Person>();
 ```
-
