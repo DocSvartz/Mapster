@@ -104,13 +104,12 @@ dict["Y"].ShouldBe(3);
 > var result = source.adapt(record) //equal var result = record with { X = source.X.Adapt(), ...}
 >```
 
+### Features and Limitations:
 
-> [!Note]
-> <details>
-> <summary>How do I dropdown?</summary>
-> <br>
-> This is how you dropdown.
-> </details>
+# [v10.0](#tab/Records/v10)
+
+
+# [v7.4.0](#tab/Records/v7.4.0)
 
 
 Example for record types:
