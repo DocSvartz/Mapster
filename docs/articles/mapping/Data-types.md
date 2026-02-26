@@ -109,7 +109,7 @@ dict["Y"].ShouldBe(3);
 # [v10.0](#tab/Recordsv10)
 
 >[!NOTE]
-> By default, all [C# Records] (https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/record) are defined as a record type.
+> By default, all [C# Records](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/record) are defined as a record type.
 > Limitations by count of constructors and constructor parameters from the version do not matter.
 
 
