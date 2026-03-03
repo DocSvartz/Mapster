@@ -110,7 +110,15 @@ dict["Y"].ShouldBe(3);
 
 >[!NOTE]
 > By default, all [C# Records](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/record) are defined as a record type.
-> Limitations by count of constructors and constructor parameters from the version do not matter.
+> Limitations by count of constructors and constructor parameters used in Mapster version 7.4.0 do not apply.
+
+
+
+#### MultyConsturctor Record types
+
+>[!Warning]
+>If there is more than one constructor, by default, mapping will be performed on the constructor with the largest number of parameters.
+
 
 
 
