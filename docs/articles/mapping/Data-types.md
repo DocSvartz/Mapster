@@ -119,7 +119,24 @@ dict["Y"].ShouldBe(3);
 >[!Warning]
 >If there is more than one constructor, by default, mapping will be performed on the constructor with the largest number of parameters.
 
+Example: 
 
+```scharp
+record MultiCtorRecord
+{
+    public MultiCtorRecord(int myInt)
+    {
+        MyInt = myInt;
+    }
+
+    public MultiCtorRecord(int myInt, string myString) // This constructor will be used
+        : this(myInt) 
+    {
+        MyString = myString; 
+    }
+
+}
+```
 
 
 # [v7.4.0](#tab/Recordsv7.4.0)
