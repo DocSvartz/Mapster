@@ -166,4 +166,5 @@ var target = src.Adapt<Person>();
 ### Support additional mapping features:
 
 | Mapping features | v7.4.0 | v10.0 |
+|:-----------------|--------|-------|
 |Custom constructor mapping| - | ✅ |
