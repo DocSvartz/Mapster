@@ -101,12 +101,13 @@ dict["Y"].ShouldBe(3);
 > In this regard, only a with-like non-destructive mutation is available.
 >
 > ```csharp
-> var result = source.adapt(record) //equal var result = record with { X = source.X.Adapt(), ...}
+> var result = source.adapt(data) 
+>//equal var result = data with { X = source.X.Adapt(), ...}
 >```
 
 ### Features and Limitations:
 
-# [v10.0](#tab/Recordsv10)
+# [v10.0](#tab/Records-v10)
 
 >[!NOTE]
 > By default, all [C# Records](https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/record) are defined as a record type.
@@ -116,12 +117,11 @@ dict["Y"].ShouldBe(3);
 
 #### MultyConsturctor Record types
 
->[!Warning]
->If there is more than one constructor, by default, mapping will be performed on the constructor with the largest number of parameters.
+If there is more than one constructor, by default, mapping will be performed on the constructor with the largest number of parameters.
 
 Example: 
 
-```scharp
+```csharp
 record MultiCtorRecord
 {
     public MultiCtorRecord(int myInt)
@@ -138,8 +138,7 @@ record MultiCtorRecord
 }
 ```
 
-
-# [v7.4.0](#tab/Recordsv7.4.0)
+# [v7.4.0](#tab/Records-v7-4-0)
 
 >[!NOTE]
 >Record type must not have a setter and have only one non-empty constructor, and all parameter names must match with properties.
@@ -162,6 +161,7 @@ class Person {
 var src = new { Name = "Mapster", Age = 3 };
 var target = src.Adapt<Person>();
 ```
+---
 
 ### Support additional mapping features:
 
