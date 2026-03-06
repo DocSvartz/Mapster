@@ -114,6 +114,26 @@ dict["Y"].ShouldBe(3);
 > Limitations by count of constructors and constructor parameters used in Mapster version 7.4.0 do not apply.
 
 
+#### Using default value in constuctor param
+
+If the source type does not contain members that can be used as constructor parameters, then will be used the default values ​​for the parameter type.
+
+Example: 
+
+```csharp
+
+class SourceData
+{
+   public string MyString {get; set;}
+}
+
+record RecordDestination(int myInt, string myString);
+
+var result = source.Adapt<RecordDestination>()
+
+// equal var result = new RecordDestination (default(int),source.myString)
+
+```
 
 #### MultyConsturctor Record types
 
