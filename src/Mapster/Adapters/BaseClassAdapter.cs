@@ -50,7 +50,7 @@ namespace Mapster.Adapters
 
                     s.Visit(getter);
 
-                    if (arg.Settings.ProjectToTypeResolvers.TryGetValue(s.MemeberName, out var match))
+                    if (s.MemberName != null && arg.Settings.ProjectToTypeResolvers.TryGetValue(s.MemberName, out var match))
                     {
                         arg.Settings.Resolvers.Add(new InvokerModel
                         {

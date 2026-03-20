@@ -5,7 +5,7 @@ namespace Mapster.Utils
 {
     public sealed class TopLevelMemberNameVisitor : ExpressionVisitor
     {
-        public string? MemeberName { get; private set; }
+        public string? MemberName { get; private set; }
 
         public override Expression Visit(Expression node)
         {
@@ -15,8 +15,8 @@ namespace Mapster.Utils
             {
                 case ExpressionType.MemberAccess:
                     {
-                        if (string.IsNullOrEmpty(MemeberName))
-                            MemeberName = ((MemberExpression)node).Member.Name;
+                        if (string.IsNullOrEmpty(MemberName))
+                            MemberName = ((MemberExpression)node).Member.Name;
 
                         return base.Visit(node);
                     }

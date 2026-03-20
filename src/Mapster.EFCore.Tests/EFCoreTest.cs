@@ -117,6 +117,37 @@ namespace Mapster.EFCore.Tests
             first.Enrollments.Count.ShouldBe(1);
             first.LastName.ShouldBe("Alexander");
         }
+
+        /// <summary>
+        /// https://github.com/MapsterMapper/Mapster/issues/875
+        /// </summary>
+        [TestMethod]
+        public void NotMemberNameEFCoreProjectToType_not_Error()
+        {
+            var options = new DbContextOptionsBuilder<SchoolContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString("N"))
+                .Options;
+            var context = new SchoolContext(options);
+            DbInitializer.Initialize(context);
+
+            var config = new TypeAdapterConfig();
+
+                config
+                    .NewConfig<Student, StudentDto>()
+                    .Map(dest => dest.LastName, src => src.GetLastName());
+   
+            Should.NotThrow(() =>
+            {
+                var query = context.Students
+               .Include(x => x.Enrollments.OrderByDescending(x => x.StudentID).Take(1))
+               .EFCoreProjectToType<StudentDto>(config);
+            });
+
+        }
+
+
+
+
     }
 
     public class StudentDto
