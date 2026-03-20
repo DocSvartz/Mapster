@@ -18,7 +18,7 @@
 	<AssemblyOriginatorKeyFile>Mapster.snk</AssemblyOriginatorKeyFile>
 	<IsPackable>true</IsPackable>
     <RootNamespace>Mapster</RootNamespace>
-    <Version>10.0.2</Version>
+    <Version>10.0.3</Version>
     <Nullable>enable</Nullable>
     <NoWarn>1701;1702;8618</NoWarn>
   </PropertyGroup>
