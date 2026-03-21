@@ -145,9 +145,41 @@ namespace Mapster.EFCore.Tests
 
         }
 
+        /// <summary>
+        /// https://github.com/MapsterMapper/Mapster/issues/881
+        /// </summary>
+        [TestMethod]
+        public void RecordsEFCoreProjectToType_not_Error()
+        {
+            var options = new DbContextOptionsBuilder<SchoolContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString("N"))
+                .Options;
+            var context = new SchoolContext(options);
+            DbInitializer.Initialize(context);
 
 
+            Should.NotThrow(() =>
+            {
+                var query = context.Students
+                .Include(x => x.Enrollments.OrderByDescending(x => x.StudentID).Take(1))
+                .EFCoreProjectToType<StudentRecordDto>();
 
+                var first = query.First();
+
+                first.Enrollments.Count.ShouldBe(1);
+                first.LastName.ShouldBe("Alexander");
+
+            });
+
+        }
+    }
+
+
+    public record StudentRecordDto
+    {
+        public int ID { get; set; }
+        public string LastName { get; set; }
+        public ICollection<EnrollmentItemDto> Enrollments { get; set; }
     }
 
     public class StudentDto
