@@ -145,7 +145,9 @@ namespace Mapster.EFCore.Tests
 
         }
 
-
+        /// <summary>
+        /// https://github.com/MapsterMapper/Mapster/issues/881
+        /// </summary>
         [TestMethod]
         public void RecordsEFCoreProjectToType_not_Error()
         {
@@ -170,10 +172,6 @@ namespace Mapster.EFCore.Tests
             });
 
         }
-
-
-
-
     }
 
 
