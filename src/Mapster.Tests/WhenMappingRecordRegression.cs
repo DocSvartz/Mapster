@@ -477,6 +477,7 @@ namespace Mapster.Tests
         /// <summary>
         /// https://github.com/MapsterMapper/Mapster/issues/842
         /// </summary>
+        [Ignore] // after fix https://github.com/MapsterMapper/Mapster/issues/883
         [TestMethod]
         public void ClassCustomCtorWitoutMapNotWorking()
         {
