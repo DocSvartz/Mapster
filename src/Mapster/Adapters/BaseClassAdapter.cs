@@ -40,8 +40,8 @@ namespace Mapster.Adapters
                 if (arg.Settings.IgnoreNonMapped == true)
                     resolvers = resolvers.Where(ValueAccessingStrategy.CustomResolvers.Contains);
                 var getter = (from fn in resolvers
-                        from src in sources
-                        select fn(src, destinationMember, arg))
+                              from src in sources
+                              select fn(src, destinationMember, arg))
                     .FirstOrDefault(result => result != null);
 
                 if (arg.MapType == MapType.Projection && getter != null)
@@ -111,9 +111,9 @@ namespace Mapster.Adapters
                     NextIgnore = nextIgnore,
                     Source = (ParameterExpression)source,
                     Destination = (ParameterExpression?)destination,
-                    UseDestinationValue = arg.MapType != MapType.Projection && destinationMember.UseDestinationValue(arg),
+                    UseDestinationValue = IsCanUsingDestinationValue(arg, destinationMember),
                 };
-                if(getter == null && !arg.DestinationType.IsRecordType()  
+                if (getter == null && !arg.DestinationType.IsRecordType()
                     && destinationMember.Info is PropertyInfo propinfo)
                 {
                     if (propinfo.GetCustomAttributes()
@@ -129,8 +129,8 @@ namespace Mapster.Adapters
                 }
                 if (getter != null)
                 {
-                    propertyModel.Getter = arg.MapType == MapType.Projection 
-                        ? getter 
+                    propertyModel.Getter = arg.MapType == MapType.Projection
+                        ? getter
                         : getter.ApplyNullPropagation();
                     properties.Add(propertyModel);
                 }
@@ -187,6 +187,16 @@ namespace Mapster.Adapters
                 ConstructorInfo = classModel.ConstructorInfo,
                 Members = properties,
             };
+        }
+
+        protected static bool IsCanUsingDestinationValue(CompileArgument arg, IMemberModelEx destinationMember)
+        {
+            if (arg.MapType == MapType.Projection)
+                return false;
+            if(destinationMember.UseDestinationValue(arg) || arg.Settings.UseDestinationMember.Contains(destinationMember.Name))
+               return true;
+
+            return false;
         }
 
         protected static bool ProcessIgnores(

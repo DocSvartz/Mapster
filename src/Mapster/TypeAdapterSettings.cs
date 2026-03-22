@@ -191,6 +191,11 @@ namespace Mapster
             set => Set(nameof(PreserveReference), value);
         }
 
+        public List<string> UseDestinationMember
+        {
+            get => Get(nameof(UseDestinationMember), () => new List<string>());
+        }
+
         internal bool Compiled { get; set; }
 
         public TypeAdapterSettings Clone()

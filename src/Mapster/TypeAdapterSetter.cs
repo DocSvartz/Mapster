@@ -518,6 +518,28 @@ namespace Mapster
             Settings.DestinationAsRecord = value;
             return this;
         }
+
+        public TypeAdapterSetter<TDestination> UseDestinationValue<TDestinationMember> (Expression<Func<TDestination, TDestinationMember>> destinationMember)
+        {
+            this.CheckCompiled();
+            var memberName = destinationMember.GetMemberPath()!;
+
+            if (memberName != null)
+            {
+                Settings.UseDestinationMember.Add(memberName);
+            }
+
+            return this;
+        }
+
+        public TypeAdapterSetter UseDestinationValue(string destinationMemberName)
+        {
+            this.CheckCompiled();
+            
+            Settings.UseDestinationMember.Add(destinationMemberName);
+           
+            return this;
+        }
     }
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Minor Code Smell", "S4136:Method overloads should be grouped together", Justification = "<Pending>")]
