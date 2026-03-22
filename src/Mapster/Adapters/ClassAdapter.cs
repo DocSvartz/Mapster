@@ -66,11 +66,16 @@ namespace Mapster.Adapters
                     : arg.DestinationType;
                 if (destType == null)
                     return base.CreateInstantiationExpression(source, destination, arg);
-                classConverter = destType.GetConstructors()
+
+                var constructors = destType.GetConstructors();
+                classConverter = constructors
                     .OrderByDescending(it => it.GetParameters().Length)
                     .Select(it => GetConstructorModel(it, true))
                     .Select(it => CreateClassConverter(source, it, arg, ctorMapping:true))
                     .FirstOrDefault(it => it != null);
+
+                if(classConverter == null && constructors.Length > 0)
+                    classConverter = CreateClassConverter(source, GetConstructorModel(constructors[0], false), arg, ctorMapping: true);
             }
             else
             {
