@@ -537,6 +537,24 @@ namespace Mapster.Tests
             result.X.ShouldBe(200);
         }
 
+        /// <summary>
+        /// https://github.com/MapsterMapper/Mapster/issues/883
+        /// </summary>
+        [TestMethod]
+        public void ClassCtorActivateDefaultValue()
+        {
+            var source = new Source833
+            {
+                Value1 = "123",
+            };
+
+            Should.NotThrow(() =>
+            {
+                var target = source.Adapt<Target833>();
+                target.Value1.ShouldBe("123");
+                target.Value2.ShouldBe(default);
+            });
+        }
 
         #region NowNotWorking
 
@@ -972,6 +990,24 @@ namespace Mapster.Tests
     class InsiderWithCtorDestYx
     {
         public AutoCtorDestYx X { set; get; }
+    }
+
+    public class Source833
+    {
+        public required string Value1 { get; init; }
+    }
+
+    public class Target833
+    {
+        public Target833(string value1, string value2)
+        {
+            Value1 = value1;
+            Value2 = value2;
+        }
+
+        public string Value1 { get; }
+
+        public string Value2 { get; }
     }
 
     #endregion TestClasses

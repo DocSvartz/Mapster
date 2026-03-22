@@ -39,5 +39,15 @@ namespace Mapster.Models
             Source = source;
             Destination = destination;
         }
+
+        public static TypeTuple ForDestinationType(Type destination)
+        {
+            return new TypeTuple(typeof(void), destination);
+        }
+
+        public static TypeTuple ForDestinationType(TypeTuple tuple)
+        {
+            return new TypeTuple(typeof(void), tuple.Destination);
+        }
     }
 }

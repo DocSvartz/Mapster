@@ -510,6 +510,14 @@ namespace Mapster
             Settings.AfterMappingFactories.Add(arg => lambda);
             return this;
         }
+
+        public TypeAdapterSetter<TDestination> DestinationAsRecord(bool value)
+        {
+            this.CheckCompiled();
+
+            Settings.DestinationAsRecord = value;
+            return this;
+        }
     }
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Minor Code Smell", "S4136:Method overloads should be grouped together", Justification = "<Pending>")]

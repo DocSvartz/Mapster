@@ -185,6 +185,12 @@ namespace Mapster
             set => Set(nameof(Fork), value);
         }
 
+        public bool? DestinationAsRecord
+        {
+            get => Get(nameof(PreserveReference));
+            set => Set(nameof(PreserveReference), value);
+        }
+
         internal bool Compiled { get; set; }
 
         public TypeAdapterSettings Clone()

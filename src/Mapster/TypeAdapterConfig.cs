@@ -201,7 +201,7 @@ namespace Mapster
 		/// <returns></returns>
 		public TypeAdapterSetter<TDestination> ForDestinationType<TDestination>()
         {
-            var key = new TypeTuple(typeof(void), typeof(TDestination));
+            var key = TypeTuple.ForDestinationType(typeof(TDestination));
             var settings = GetSettings(key);
             return new TypeAdapterSetter<TDestination>(settings, this);
         }
@@ -214,7 +214,7 @@ namespace Mapster
 		/// <returns></returns>
 		public TypeAdapterSetter ForDestinationType(Type destinationType)
         {
-            var key = new TypeTuple(typeof(void), destinationType);
+            var key = TypeTuple.ForDestinationType(destinationType);
             var settings = GetSettings(key);
             return new TypeAdapterSetter(settings, this);
         }
@@ -593,6 +593,7 @@ namespace Mapster
                 DestinationType = tuple.Destination,
                 MapType = mapType,
                 ExplicitMapping = RuleMap.ContainsKey(tuple),
+                CustomRecordType = GetSettings(TypeTuple.ForDestinationType(tuple)).DestinationAsRecord.GetValueOrDefault(),
             };
 
             //auto add setting if there is attr setting

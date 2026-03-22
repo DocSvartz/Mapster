@@ -19,7 +19,12 @@ namespace Mapster.Adapters
 
         protected override bool CanMap(PreCompileArgument arg)
         {
-            return arg.DestinationType.IsRecordType() && arg.MapType != MapType.Projection;
+            if(arg.MapType == MapType.Projection)
+                return false;
+            if (arg.CustomRecordType)
+                return true;
+
+            return arg.DestinationType.IsRecordType();
         }
 
         protected override bool CanInline(Expression source, Expression? destination, CompileArgument arg)
