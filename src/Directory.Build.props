@@ -2,6 +2,7 @@
 	<PropertyGroup>
 		<!-- Properties related to build/pack -->
         <IsPackable>false</IsPackable>
+		<Version>10.0.4</Version>
     </PropertyGroup>
     <PropertyGroup>
 		<!-- Metadata -->

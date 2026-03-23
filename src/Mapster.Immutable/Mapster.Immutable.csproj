@@ -7,7 +7,6 @@
     <PackageTags>Mapster;Immutable</PackageTags>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>Mapster.Immutable.snk</AssemblyOriginatorKeyFile>
-    <Version>10.0.0</Version>
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
