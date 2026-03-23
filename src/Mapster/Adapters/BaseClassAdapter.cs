@@ -111,7 +111,7 @@ namespace Mapster.Adapters
                     NextIgnore = nextIgnore,
                     Source = (ParameterExpression)source,
                     Destination = (ParameterExpression?)destination,
-                    UseDestinationValue = arg.MapType != MapType.Projection && destinationMember.UseDestinationValue(arg),
+                    UseDestinationValue = IsCanUsingDestinationValue(arg, destinationMember),
                 };
                 if(getter == null && !arg.DestinationType.IsRecordType()  
                     && destinationMember.Info is PropertyInfo propinfo)
@@ -187,6 +187,16 @@ namespace Mapster.Adapters
                 ConstructorInfo = classModel.ConstructorInfo,
                 Members = properties,
             };
+        }
+
+        protected static bool IsCanUsingDestinationValue(CompileArgument arg, IMemberModelEx destinationMember)
+        {
+            if (arg.MapType == MapType.Projection)
+                return false;
+            if (destinationMember.UseDestinationValue(arg) || arg.Settings.UseDestinationMembers.Contains(destinationMember.Name))
+                return true;
+
+            return false;
         }
 
         protected static bool ProcessIgnores(

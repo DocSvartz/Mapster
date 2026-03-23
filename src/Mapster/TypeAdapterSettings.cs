@@ -185,6 +185,11 @@ namespace Mapster
             set => Set(nameof(Fork), value);
         }
 
+        public List<string> UseDestinationMembers
+        {
+            get => Get(nameof(UseDestinationMembers), () => new List<string>());
+        }
+
         internal bool Compiled { get; set; }
 
         public TypeAdapterSettings Clone()
