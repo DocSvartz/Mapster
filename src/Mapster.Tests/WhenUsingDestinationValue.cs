@@ -47,11 +47,28 @@ namespace Mapster.Tests
             student.Name.ShouldBe("John");
         }
 
+        [TestMethod]
+        public void MappingToReadonlyAutoPropertyPrimitiveOrImmutableType()
+        {
+            var studentDto = new StudentDtoOrigin { Name = "Marta" };
+            var UseDestinationValue = studentDto.Adapt<StudentOrigin>();
+            var NotUseDestinationValue = studentDto.Adapt<StudentOriginNoUseDestinationValue>();
+
+            UseDestinationValue.Name.ShouldBe(studentDto.Name);
+            NotUseDestinationValue.Name.ShouldBe("John"); // not modified Name == "John" - origin value
+        }
+
+        #region TestClasses
+
+        public class StudentOriginNoUseDestinationValue
+        {
+            public string Name { get; } = "John"; // readonly primitive type autoproperty
+        }
 
         public class StudentOrigin
         {
             [UseDestinationValue]
-            public string Name { get; } = "John"; // only readonly
+            public string Name { get; } = "John"; // readonly primitive type autoproperty
         }
 
         public class StudentDtoOrigin
@@ -93,5 +110,7 @@ namespace Mapster.Tests
             public IEnumerable<int> Numbers { get; set; }
             public ICollection<string> Strings { get; set; }
         }
+
+        #endregion TestClasses
     }
 }
