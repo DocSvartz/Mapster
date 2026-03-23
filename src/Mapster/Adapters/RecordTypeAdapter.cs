@@ -24,7 +24,7 @@ namespace Mapster.Adapters
             if (arg.CustomRecordType)
                 return true;
 
-            return arg.DestinationType.IsRecordType();
+            return arg.DestinationType.IsRecordType(arg);
         }
 
         protected override bool CanInline(Expression source, Expression? destination, CompileArgument arg)
@@ -204,11 +204,11 @@ namespace Mapster.Adapters
 
                     if (member.DestinationMember is PropertyModel && member.DestinationMember.Type.IsValueType 
                         || member.DestinationMember.Type.IsMapsterPrimitive()
-                        || member.DestinationMember.Type.IsRecordType())
+                        || member.DestinationMember.Type.IsRecordType(arg))
                     {
                         
                         Expression adapt;
-                        if (member.DestinationMember.Type.IsRecordType())
+                        if (member.DestinationMember.Type.IsRecordType(arg))
                             adapt = arg.Context.Config.CreateMapInvokeExpressionBody(member.Getter.Type, member.DestinationMember.Type, member.Getter);
                         else
                             adapt = CreateAdaptExpression(member.Getter, member.DestinationMember.Type, arg, member, result);
@@ -232,7 +232,7 @@ namespace Mapster.Adapters
 
                                 Expression destMemberVar2 = var2Param.DestinationMember.GetExpression(var2Param.Destination);
                                 var ParamLambdaVar2 = destMemberVar2;
-                                if(member.DestinationMember.Type.IsRecordType())
+                                if(member.DestinationMember.Type.IsRecordType(arg))
                                     ParamLambdaVar2 = arg.Context.Config.CreateMapInvokeExpressionBody(member.Getter.Type, member.DestinationMember.Type, destMemberVar2);
                                 
                                 var blocksVar2 = Expression.Block(SetValueTypeAutoPropertyByReflection(member, ParamLambdaVar2, classModel));

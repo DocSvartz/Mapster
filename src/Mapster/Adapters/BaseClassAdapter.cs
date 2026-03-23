@@ -113,7 +113,7 @@ namespace Mapster.Adapters
                     Destination = (ParameterExpression?)destination,
                     UseDestinationValue = IsCanUsingDestinationValue(arg, destinationMember),
                 };
-                if (getter == null && !arg.DestinationType.IsRecordType()
+                if (getter == null && !arg.DestinationType.IsRecordType(arg)
                     && destinationMember.Info is PropertyInfo propinfo)
                 {
                     if (propinfo.GetCustomAttributes()
@@ -123,7 +123,7 @@ namespace Mapster.Adapters
                     }
                 }
 
-                if (arg.MapType == MapType.MapToTarget && getter == null && arg.DestinationType.IsRecordType())
+                if (arg.MapType == MapType.MapToTarget && getter == null && arg.DestinationType.IsRecordType(arg))
                 {
                     getter = TryRestoreRecordMember(destinationMember, recordRestorMemberModel, destination) ?? getter;
                 }
@@ -229,7 +229,7 @@ namespace Mapster.Adapters
                 {
                     getter = defaultConst;
 
-                    if (arg.MapType == MapType.MapToTarget && arg.DestinationType.IsRecordType())
+                    if (arg.MapType == MapType.MapToTarget && arg.DestinationType.IsRecordType(arg))
                         getter = TryRestoreRecordMember(member.DestinationMember,recordRestorParamModel,destination) ?? getter;
                 }
                 else
@@ -259,7 +259,7 @@ namespace Mapster.Adapters
                     {
                         getter = defaultConst;
 
-                        if (arg.MapType == MapType.MapToTarget && arg.DestinationType.IsRecordType())
+                        if (arg.MapType == MapType.MapToTarget && arg.DestinationType.IsRecordType(arg))
                            getter = TryRestoreRecordMember(member.DestinationMember, recordRestorParamModel, destination) ?? getter;
                     }
                 }

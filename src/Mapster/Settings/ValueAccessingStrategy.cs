@@ -117,7 +117,7 @@ namespace Mapster
 
                 var propertyType = member.Type;
                 if (propertyName.StartsWith(sourceMemberName) &&
-                    (propertyType.IsPoco() || propertyType.IsRecordType()))
+                    (propertyType.IsPoco() || propertyType.IsRecordType(arg)))
                 {
                     var exp = member.GetExpression(source);
                     var ifTrue = GetDeepFlattening(exp, propertyName.Substring(sourceMemberName.Length).TrimStart('_'), arg);
@@ -168,7 +168,7 @@ namespace Mapster
                     yield return member.Name;
                 }
                 else if (propertyName.StartsWith(destMemberName) &&
-                    (propertyType.IsPoco() || propertyType.IsRecordType()))
+                    (propertyType.IsPoco() || propertyType.IsRecordType(arg)))
                 {
                     foreach (var prop in GetDeepUnflattening(member, propertyName.Substring(destMemberName.Length).TrimStart('_'), arg))
                     {

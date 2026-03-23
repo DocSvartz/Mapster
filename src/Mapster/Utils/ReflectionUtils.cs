@@ -193,7 +193,17 @@ namespace Mapster
             return type.IsNullable() ? type.GetGenericArguments()[0] : type;
         }
 
-        public static bool IsRecordType(this Type type)
+        public static bool IsRecordType(this Type type, CompileArgument arg)
+        {
+            return arg.Settings.DestinationAsRecord.GetValueOrDefault() || type.IsRecordType();
+        }
+
+        public static bool IsRecordType(this Type type, PreCompileArgument arg)
+        {
+            return arg.CustomRecordType || type.IsRecordType();
+        }
+
+        private static bool IsRecordType(this Type type)
         {
             //not nullable
             if (type.IsNullable())
