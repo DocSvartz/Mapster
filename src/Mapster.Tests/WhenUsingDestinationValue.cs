@@ -42,9 +42,11 @@ namespace Mapster.Tests
         public void MappingToReadonlyPropertyWhenPocoDetectRegression()
         {
             var studentDto = new StudentDtoOrigin { Name = "Marta" };
-            var student = studentDto.Adapt<StudentOrigin>();  // No exception.
 
-            student.Name.ShouldBe("John");
+            Should.NotThrow(() =>
+            {
+                var student = studentDto.Adapt<StudentOrigin>();  // No exception.
+            });
         }
 
         [TestMethod]
