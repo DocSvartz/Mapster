@@ -46,8 +46,39 @@ public class WhenUseDestinatonValueMappingRegression
             channelDest.TempThumbnails.Count.ShouldBe(3);
         }
 
+        [TestMethod]
+        public void UseDestinatonValueFromSimpleConfigMethod()
+        {
+            var config = new TypeAdapterConfig();
+            config.NewConfig<SimplySourceContractingParty, SimplyDestinationContractingParty>()
+                .UseDestinationValue(dest => dest.Company);
+
+            var source = new SimplySourceContractingParty() { Company = new() { CompanyName = "Mapster" } };
+
+            var notUseDestinatonValue = source.Adapt<SimplyDestinationContractingParty>();
+            var UseDestinatonValue = source.Adapt<SimplyDestinationContractingParty>(config);
+
+            notUseDestinatonValue.Company.CompanyName.ShouldBeNullOrEmpty();
+            UseDestinatonValue.Company.CompanyName.ShouldBe(source.Company.CompanyName);
+        }
 
         #region TestClasses
+
+        public class SimplySourceContractingParty
+        {
+           public SimplyContractingParty Company { get; set; }
+        }
+
+        public class SimplyDestinationContractingParty
+        {
+            public SimplyContractingParty Company { get; } = new();
+        }
+
+        public class SimplyContractingParty
+        {
+            public string CompanyName { get; set; }
+        }
+
         private static IEnumerable<ThumbnailDestination> MapThumbnailDetailsData(ThumbnailDetailsSource thumbnailDetails)
         {
             yield return MapThumbnail(thumbnailDetails.Default, "Default");
