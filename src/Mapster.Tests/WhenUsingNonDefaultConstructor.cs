@@ -72,6 +72,10 @@ namespace Mapster.Tests
             dto.Unmapped.ShouldBe("unmapped");
         }
 
+        /// <summary>
+        ///  ignore after implement fix https://github.com/MapsterMapper/Mapster/issues/883
+        /// </summary>
+        [Ignore]
         [TestMethod]
         public void Map_To_Destination_Type_Without_Default_Constructor_Shoud_Throw_Exception()
         {
