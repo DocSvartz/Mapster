@@ -115,9 +115,11 @@ namespace Mapster.Adapters
 
                 var adapt = CreateAdaptExpression(member.Getter, member.DestinationMember.Type, arg, member, destMember);
 
-                if (!member.UseDestinationValue && member.DestinationMember.SetterModifier == AccessModifier.None)
+                if (member.UseDestinationValue
+                    && member.DestinationMember.Type.IsMapsterImmutable()
+                    && member.DestinationMember.SetterModifier == AccessModifier.None)
                 {
-                    if (member.DestinationMember is PropertyModel && arg.MapType == MapType.MapToTarget)
+                    if (member.DestinationMember is PropertyModel && arg.MapType != MapType.Projection)
                         adapt = SetValueTypeAutoPropertyByReflection(member, adapt, classModel);
                     else
                         continue;

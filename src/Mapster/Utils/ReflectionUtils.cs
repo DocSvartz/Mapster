@@ -448,5 +448,10 @@ namespace Mapster
         {
           return  type.GetConstructor(new Type[] { }) is not null ? true : false;
         }
+
+        public static bool IsMapsterImmutable(this Type type)
+        {
+            return type.IsMapsterPrimitive() || type.IsRecordType();
+        }
     }
 }
