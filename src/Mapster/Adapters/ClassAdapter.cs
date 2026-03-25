@@ -53,9 +53,10 @@ namespace Mapster.Adapters
         protected override Expression CreateInstantiationExpression(Expression source, Expression? destination, CompileArgument arg)
         {
             //new TDestination(src.Prop1, src.Prop2)
-                        
-            if (arg.DestinationType.isDefaultCtor() || arg.GetConstructUsing() != null && arg.Settings.MapToConstructor == null)
-                return base.CreateInstantiationExpression(source, destination, arg);
+
+            if (arg.DestinationType.isDefaultCtor() || arg.GetConstructUsing() != null)
+                if (arg.Settings.MapToConstructor == null)
+                    return base.CreateInstantiationExpression(source, destination, arg);
 
             ClassMapping? classConverter;
             var ctor = arg.Settings.MapToConstructor as ConstructorInfo;
