@@ -40,6 +40,15 @@ namespace Mapster.Adapters
             SkipIgnoreNullValuesMemberMap.Clear();
             Expression installExpr;
 
+            var MappingScoreGroups = arg.DestinationType.GetConstructors()
+                .Select(it => GetConstructorModel(it, false))
+                .Select(it => CreateClassConverter(source, it, arg, ctorMapping: true))
+                .GroupBy(x=> x.Members.Where(y=> y.Getter != null).Count() - (x.ConstructorInfo?.GetParameters().Count()).GetValueOrDefault())
+                .OrderByDescending(x=>x.Key)
+                .Take(2);
+
+            var counsructor = MappingScoreGroups.FirstOrDefault()?.FirstOrDefault();
+
             if (arg.GetConstructUsing() != null || arg.DestinationType == null)
                 installExpr = base.CreateInstantiationExpression(source, destination, arg);
             else

@@ -810,6 +810,16 @@ namespace Mapster.Tests
             MyString = myString;
         }
 
+        public MultiCtorRecord(int myInt, string myString, int ddd) 
+        {
+            MyString = myString;
+        }
+
+        public MultiCtorRecord(int myInt, string myString, int ddd, int xxx)
+        {
+            MyString = myString;
+        }
+
         public int MyInt { get; private set; }
         public string MyString { get; private set; }
     }
