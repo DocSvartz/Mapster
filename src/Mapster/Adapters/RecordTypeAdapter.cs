@@ -47,7 +47,9 @@ namespace Mapster.Adapters
                 .OrderByDescending(x=>x.Key)
                 .Take(2);
 
-            var counsructor = MappingScoreGroups.FirstOrDefault()?.FirstOrDefault();
+            var counsructor = MappingScoreGroups.FirstOrDefault()
+                ?.OrderByDescending(x=>x.ConstructorInfo?.GetParameters().Count())
+                .FirstOrDefault();
 
             if (arg.GetConstructUsing() != null || arg.DestinationType == null)
                 installExpr = base.CreateInstantiationExpression(source, destination, arg);

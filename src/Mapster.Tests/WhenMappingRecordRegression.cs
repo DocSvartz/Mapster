@@ -800,6 +800,12 @@ namespace Mapster.Tests
 
     record MultiCtorRecord
     {
+        public MultiCtorRecord()
+        {
+            
+        }
+
+
         public MultiCtorRecord(int myInt)
         {
             MyInt = myInt;
