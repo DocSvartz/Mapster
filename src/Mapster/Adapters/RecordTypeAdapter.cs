@@ -40,7 +40,7 @@ namespace Mapster.Adapters
             SkipIgnoreNullValuesMemberMap.Clear();
             Expression installExpr;
 
-            if (arg.GetConstructUsing() != null || arg.DestinationType == null)
+            if (arg.GetConstructUsing() != null || arg.Settings.MapToConstructor != null || arg.DestinationType == null)
                 installExpr = base.CreateInstantiationExpression(source, destination, arg);
             else
             {
