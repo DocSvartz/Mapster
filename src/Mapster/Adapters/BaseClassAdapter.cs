@@ -220,6 +220,7 @@ namespace Mapster.Adapters
             var arguments = new List<Expression>();
             foreach (var member in members)
             {
+                arg.Context.NullChecks.UnionWith(members.Select(x=>(x.Getter,arg)));
                 var parameterInfo = (ParameterInfo)member.DestinationMember.Info!;
                 var defaultConst = parameterInfo.IsOptional
                     ? Expression.Constant(parameterInfo.DefaultValue, member.DestinationMember.Type)
@@ -245,7 +246,9 @@ namespace Mapster.Adapters
                            defaultConst);
                     }
                     else
-                        getter = CreateAdaptExpression(member.Getter, member.DestinationMember.Type, arg, member);
+                       getter = member.Getter
+                            .ApplyNullPropagationFromCtor(CreateAdaptExpression(member.Getter, member.DestinationMember.Type, arg, member), arg);
+                    
 
                     if (member.Ignore.Condition != null)
                     {

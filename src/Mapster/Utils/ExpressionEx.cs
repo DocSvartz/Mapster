@@ -1,8 +1,9 @@
-﻿using System.Linq.Expressions;
+﻿using Mapster.Models;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 
 namespace Mapster.Utils
@@ -431,6 +432,44 @@ namespace Mapster.Utils
             }
 
             return getter;
+        }
+
+        public static Expression ApplyNullPropagationFromCtor(this Expression getter, Expression adapt, CompileArgument arg)
+        {
+            Expression? condition = null;
+            var current = getter;
+            var checks = arg.Context.NullChecks
+                .Where(x=> !object.ReferenceEquals(x.arg,arg))
+                .Select(x=>x.param.Type);
+
+            while (current != null) 
+            {
+                Expression? compareNull = null;
+
+                if (current.CanBeNull() && current is not ParameterExpression)
+                    compareNull = Expression.NotEqual(current, Expression.Constant(null, current.Type));
+                else if (current.CanBeNull() && current is ParameterExpression
+                    && !checks.Contains(current.Type))
+                    compareNull = Expression.NotEqual(current, Expression.Constant(null, current.Type));
+
+                if (compareNull != null)
+                {
+                    if (condition == null)
+                        condition = compareNull;
+                    else
+                        condition = Expression.AndAlso(compareNull, condition);
+                }
+
+                if (current is MemberExpression member)
+                    current = member.Expression;
+                else
+                    current = null;
+            }
+
+            if (condition == null)
+                return adapt;
+
+            return Expression.Condition(condition, adapt, adapt.Type.CreateDefault());
         }
 
         public static string? GetMemberPath(this LambdaExpression lambda, bool firstLevelOnly = false, bool noError = false)
