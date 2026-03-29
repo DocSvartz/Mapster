@@ -51,16 +51,25 @@ namespace Mapster
 
         public CompileArgument CloneWith(MapType? mapType = null)
         {
-            var config = new TypeAdapterConfig();
-            config.Default.EnableNonPublicMembers(true);
-            config.Default.ShallowCopyForSameType(true);
-
-            var str = this.BuildAdapter(config).CreateMapExpression<CompileArgument>();
-            CompileArgument result = this.Adapt<CompileArgument>(config);
+            var result = new CompileArgument()
+            {
+                SourceType = this.SourceType,
+                DestinationType = this.DestinationType,
+                MapType = this.MapType,
+                ExplicitMapping = this.ExplicitMapping,
+                Settings = this.Settings,
+                Context = this.Context,
+                UseDestinationValue = this.UseDestinationValue,
+                ConstructorMapping = this.ConstructorMapping,
+                _srcNames = this._srcNames,
+                _destNames = this._destNames,
+                _fetchConstructUsing = this._fetchConstructUsing,
+                _constructUsing = this._constructUsing
+            };
 
             if (mapType != null)
-                result.MapType = mapType.Value;           
-            
+                result.MapType = mapType.Value;
+
             return result;
         }
     }
