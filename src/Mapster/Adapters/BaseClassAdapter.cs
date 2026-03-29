@@ -113,7 +113,8 @@ namespace Mapster.Adapters
                     Destination = (ParameterExpression?)destination,
                     UseDestinationValue = IsCanUsingDestinationValue(arg, destinationMember),
                 };
-                if(getter == null && !arg.DestinationType.IsRecordType()  
+                if(arg.MapType == MapType.ApplyNullPropagation &&
+                    getter == null && !arg.DestinationType.IsRecordType()  
                     && destinationMember.Info is PropertyInfo propinfo)
                 {
                     if (propinfo.GetCustomAttributes()

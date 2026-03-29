@@ -449,11 +449,7 @@ namespace Mapster.Tests
         {
             var source = new Person553 { FirstMidName = "John", LastName = "Dow" };
             var destination = new Person554 { ID = 245, FirstMidName = "Mary", LastName = "Dow" };
-
-            TypeAdapterConfig<Person553, Person554>.NewConfig()
-                //.Map(dest => dest.ID, source => 0)
-                .Ignore(x => x.ID);
-
+                        
             var s = source.BuildAdapter().CreateMapToTargetExpression<Person554>();
 
             var result = source.Adapt(destination);

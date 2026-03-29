@@ -48,5 +48,29 @@ namespace Mapster
             _fetchConstructUsing = true;
             return _constructUsing;
         }
+
+        public CompileArgument CloneWith(MapType? mapType = null)
+        {
+            var result = new CompileArgument()
+            {
+                SourceType = this.SourceType,
+                DestinationType = this.DestinationType,
+                MapType = this.MapType,
+                ExplicitMapping = this.ExplicitMapping,
+                Settings = this.Settings,
+                Context = this.Context,
+                UseDestinationValue = this.UseDestinationValue,
+                ConstructorMapping = this.ConstructorMapping,
+                _srcNames = this._srcNames,
+                _destNames = this._destNames,
+                _fetchConstructUsing = this._fetchConstructUsing,
+                _constructUsing = this._constructUsing
+            };
+
+            if (mapType != null)
+                result.MapType = mapType.Value;
+
+            return result;
+        }
     }
 }
