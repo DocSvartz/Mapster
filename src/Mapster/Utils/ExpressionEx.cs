@@ -436,11 +436,14 @@ namespace Mapster.Utils
 
         public static Expression ApplyNullPropagationFromCtor(this Expression getter, Expression adapt, CompileArgument arg)
         {
+            if (getter == null)
+                return adapt;
+
             Expression? condition = null;
             var current = getter;
             var checks = arg.Context.NullChecks
                 .Where(x=> !object.ReferenceEquals(x.arg,arg))
-                .Select(x=>x.param.Type);
+                .Select(x=>x.param?.Type);
 
             while (current != null) 
             {
