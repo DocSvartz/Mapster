@@ -407,25 +407,36 @@ namespace Mapster.Utils
 
             return param;
         }
-        public static Expression ApplyNullPropagation(this Expression getter)
+        public static Expression ApplyPropertyNullPropagation(this Expression getter, MemberMapping property)
         {
             var current = getter;
             var result = getter;
+            Expression? condition = null;
+
             while (current.NodeType == ExpressionType.MemberAccess)
             {
                 var memEx = (MemberExpression) current;
                 var expr = memEx.Expression;
                 if (expr == null)
                     break;
-                if (expr.NodeType == ExpressionType.Parameter) 
-                    return result;
+                if (expr.NodeType == ExpressionType.Parameter && condition != null)
+                {
+                    if (property.DestinationMember.Type.CanBeNull() && !getter.CanBeNull())
+                    {
+                        var transform = Expression.Convert(getter, typeof(Nullable<>).MakeGenericType(getter.Type));
+                        return Expression.Condition(condition, transform, transform.Type.CreateDefault());
+                    }
+                    else
+                        return Expression.Condition(condition, getter, getter.Type.CreateDefault());
+                }
 
                 if (expr.CanBeNull())
                 {
-                    var compareNull = Expression.Equal(expr, Expression.Constant(null, expr.Type));
-                    if (!result.Type.CanBeNull())
-                        result = Expression.Convert(result, typeof(Nullable<>).MakeGenericType(result.Type));
-                    result = Expression.Condition(compareNull, result.Type.CreateDefault(), result);
+                    var compareNull = Expression.NotEqual(expr, Expression.Constant(null, expr.Type));
+                    if (condition == null)
+                        condition = compareNull;
+                    else
+                        condition = Expression.AndAlso(compareNull, condition);
                 }
 
                 current = expr;
