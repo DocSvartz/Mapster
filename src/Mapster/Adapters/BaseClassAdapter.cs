@@ -132,7 +132,7 @@ namespace Mapster.Adapters
                 {
                     propertyModel.Getter = arg.MapType == MapType.Projection 
                         ? getter 
-                        : getter.ApplyNullPropagation();
+                        : getter.ApplyPropertyNullPropagation(propertyModel);
                     properties.Add(propertyModel);
                 }
                 else
@@ -220,7 +220,7 @@ namespace Mapster.Adapters
             var arguments = new List<Expression>();
             foreach (var member in members)
             {
-                arg.Context.NullChecks.UnionWith(members.Select(x=>(x.Getter,arg)));
+                arg.Context.NullChecks.UnionWith(members.Where(x=>x.Getter != null).Select(x=>(x.Getter,arg)));
                 var parameterInfo = (ParameterInfo)member.DestinationMember.Info!;
                 var defaultConst = parameterInfo.IsOptional
                     ? Expression.Constant(parameterInfo.DefaultValue, member.DestinationMember.Type)
