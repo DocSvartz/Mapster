@@ -219,7 +219,7 @@ namespace Mapster.Adapters
                 .Where(x => x.GetCustomAttributes()
                 .Any(y => y.GetType().FullName == "System.Runtime.CompilerServices.RequiredMemberAttribute"));
 
-            if (requiremembers.Count() != 0)
+            if (requiremembers.Count() != 0 && !arg.DestinationType.IsAbstract)
                 set = CreateInlineExpression(source, arg.CloneWith(MapType.ApplyNullPropagation), true);
             else
                 set = CreateInstantiationExpression(transformedSource, destination, arg);
