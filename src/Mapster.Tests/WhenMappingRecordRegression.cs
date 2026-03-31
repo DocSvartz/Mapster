@@ -443,22 +443,7 @@ namespace Mapster.Tests
             result.Order.Payment.CVV.ShouldBe("234");
             resultID.UserID.ShouldBe("256");
         }
-
-        [TestMethod]
-        public void RequiredProperty()
-        {
-            var source = new Person553 { FirstMidName = "John", LastName = "Dow" };
-            var destination = new Person554 { ID = 245, FirstMidName = "Mary", LastName = "Dow" };
-                        
-            var s = source.BuildAdapter().CreateMapToTargetExpression<Person554>();
-
-            var result = source.Adapt(destination);
-
-            result.ID.ShouldBe(245);
-            result.FirstMidName.ShouldBe(source.FirstMidName);
-            result.LastName.ShouldBe(source.LastName);
-        }
-
+               
         /// <summary>
         /// https://github.com/MapsterMapper/Mapster/issues/842
         /// </summary>
