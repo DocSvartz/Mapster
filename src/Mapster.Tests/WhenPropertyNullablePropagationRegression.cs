@@ -16,7 +16,6 @@ public class WhenPropertyNullablePropagationRegression
     {
         TypeAdapterConfig<Foo858, Bar858>
           .NewConfig()
-          .IgnoreNullValues(true)
           .Map(dest => dest.Amount, src => src.Amount)
           .Map(dest => dest.InnerAmount, src => src.Inner.Amount);
 
@@ -35,15 +34,9 @@ public class WhenPropertyNullablePropagationRegression
             }
         };
 
-        var updateBar = new Bar858 { Amount = new(10, Currency858.Eur), InnerAmount = new(10, Currency858.Eur) };
-        var snull = new Foo858() { Amount = new(1, Currency858.Usd), Inner = null };
-
         // Act
         var bar = foo.Adapt<Bar858>();
 
-        var str = snull.BuildAdapter().CreateMapToTargetExpression<Bar858>();
-
-        snull.Adapt(updateBar);
         // Assert
         bar.InnerAmount.Amount.ShouldBe(10m);
     }
@@ -103,6 +96,43 @@ public class WhenPropertyNullablePropagationRegression
         bar.Amount.Amount.ShouldBe(2m);
         bar.Amount.Currency.ShouldBe(Currency858.Ron);
     }
+
+    [TestMethod]
+    public void MapToTargetWorkCorrect()
+    {
+        TypeAdapterConfig<Foo858, Bar858>
+          .NewConfig()
+          .IgnoreNullValues(true)
+          .Map(dest => dest.Amount, src => src.Amount)
+          .Map(dest => dest.InnerAmount, src => src.Inner.Amount);
+
+        Foo858 foo = new()
+        {
+            Amount = new(1, Currency858.Usd),
+            Inner = new()
+            {
+                Amount = new(10, Currency858.Eur),
+                Int = 100,
+            }
+        };
+
+        var nullFoo = new Foo858() { Amount = new(2, Currency858.Ron), Inner = new()
+        {
+            Amount = new(20, Currency858.Eur),
+            Int = 100,
+        }
+        };
+
+        // Act
+        var bar = foo.Adapt<Bar858>();
+        nullFoo.Adapt(bar);
+
+        // Assert
+        bar.InnerAmount.Amount.ShouldBe(20m);
+        bar.Amount.Amount.ShouldBe(2m);
+        bar.Amount.Currency.ShouldBe(Currency858.Ron);
+    }
+
 
 }
 

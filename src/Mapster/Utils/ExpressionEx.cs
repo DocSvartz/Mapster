@@ -546,5 +546,10 @@ namespace Mapster.Utils
             return Expression.Constant(converter);
         }
 
+        public static bool IsNullableType(this Type type)
+        {
+            return Nullable.GetUnderlyingType(type) != null;
+        }
+
     }
 }

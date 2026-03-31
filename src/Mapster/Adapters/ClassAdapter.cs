@@ -270,5 +270,18 @@ namespace Mapster.Adapters
 
             return Expression.MemberInit(newInstance, lines);
         }
+
+        protected override Expression TransformSource(Expression source)
+        {
+            if (source.Type.IsNullableType())
+            {
+                var getValueOrDefaultMethod = source.Type.GetMethod("GetValueOrDefault", Type.EmptyTypes);
+                var getValue = Expression.Call(source, getValueOrDefaultMethod);
+
+                return getValue;
+            }
+
+            return source;
+        }
     }
 }
