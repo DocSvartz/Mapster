@@ -132,7 +132,7 @@ namespace Mapster.Adapters
                 {
                     propertyModel.Getter = arg.MapType == MapType.Projection 
                         ? getter 
-                        : getter.ApplyPropertyNullPropagation(propertyModel);
+                        : getter.ApplyPropertyNullPropagation(propertyModel, arg.MapType);
                     properties.Add(propertyModel);
                 }
                 else

@@ -407,7 +407,7 @@ namespace Mapster.Utils
 
             return param;
         }
-        public static Expression ApplyPropertyNullPropagation(this Expression getter, MemberMapping property)
+        public static Expression ApplyPropertyNullPropagation(this Expression getter, MemberMapping property, MapType mapType)
         {
             var current = getter;
             var result = getter;
@@ -421,13 +421,27 @@ namespace Mapster.Utils
                     break;
                 if (expr.NodeType == ExpressionType.Parameter && condition != null)
                 {
-                    if (property.DestinationMember.Type.CanBeNull() && !getter.CanBeNull())
+                    if(mapType != MapType.MapToTarget)
                     {
-                        var transform = Expression.Convert(getter, typeof(Nullable<>).MakeGenericType(getter.Type));
-                        return Expression.Condition(condition, transform, transform.Type.CreateDefault());
+                        if (property.DestinationMember.Type.CanBeNull() && !getter.CanBeNull())
+                        {
+                            var transform = Expression.Convert(getter, typeof(Nullable<>).MakeGenericType(getter.Type));
+                            return Expression.Condition(condition, transform, transform.Type.CreateDefault());
+                        }
+                        else
+                            return Expression.Condition(condition, getter, getter.Type.CreateDefault());
                     }
                     else
-                        return Expression.Condition(condition, getter, getter.Type.CreateDefault());
+                    {
+                        if (!getter.CanBeNull())
+                        {
+                            var transform = Expression.Convert(getter, typeof(Nullable<>).MakeGenericType(getter.Type));
+                            return Expression.Condition(condition, transform, transform.Type.CreateDefault());
+                        }
+                        else
+                            return Expression.Condition(condition, getter, getter.Type.CreateDefault());
+                    }
+                    
                 }
 
                 if (expr.CanBeNull())
