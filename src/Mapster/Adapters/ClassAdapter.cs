@@ -114,7 +114,17 @@ namespace Mapster.Adapters
                     ? member.DestinationMember.GetExpression(destination)
                     : null;
 
-                var adapt = CreateAdaptExpression(member.Getter, member.DestinationMember.Type, arg, member, destMember);
+                Expression adapt;
+
+                // convert ApplyNullable Propagation for NotPrimitive Nullable types
+                if (member.Getter is ConditionalExpression cond && member.Getter.Type.IsNotPrimitiveNullableType()
+                    && !member.DestinationMember.Type.IsNullable())
+                {
+                    var value = CreateAdaptExpression(cond.IfTrue.GetNotPrimitiveNullableValue(), member.DestinationMember.Type, arg, member, destMember);
+                   adapt = Expression.Condition(cond.Test, value, member.DestinationMember.Type.CreateDefault());
+                }
+                else
+                    adapt = CreateAdaptExpression(member.Getter, member.DestinationMember.Type, arg, member, destMember);
 
                 if (member.UseDestinationValue
                     && member.DestinationMember.Type.IsMapsterImmutable()
@@ -251,7 +261,17 @@ namespace Mapster.Adapters
                 if (member.DestinationMember.SetterModifier == AccessModifier.None)
                     continue;
 
-                var value = CreateAdaptExpression(member.Getter, member.DestinationMember.Type, arg, member);
+                Expression value;
+
+                // convert ApplyNullable Propagation for NotPrimitive Nullable types
+                if (member.Getter is ConditionalExpression cond && member.Getter.Type.IsNotPrimitiveNullableType() 
+                    && !member.DestinationMember.Type.IsNullable())
+                {
+                    var adapt = CreateAdaptExpression(cond.IfTrue.GetNotPrimitiveNullableValue(), member.DestinationMember.Type, arg, member);
+                    value = Expression.Condition(cond.Test, adapt, member.DestinationMember.Type.CreateDefault());
+                }
+                else
+                    value = CreateAdaptExpression(member.Getter, member.DestinationMember.Type, arg, member);
 
                 //special null property check for projection
                 //if we don't set null to property, EF will create empty object
@@ -269,19 +289,6 @@ namespace Mapster.Adapters
             }
 
             return Expression.MemberInit(newInstance, lines);
-        }
-
-        protected override Expression TransformSource(Expression source)
-        {
-            if (source.Type.IsNullableType())
-            {
-                var getValueOrDefaultMethod = source.Type.GetMethod("GetValueOrDefault", Type.EmptyTypes);
-                var getValue = Expression.Call(source, getValueOrDefaultMethod);
-
-                return getValue;
-            }
-
-            return source;
         }
     }
 }

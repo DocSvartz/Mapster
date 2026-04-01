@@ -421,27 +421,13 @@ namespace Mapster.Utils
                     break;
                 if (expr.NodeType == ExpressionType.Parameter && condition != null)
                 {
-                    if(mapType != MapType.MapToTarget)
+                    if (!getter.CanBeNull())
                     {
-                        if (property.DestinationMember.Type.CanBeNull() && !getter.CanBeNull())
-                        {
-                            var transform = Expression.Convert(getter, typeof(Nullable<>).MakeGenericType(getter.Type));
-                            return Expression.Condition(condition, transform, transform.Type.CreateDefault());
-                        }
-                        else
-                            return Expression.Condition(condition, getter, getter.Type.CreateDefault());
+                        var transform = Expression.Convert(getter, typeof(Nullable<>).MakeGenericType(getter.Type));
+                        return Expression.Condition(condition, transform, transform.Type.CreateDefault());
                     }
                     else
-                    {
-                        if (!getter.CanBeNull())
-                        {
-                            var transform = Expression.Convert(getter, typeof(Nullable<>).MakeGenericType(getter.Type));
-                            return Expression.Condition(condition, transform, transform.Type.CreateDefault());
-                        }
-                        else
-                            return Expression.Condition(condition, getter, getter.Type.CreateDefault());
-                    }
-                    
+                        return Expression.Condition(condition, getter, getter.Type.CreateDefault());
                 }
 
                 if (expr.CanBeNull())
@@ -546,9 +532,22 @@ namespace Mapster.Utils
             return Expression.Constant(converter);
         }
 
-        public static bool IsNullableType(this Type type)
+        public static bool IsNotPrimitiveNullableType(this Type type)
         {
-            return Nullable.GetUnderlyingType(type) != null;
+            return Nullable.GetUnderlyingType(type) != null && !type.IsMapsterPrimitive();
+        }
+
+        public static Expression GetNotPrimitiveNullableValue(this Expression exp)
+        {
+            if (exp.Type.IsNotPrimitiveNullableType())
+            {
+                var getValueOrDefaultMethod = exp.Type.GetMethod("GetValueOrDefault", Type.EmptyTypes);
+                var getValue = Expression.Call(exp, getValueOrDefaultMethod);
+
+                return getValue;
+            }
+
+            return exp;
         }
 
     }
