@@ -407,7 +407,7 @@ namespace Mapster.Utils
 
             return param;
         }
-        public static Expression ApplyPropertyNullPropagation(this Expression getter, MemberMapping property)
+        public static Expression ApplyPropertyNullPropagation(this Expression getter)
         {
             var current = getter;
             var result = getter;
@@ -421,7 +421,7 @@ namespace Mapster.Utils
                     break;
                 if (expr.NodeType == ExpressionType.Parameter && condition != null)
                 {
-                    if (property.DestinationMember.Type.CanBeNull() && !getter.CanBeNull())
+                    if (!getter.CanBeNull())
                     {
                         var transform = Expression.Convert(getter, typeof(Nullable<>).MakeGenericType(getter.Type));
                         return Expression.Condition(condition, transform, transform.Type.CreateDefault());
@@ -530,6 +530,24 @@ namespace Mapster.Utils
             if (converter == MapsterHelper.LowerCase)
                 return Expression.Field(null, typeof(MapsterHelper), nameof(MapsterHelper.LowerCase));
             return Expression.Constant(converter);
+        }
+
+        public static bool IsNotPrimitiveNullableType(this Type type)
+        {
+            return Nullable.GetUnderlyingType(type) != null && !type.IsMapsterPrimitive();
+        }
+
+        public static Expression GetNotPrimitiveNullableValue(this Expression exp)
+        {
+            if (exp.Type.IsNotPrimitiveNullableType())
+            {
+                var getValueOrDefaultMethod = exp.Type.GetMethod("GetValueOrDefault", Type.EmptyTypes);
+                var getValue = Expression.Call(exp, getValueOrDefaultMethod);
+
+                return getValue;
+            }
+
+            return exp;
         }
 
     }
