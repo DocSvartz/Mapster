@@ -407,7 +407,7 @@ namespace Mapster.Utils
 
             return param;
         }
-        public static Expression ApplyPropertyNullPropagation(this Expression getter, MemberMapping property, MapType mapType)
+        public static Expression ApplyPropertyNullPropagation(this Expression getter)
         {
             var current = getter;
             var result = getter;
