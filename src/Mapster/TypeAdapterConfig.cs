@@ -80,6 +80,8 @@ namespace Mapster
             };
         }
 
+
+        public bool IsLegasyPoco { get; set; }
         public bool RequireDestinationMemberSource { get; set; }
         public bool RequireExplicitMapping { get; set; }
         public bool RequireExplicitMappingPrimitive { get; set; }
@@ -593,6 +595,7 @@ namespace Mapster
                 DestinationType = tuple.Destination,
                 MapType = mapType,
                 ExplicitMapping = RuleMap.ContainsKey(tuple),
+                IsLegasyPoco = this.IsLegasyPoco,
             };
 
             //auto add setting if there is attr setting

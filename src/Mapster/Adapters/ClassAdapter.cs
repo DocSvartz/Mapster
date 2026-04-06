@@ -20,7 +20,10 @@ namespace Mapster.Adapters
 
         protected override bool CanMap(PreCompileArgument arg)
         {
-            return arg.ExplicitMapping || arg.DestinationType.IsPoco();
+            if(arg.IsLegasyPoco)
+                return arg.ExplicitMapping || arg.DestinationType.IsLegasyPoco();
+            else
+                return arg.ExplicitMapping || arg.DestinationType.IsPoco();
         }
 
         protected override bool CanInline(Expression source, Expression? destination, CompileArgument arg)

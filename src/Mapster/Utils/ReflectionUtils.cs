@@ -70,6 +70,22 @@ namespace Mapster
             return type.GetFieldsAndProperties().Any(it => (it.SetterModifier & (AccessModifier.Public | AccessModifier.NonPublic)) != 0);
         }
 
+        public static bool IsLegasyPoco(this Type type)
+        {
+            //not nullable
+            if (type.IsNullable())
+                return false;
+
+            //not primitives
+            if (type.IsConvertible())
+                return false;
+
+            if (type == typeof(Type) || type.BaseType == typeof(MulticastDelegate))
+                return false;
+
+            return type.GetFieldsAndProperties().Any(it => (it.SetterModifier & (AccessModifier.Public | AccessModifier.NonPublic)) != 0);
+        }
+
         public static IEnumerable<IMemberModelEx> GetFieldsAndProperties(this Type type, bool includeNonPublic = false)
         {
             var bindingFlags = BindingFlags.Instance | BindingFlags.Public;

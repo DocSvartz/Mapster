@@ -9,5 +9,6 @@ namespace Mapster
         public Type DestinationType;
         public MapType MapType;
         public bool ExplicitMapping;
+        public bool IsLegasyPoco;
     }
 }
