@@ -16,7 +16,7 @@ namespace Mapster.Adapters
     /// </remarks>
     internal class ClassAdapter : BaseClassAdapter
     {
-        protected override int Score => -150;
+        protected override int Score => -200;
 
         protected override bool CanMap(PreCompileArgument arg)
         {

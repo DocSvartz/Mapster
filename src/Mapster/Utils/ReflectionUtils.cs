@@ -453,5 +453,18 @@ namespace Mapster
         {
             return type.IsMapsterPrimitive() || type.IsRecordType();
         }
+
+        public static bool IsNotSelfCreation(this Type type)
+        {
+            if (type.IsMapsterPrimitive())
+                return false;
+            if(type.IsCollectionCompatible())
+                return false;
+
+            if (type == typeof(Type) || type.BaseType == typeof(MulticastDelegate))
+                return true;
+
+            return type.GetFieldsAndProperties().Any(it => (it.SetterModifier & (AccessModifier.Public | AccessModifier.NonPublic)) == 0);
+        }
     }
 }
