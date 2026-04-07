@@ -2,6 +2,7 @@
 using Shouldly;
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
 using static Mapster.Tests.WhenExplicitMappingRequired;
 using static Mapster.Tests.WhenMappingDerived;
 
@@ -520,6 +521,22 @@ namespace Mapster.Tests
                 target.Value1.ShouldBe("123");
                 target.Value2.ShouldBe(default);
             });
+        }
+
+        /// <summary>
+        /// https://github.com/MapsterMapper/Mapster/issues/911
+        /// </summary>
+        [TestMethod]
+        public void NotSelfCreationTypeMappingToSelfWithOutError()
+        {
+            var src = new Uri("https://www.google.com/");
+            var srcJ = JsonDocument.Parse("{\"key\": \"value\"}");
+                       
+            var result = src.Adapt<Uri>();
+            var resultJ = srcJ.Adapt<JsonDocument>();
+
+            result.ToString().ShouldBe("https://www.google.com/");
+            resultJ.RootElement.GetProperty("key").ToString().ShouldBe("value");
         }
 
         #region NowNotWorking
