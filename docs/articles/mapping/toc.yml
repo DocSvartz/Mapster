@@ -7,7 +7,6 @@
   href: Mappers.md
 - name: Data types
   href: data-types/toc.yml
-  topicHref: xref:Mapster.Mapping.DataTypes
 - name: Mapping with interface
   uid: Mapster.Mapping.IMapFromInterface
   href: Mapping-Configuration-With-IMapFrom-Interface.md
