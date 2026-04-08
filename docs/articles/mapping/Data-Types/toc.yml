@@ -1,0 +1,13 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/dotnet/docfx/main/schemas/toc.schema.json
+- name: Mappable Objects
+  uid: Mapster.Mapping.DataTypes.Overview
+  href: Mappable-Objects.md
+- name: Primitive Types
+  uid: Mapster.Mapping.DataTypes.Primitives
+  href: Primitive-types.md
+- name: Collections
+  uid: Mapster.Mapping.DataTypes.Collections
+  href: Collections-types.md
+- name: Record Types
+  uid: Mapster.Mapping.DataTypes.Records
+  href: Record-types.md

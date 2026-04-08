@@ -1,6 +1,6 @@
 ---
-uid: Mapster.Mapping.DataTypes
-title: "Mapping - Data Types"
+uid: Mapster.Mapping.DataTypes.Overview
+title: "Mapping - Mappable Objects"
 ---
 
 ## Mappable Objects
