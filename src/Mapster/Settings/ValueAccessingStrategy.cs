@@ -116,8 +116,7 @@ namespace Mapster
                     return member.GetExpression(source);
 
                 var propertyType = member.Type;
-                if (propertyName.StartsWith(sourceMemberName) &&
-                    (propertyType.IsPoco() || propertyType.IsRecordType()))
+                if (propertyName.StartsWith(sourceMemberName) && !propertyType.IsMapsterPrimitive())
                 {
                     var exp = member.GetExpression(source);
                     var ifTrue = GetDeepFlattening(exp, propertyName.Substring(sourceMemberName.Length).TrimStart('_'), arg);
