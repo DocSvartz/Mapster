@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Mapster.Config
+namespace Mapster.Settings
 {
     public static class MapsterHelper
     {

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace Mapster.Config
+namespace Mapster.Settings
 {
     static class NameHelper
     {

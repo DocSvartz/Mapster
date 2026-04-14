@@ -1,6 +1,8 @@
 ﻿// ReSharper disable ArrangeAccessorOwnerBody
 
-namespace Mapster.Config.Runtime
+using Mapster.Settings;
+
+namespace Mapster.Runtime.Settings
 {
     public class TypeAdapterSettings : TypeAdapterSettingsBase, ISettingCloneble<TypeAdapterSettings>
     {

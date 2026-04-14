@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Mapster.Config
+namespace Mapster.Settings
 {
     public class NameMatchingStrategy: IApplyable<NameMatchingStrategy>
     {

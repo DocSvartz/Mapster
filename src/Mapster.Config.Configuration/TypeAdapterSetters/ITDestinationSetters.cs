@@ -2,7 +2,7 @@
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace Mapster.Config.Configuration.TypeAdapterSetters
+namespace Mapster.Configuration.TypeAdapterSetters
 {
     public interface ITypeAdapterSetter<TDestination>
     {
@@ -15,7 +15,7 @@ namespace Mapster.Config.Configuration.TypeAdapterSetters
         TypeAdapterSetter<TDestination> Map<TDestinationMember, TSourceMember>(Expression<Func<TDestination, TDestinationMember>> member, Expression<Func<TSourceMember>> source);
         TypeAdapterSetter<TDestination> Map<TDestinationMember>(Expression<Func<TDestination, TDestinationMember>> destinationMember, string sourceMemberName);
         TypeAdapterSetter<TDestination> MapToConstructor(ConstructorInfo ctor);
-        //TypeAdapterSetters.TypeAdapterSetter UseDestinationValue(string destinationMemberName);
+        TypeAdapterSetter UseDestinationValue(string destinationMemberName);
         TypeAdapterSetter<TDestination> UseDestinationValue<TDestinationMember>(Expression<Func<TDestination, TDestinationMember>> destinationMember);
     }
 }

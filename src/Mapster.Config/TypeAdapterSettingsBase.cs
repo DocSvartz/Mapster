@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 // ReSharper disable ArrangeAccessorOwnerBody
 
-namespace Mapster.Config
+namespace Mapster.Settings
 {
     public abstract class TypeAdapterSettingsBase : SettingStore
     {

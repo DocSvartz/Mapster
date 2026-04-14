@@ -1,19 +1,21 @@
-﻿using System;
+﻿using Mapster.Configuration;
+using Mapster.Settings;
+using System;
 using System.Linq.Expressions;
 
-namespace Mapster.Config.Configuration.TypeAdapterSetters
+namespace Mapster.Configuration.TypeAdapterSetters
 {
     public interface ITwoWaysSetters<TSource, TDestination>
     {
-        Configuration.TypeAdapterSetter<TDestination, TSource> DestinationToSourceSetter { get; }
-        Configuration.TypeAdapterSetter<TSource, TDestination> SourceToDestinationSetter { get; }
+        TypeAdapterSetter<TDestination, TSource> DestinationToSourceSetter { get; }
+        TypeAdapterSetter<TSource, TDestination> SourceToDestinationSetter { get; }
 
        // TwoWaysTypeAdapterSetter<TSource, TDestination> AddDestinationTransform(DestinationTransform transform);
         TwoWaysTypeAdapterSetter<TSource, TDestination> AddDestinationTransform<TDestinationMember>(Expression<Func<TDestinationMember, TDestinationMember>> transform);
         TwoWaysTypeAdapterSetter<TSource, TDestination> AvoidInlineMapping(bool value);
         TwoWaysTypeAdapterSetter<TSource, TDestination> EnableNonPublicMembers(bool value);
        // TwoWaysTypeAdapterSetter<TSource, TDestination> EnumMappingStrategy(EnumMappingStrategy strategy);
-        TwoWaysTypeAdapterSetter<TSource, TDestination> Fork(Action<ITypeAdapterConfig> action);
+        TwoWaysTypeAdapterSetter<TSource, TDestination> Fork(Action<ITypeAdapterConfigBase> action);
        // TwoWaysTypeAdapterSetter<TSource, TDestination> GenerateMapper(MapType mapType);
        // TwoWaysTypeAdapterSetter<TSource, TDestination> GetMemberName(Func<IMemberModel, MemberSide, string> func);
        // TwoWaysTypeAdapterSetter<TSource, TDestination> GetMemberName(Func<IMemberModel, string> func);

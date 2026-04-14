@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Concurrent;
 
-namespace Mapster.Config
+namespace Mapster.Settings
 {
     public class SettingStore: IApplyable<SettingStore>
     {

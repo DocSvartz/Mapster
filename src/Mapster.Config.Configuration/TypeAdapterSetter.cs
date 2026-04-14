@@ -1,8 +1,10 @@
-﻿namespace Mapster.Config.Configuration
+﻿using Mapster.Settings;
+
+namespace Mapster.Configuration
 {
     public abstract class TypeAdapterSetterBase<TAdapterSettings, TConfig> 
         where TAdapterSettings : TypeAdapterSettingsBase
-        where TConfig : ITypeAdapterConfig
+        where TConfig : ITypeAdapterConfigBase
 
     {
         protected const string SourceParameterName = "source";
@@ -18,30 +20,30 @@
         }
     }
 
-    public class TypeAdapterSetter : TypeAdapterSetterBase<TypeAdapterSettingsBase, ITypeAdapterConfig>
+    public class TypeAdapterSetter : TypeAdapterSetterBase<TypeAdapterSettingsBase, ITypeAdapterConfigBase>
     {
-        public TypeAdapterSetter(TypeAdapterSettingsBase settings, ITypeAdapterConfig config) : base(settings, config)
+        public TypeAdapterSetter(TypeAdapterSettingsBase settings, ITypeAdapterConfigBase config) : base(settings, config)
         {
         }
     }
 
-    public class TypeAdapterSetter<TDestination> : TypeAdapterSetterBase<TypeAdapterSettingsBase, ITypeAdapterConfig>
+    public class TypeAdapterSetter<TDestination> : TypeAdapterSetterBase<TypeAdapterSettingsBase, ITypeAdapterConfigBase>
     {
-        public TypeAdapterSetter(TypeAdapterSettingsBase settings, ITypeAdapterConfig config) : base(settings, config)
+        public TypeAdapterSetter(TypeAdapterSettingsBase settings, ITypeAdapterConfigBase config) : base(settings, config)
         {
         }
     }
 
     public class TypeAdapterSetter<TSource,TDestination> : TypeAdapterSetter<TDestination>
     {
-        public TypeAdapterSetter(TypeAdapterSettingsBase settings, ITypeAdapterConfig config) : base(settings, config)
+        public TypeAdapterSetter(TypeAdapterSettingsBase settings, ITypeAdapterConfigBase config) : base(settings, config)
         {
         }
     }
 
     public class TwoWaysTypeAdapterSetter<TSource, TDestination> : TypeAdapterSetter<TSource, TDestination>
     {
-        public TwoWaysTypeAdapterSetter(TypeAdapterSettingsBase settings, ITypeAdapterConfig config) : base(settings, config)
+        public TwoWaysTypeAdapterSetter(TypeAdapterSettingsBase settings, ITypeAdapterConfigBase config) : base(settings, config)
         {
         }
     }

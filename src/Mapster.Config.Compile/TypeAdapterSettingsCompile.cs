@@ -1,4 +1,6 @@
-﻿namespace Mapster.Config.Compile
+﻿using Mapster.Settings;
+
+namespace Mapster.Compile.Config
 {
     public class TypeAdapterSettingsCompile : TypeAdapterSettingsBase, ISettingCloneble<TypeAdapterSettingsCompile>
     {

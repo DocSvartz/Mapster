@@ -2,7 +2,7 @@
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace Mapster.Config.Configuration.TypeAdapterSetters
+namespace Mapster.Configuration.TypeAdapterSetters
 {
     public interface ITSourceTDestinationSetters<TSource, TDestination>
     {
@@ -23,7 +23,7 @@ namespace Mapster.Config.Configuration.TypeAdapterSetters
         TypeAdapterSetter<TSource, TDestination> ConstructUsing(Expression<Func<TDestination>> constructUsing);
         TypeAdapterSetter<TSource, TDestination> ConstructUsing(Expression<Func<TSource, TDestination?, TDestination>> constructUsing);
         TypeAdapterSetter<TSource, TDestination> ConstructUsing(Expression<Func<TSource, TDestination>> constructUsing);
-        TypeAdapterSetter<TSource, TDestination> Fork(Action<ITypeAdapterConfig> action);
+        TypeAdapterSetter<TSource, TDestination> Fork(Action<ITypeAdapterConfigBase> action);
         //TypeAdapterSetter<TSource, TDestination> GenerateMapper(MapType mapType);
         TypeAdapterSetter<TSource, TDestination> Ignore(params Expression<Func<TDestination, object>>[] members);
         TypeAdapterSetter<TSource, TDestination> IgnoreIf(Expression<Func<TSource, TDestination, bool>> condition, params Expression<Func<TDestination, object>>[] members);

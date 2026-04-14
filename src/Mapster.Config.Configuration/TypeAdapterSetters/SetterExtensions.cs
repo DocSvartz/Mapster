@@ -1,8 +1,8 @@
-﻿using Mapster.Config.Configuration.TypeAdapterSetters;
+﻿using Mapster.Settings;
 using System;
 using System.Linq.Expressions;
 
-namespace Mapster.Config.Configuration.TypeAdapterSetters
+namespace Mapster.Configuration.TypeAdapterSetters
 {
     public static class TypeAdapterSetterExtensions
     {
