@@ -79,6 +79,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mapster.Compile.Settings", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mapster.Configuration", "Mapster.Config.Configuration\Mapster.Configuration.csproj", "{AB83F798-52DD-425F-9360-0DCD0B1E6BCD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mapster.Runtime.Configuration", "Mapster.Runtime.Configuration\Mapster.Runtime.Configuration.csproj", "{61C50B92-0D9B-48B3-9F52-41F5C79F2E30}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -197,6 +199,10 @@ Global
 		{AB83F798-52DD-425F-9360-0DCD0B1E6BCD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AB83F798-52DD-425F-9360-0DCD0B1E6BCD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AB83F798-52DD-425F-9360-0DCD0B1E6BCD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{61C50B92-0D9B-48B3-9F52-41F5C79F2E30}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{61C50B92-0D9B-48B3-9F52-41F5C79F2E30}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{61C50B92-0D9B-48B3-9F52-41F5C79F2E30}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{61C50B92-0D9B-48B3-9F52-41F5C79F2E30}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -224,6 +230,7 @@ Global
 		{13C3C987-9E4C-43C4-8DDE-E40A484B5102} = {12673700-A660-45A1-809F-CA5582216694}
 		{D6556056-1D6E-44C4-A895-69CA6CC6D598} = {13C3C987-9E4C-43C4-8DDE-E40A484B5102}
 		{AB83F798-52DD-425F-9360-0DCD0B1E6BCD} = {12673700-A660-45A1-809F-CA5582216694}
+		{61C50B92-0D9B-48B3-9F52-41F5C79F2E30} = {743DE39C-0B2C-4335-BBF1-EAF50A2216D8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {83B87DBA-277C-49F1-B597-E3B78C2C8275}
