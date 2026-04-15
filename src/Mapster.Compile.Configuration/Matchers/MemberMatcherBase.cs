@@ -2,7 +2,7 @@
 
 namespace Mapster.Compile.Configuration.Matchers
 {
-    internal class MemberMatcherBase
+    public abstract class MemberMatcherBase
     {
         public ISymbol DestinationMember { get; }
         public ISymbol SourceMember { get; }
