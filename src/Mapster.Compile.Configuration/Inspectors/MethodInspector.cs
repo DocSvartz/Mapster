@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Mapster.Compile.Configuration.Inspectors
 {
-    internal class MethodInspector
+    public class MethodInspector
     {
         public INamedTypeSymbol Method { get; }
         public bool IsPartial { get; }

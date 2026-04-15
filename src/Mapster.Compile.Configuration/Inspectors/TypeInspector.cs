@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace Mapster.Compile.Configuration.Inspectors
 {
-    internal class TypeInspector : IEquatable<TypeInspector>
+    public class TypeInspector : IEquatable<TypeInspector>
     {
         public TypeInspector (ITypeSymbol typeSymbol)
         {

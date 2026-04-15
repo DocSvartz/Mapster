@@ -5,7 +5,7 @@ using System.Collections.Immutable;
 
 namespace Mapster.Compile.Configuration
 {
-    internal class TypeConverter
+    public class TypeConverter
     {
         public TypeInspector SourceType {  get; }
         public TypeInspector TargetType { get; }
