@@ -464,7 +464,7 @@ namespace Mapster
             if (type == typeof(Type) || type.BaseType == typeof(MulticastDelegate))
                 return true;
 
-            return type.GetFieldsAndProperties().Any(it => (it.SetterModifier & (AccessModifier.Public | AccessModifier.NonPublic)) == 0);
+            return type.GetFieldsAndProperties().All(it => (it.SetterModifier & (AccessModifier.Public | AccessModifier.NonPublic)) == 0);
         }
     }
 }
