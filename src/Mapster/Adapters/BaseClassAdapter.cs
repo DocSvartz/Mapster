@@ -298,8 +298,13 @@ namespace Mapster.Adapters
                 arg.Settings.Resolvers.Select(x => x.DestinationMemberName),
                 y => y.Name);
 
+
+
             foreach (var item in notMappingToIgnore)
             {
+                if (!item.ShouldMapMember(arg, MemberSide.Destination))
+                    continue;
+
                 arg.Settings.Ignore.TryAdd(item.Name, new IgnoreDictionary.IgnoreItem());
             }
         }

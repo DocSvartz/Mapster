@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Mapster.Models;
 using MapsterMapper;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Shouldly;
@@ -18,12 +19,15 @@ namespace Mapster.Async.Tests
         [TestMethod]
         public async Task Async()
         {
-            TypeAdapterConfig<Poco, Dto>.NewConfig()
-                .AfterMappingAsync(async dest => { dest.Name = await GetName(); });
+            TypeAdapterConfig<ClassA<IOpenGeneric>, ClassB<IOpenGeneric>>
+                .NewConfig()
+                .Map(dest => dest.Variable2, src=> src.Variable);
+            TypeAdapterConfig.GlobalSettings.Compile();
 
-            var poco = new Poco {Id = "foo"};
-            var dto = await poco.BuildAdapter().AdaptToTypeAsync<Dto>();
-            dto.Name.ShouldBe("bar");
+            var classA = new ClassA<double> { Variable = 15 };
+            var classB = classA.Adapt<ClassB<int>>();
+
+            var result2 = classA.Adapt<ClassB<string>>();
         }
 
 
@@ -137,6 +141,9 @@ namespace Mapster.Async.Tests
             }.BuildAdapter().AdaptToTypeAsync<DtoOwner>();
         }
     }
+
+    class ClassA<T> { public T? Variable { get; set; } = default; }
+    class ClassB<T> { public T? Variable2 { get; set; } = default; }
 
     public class Poco
     {

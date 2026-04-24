@@ -4,10 +4,11 @@
     <TargetFrameworks>net10.0;net9.0;net8.0</TargetFrameworks>
 	<IsTestProject>true</IsTestProject>
     <IsPackable>false</IsPackable>
+    <LangVersion>11.0</LangVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(OS)' == 'Windows_NT' ">
-    <TargetFrameworks>$(TargetFrameworks);net48</TargetFrameworks>
+    
   </PropertyGroup>
 
   <ItemGroup>
@@ -20,6 +21,14 @@
   <ItemGroup>
     <ProjectReference Include="..\Mapster.Async\Mapster.Async.csproj" />
     <ProjectReference Include="..\Mapster\Mapster.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Analyzer Include="..\..\..\MapsterMapper\Mapster.Compile\src\Mapster.ConfigAnalyzer\Mapster.ConfigAnalyzer\bin\Release\netstandard2.0\Mapster.ConfigAnalyzer.dll">
+      <HintPath>..\..\..\MapsterMapper\Mapster.Compile\src\Mapster.ConfigAnalyzer\Mapster.ConfigAnalyzer\bin\Release\netstandard2.0\Mapster.ConfigAnalyzer.dll</HintPath>
+		<ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+		<OutputItemType>Analyzer</OutputItemType>
+	</Analyzer>
   </ItemGroup>
 
 </Project>

@@ -271,6 +271,10 @@ namespace Mapster
 
             //generic type definition
             int score = 35;
+
+            if (type1 != null && type2.IsOpenGenericType())
+                return score;
+
             if (type2.GetTypeInfo().IsGenericTypeDefinition)
             {
                 while (type1 != null && type1.GetTypeInfo().IsGenericType && type1.GetGenericTypeDefinition() != type2)
@@ -656,7 +660,7 @@ namespace Mapster
             {
                 try
                 {
-                    if (key.Source == typeof(void))
+                    if (key.Source == typeof(void) /*|| key.Source.IsOpenGenericType() || key.Destination.IsOpenGenericType()*/)
                         continue;
 
                     _mapDict[key] = Compiler(CreateMapExpression(key, MapType.Map));

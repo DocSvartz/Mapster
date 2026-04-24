@@ -428,7 +428,8 @@ namespace Mapster
         public static bool IsOpenGenericType(this Type type)
         {
             if(type.IsGenericType)
-               return type.GetGenericArguments().All(x=>x.GUID == Guid.Empty);
+               return type.GetGenericArguments().All(x=>x.GUID == Guid.Empty) 
+                    || type.GetGenericArguments().All(x=> x == typeof(IOpenGeneric));
 
             return false;
         }
