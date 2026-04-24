@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Mapster.Models;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Shouldly;
 
 namespace Mapster.Tests
@@ -75,6 +76,27 @@ namespace Mapster.Tests
             ((DerivedDto<int>)dto).derivedValue.ShouldBe(poco.DerivedValue);
         }
 
+        [TestMethod]
+        public void WhenMapIOpenGenericSettingsWorked()
+        {
+            var config = new TypeAdapterConfig();
+
+            config
+                .NewConfig<ClassA<IOpenGeneric>, ClassB<IOpenGeneric>>()
+                .Map(dest => dest.Variable2, src => src.Variable);
+
+            config.Compile();
+
+            var classA = new ClassA<int> { Variable = 15 };
+
+            var classB = classA.Adapt<ClassB<int>>(config);
+            var result2 = classA.Adapt<ClassA<int>, ClassB<string>>(config);
+
+            classB.Variable2.ShouldBe(15);
+            result2.Variable2.ShouldBe("15");
+        }
+
+
         public class DerivedPoco<T> : GenericPoco<T>
         {
             public T DerivedValue { get; set; }
@@ -100,5 +122,7 @@ namespace Mapster.Tests
         class B<T> { public string BProperty { get; set; } }
 
         class C { public string BProperty { get; set; } }
+        class ClassA<T> { public T? Variable { get; set; } = default; }
+        class ClassB<T> { public T? Variable2 { get; set; } = default; }
     }
 }
