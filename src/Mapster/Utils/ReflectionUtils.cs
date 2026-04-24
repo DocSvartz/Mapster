@@ -53,6 +53,9 @@ namespace Mapster
 
         public static bool IsPoco(this Type type)
         {
+            if (type.IsCustomOpenGenericType())
+                return true;
+
             //not nullable
             if (type.IsNullable())
                 return false;
@@ -428,7 +431,16 @@ namespace Mapster
         public static bool IsOpenGenericType(this Type type)
         {
             if(type.IsGenericType)
-               return type.GetGenericArguments().All(x=>x.GUID == Guid.Empty);
+               return type.GetGenericArguments().All(x=>x.GUID == Guid.Empty)
+                    || type.GetGenericArguments().All(x => x.IsCustomOpenGenericType());
+
+            return false;
+        }
+
+        public static bool IsCustomOpenGenericType(this Type type)
+        {
+            if (type == typeof(IOpenGeneric))
+                return true;
 
             return false;
         }

@@ -81,7 +81,7 @@ namespace Mapster.Utils
                 }
             }
 
-            if (propCount == 0)
+            if (propCount == 0 && !interfaceType.IsCustomOpenGenericType())
                 throw new InvalidOperationException($"No default constructor for type '{interfaceType.Name}', please use 'ConstructUsing' or 'MapWith'");
 
             if (hasReadonlyProps)

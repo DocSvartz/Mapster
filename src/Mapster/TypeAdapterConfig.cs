@@ -269,6 +269,12 @@ namespace Mapster
             if (type1 == type2)
                 return 50;
 
+            if(type1 != null && type1.IsConstructedGenericType && type2.IsOpenGenericType())
+            {
+               if(type1.GetGenericTypeDefinition() == type2.GetGenericTypeDefinition())
+                    return 35;
+            }
+
             //generic type definition
             int score = 35;
             if (type2.GetTypeInfo().IsGenericTypeDefinition)
