@@ -15,7 +15,7 @@ namespace Mapster.Adapters
 
         protected override bool CanInline(Expression source, Expression? destination, CompileArgument arg)
         {
-            if (base.CanInline(source, destination, arg))
+            if (base.CanInline(source, destination, arg) || arg.DestinationType.GetFieldsAndProperties().Any(p => p.SetterModifier != AccessModifier.Public))
                 return true;
             else
                 return false;
@@ -64,5 +64,12 @@ namespace Mapster.Adapters
             return base.CreateExpressionBody(source, destination, arg);
         }
 
+        protected override Expression? CreateInlineExpression(Expression source, CompileArgument arg, bool IsRequiredOnly = false)
+        {
+            if (arg.DestinationType.GetFieldsAndProperties().Any(p => p.SetterModifier != AccessModifier.Public))
+                return CreateInstantiationExpression(source, arg);
+
+            return base.CreateInlineExpression(source, arg, IsRequiredOnly);
+        }
     }
 }
