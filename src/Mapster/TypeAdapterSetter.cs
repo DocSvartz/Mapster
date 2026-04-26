@@ -282,6 +282,12 @@ namespace Mapster
                     throw new InvalidCastException("In order to use inherits, TSource must be inherited from TBaseSource.");
                 if (!destType.IsAssignableToGenericType(baseDestinationType))
                     throw new InvalidCastException("In order to use inherits, TDestination must be inherited from TBaseDestination.");
+
+                TypeAdapterRule getDerivedTypeSettings;
+                setter.Config.RuleMap.TryGetValue(new TypeTuple(sourceType, destType), out getDerivedTypeSettings);
+
+                if(getDerivedTypeSettings != null)
+                    getDerivedTypeSettings.Settings.Apply(setter.Settings);
             }
             else
             {

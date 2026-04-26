@@ -1,6 +1,8 @@
 ﻿using Mapster.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Shouldly;
+using System.Collections.Generic;
+using static Mapster.Tests.WhenMappingWithOpenGenerics;
 
 namespace Mapster.Tests
 {
@@ -74,6 +76,7 @@ namespace Mapster.Tests
 
             ((DerivedDto<int>)dto).value.ShouldBe(poco.Value);
             ((DerivedDto<int>)dto).derivedValue.ShouldBe(poco.DerivedValue);
+
         }
 
         [TestMethod]
@@ -96,6 +99,51 @@ namespace Mapster.Tests
             result2.Variable2.ShouldBe("15");
         }
 
+        [TestMethod]
+        public void MapIOpenGenericsUseInherits()
+        {
+            var config = new TypeAdapterConfig();
+            config
+                .NewConfig<GenericPoco<IOpenGeneric>, GenericDto<IOpenGeneric>>()
+                .Map(dest => dest.value, src => src.Value);
+
+            config
+                .NewConfig<DerivedPoco<IOpenGeneric>, DerivedDto<IOpenGeneric>>()
+                .Map(dest => dest.derivedValue, src => src.DerivedValue)
+                .Inherits<GenericPoco<IOpenGeneric>, GenericDto<IOpenGeneric>>();
+
+            config.Compile();
+
+            var poco = new DerivedPoco<int> { Value = 123, DerivedValue = 42 };
+            var dto = poco.Adapt<DerivedDto<int>>(config);
+            dto.value.ShouldBe(poco.Value);
+            dto.derivedValue.ShouldBe(poco.DerivedValue);
+        }
+
+        [TestMethod]
+        public void MapIOpenGenericsUseInclude()
+        {
+            var config = new TypeAdapterConfig();
+           
+            config
+                .NewConfig<DerivedPoco<IOpenGeneric>, DerivedDto<IOpenGeneric>>()
+                .Map(dest => dest.derivedValue, src => src.DerivedValue);
+
+            config
+                .NewConfig<GenericPoco<IOpenGeneric>, GenericDto<IOpenGeneric>>()
+                .Map(dest => dest.value, src => src.Value)
+                .Include<DerivedPoco<IOpenGeneric>, DerivedDto<IOpenGeneric>>();
+
+            config.Compile();
+
+            var poco = new DerivedPoco<int> { Value = 123, DerivedValue = 42 };
+
+            var dto = poco.Adapt<GenericPoco<IOpenGeneric>, GenericDto<IOpenGeneric>>(config);
+
+            dto.ShouldBeOfType<DerivedDto<int>>();
+            ((DerivedDto<int>)dto).value.ShouldBe(poco.Value);
+            ((DerivedDto<int>)dto).derivedValue.ShouldBe(poco.DerivedValue);
+        }
 
         public class DerivedPoco<T> : GenericPoco<T>
         {
@@ -124,5 +172,41 @@ namespace Mapster.Tests
         class C { public string BProperty { get; set; } }
         class ClassA<T> { public T? Variable { get; set; } = default; }
         class ClassB<T> { public T? Variable2 { get; set; } = default; }
+    }
+
+
+    public static class adaptHelper
+    {
+        public static object? AdaptOpenGEneric<TSource,TDestination>(this object source, TypeAdapterConfig config)
+        {
+            if (typeof(TSource).IsOpenGenericType() && typeof(TDestination).IsOpenGenericType())
+            {
+                TypeAdapterRule rule;
+                    config.RuleMap.TryGetValue(new TypeTuple(typeof(TSource), typeof(TDestination)), out rule);
+
+                if(rule != null)
+                {
+                    foreach (var item in rule.Settings.Includes)
+                    {
+                        if (source.GetType().GetGenericTypeDefinition().BaseType.IsAssignableFrom(item.Source.GetGenericTypeDefinition().BaseType))
+                        {
+
+                            TypeAdapterRule getCurrentSettings;
+                                config.RuleMap.TryGetValue(new TypeTuple(source.GetType().GetGenericTypeDefinition().MakeGenericType(rule.Settings.SourceType.GetGenericArguments()), item.Destination.GetGenericTypeDefinition().MakeGenericType(rule.Settings.DestinationType.GenericTypeArguments)), out getCurrentSettings);
+
+                            if (rule != null)
+                                getCurrentSettings.Settings.Apply(rule.Settings);
+
+
+                            return source.Adapt(source.GetType(), item.Destination.GetGenericTypeDefinition().MakeGenericType(source.GetType().GenericTypeArguments), config);
+                        }
+                    }
+                }
+            }
+
+
+            return new object();
+        } 
+
     }
 }

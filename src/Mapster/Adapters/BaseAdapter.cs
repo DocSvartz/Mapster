@@ -160,9 +160,9 @@ namespace Mapster.Adapters
                 if (tuple.Source.IsOpenGenericType() && tuple.Destination.IsOpenGenericType())
                 {
                     var genericArg = source.Type.GetGenericArguments();
-                    itemTuple = new TypeTuple(tuple.Source.MakeGenericType(genericArg), tuple.Destination.MakeGenericType(genericArg));
+                    itemTuple = new TypeTuple(tuple.Source.GetGenericTypeDefinition().MakeGenericType(genericArg), tuple.Destination.GetGenericTypeDefinition().MakeGenericType(genericArg));
                 }
-                   
+               
                 //same type, no redirect to prevent endless loop
                 if (itemTuple.Source == arg.SourceType)
                     continue;
@@ -170,7 +170,7 @@ namespace Mapster.Adapters
                 //type is not compatible, no redirect
                 if (!arg.SourceType.GetTypeInfo().IsAssignableFrom(itemTuple.Source.GetTypeInfo()))
                     continue;
-
+              
                 var drvdSource = Expression.Variable(itemTuple.Source);
                 vars.Add(drvdSource);
 

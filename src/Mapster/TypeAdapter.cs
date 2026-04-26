@@ -134,7 +134,7 @@ namespace Mapster
                 sourceType.IsOpenGenericType() && destinationType.IsOpenGenericType())
             {
                 var arg = source.GetType().GetGenericArguments();
-                return Adapt(source, sourceType.MakeGenericType(arg), destinationType.MakeGenericType(arg), TypeAdapterConfig.GlobalSettings);
+                return Adapt(source, sourceType.GetGenericTypeDefinition().MakeGenericType(arg), destinationType.GetGenericTypeDefinition().MakeGenericType(arg), TypeAdapterConfig.GlobalSettings);
             }
             return Adapt(source, sourceType, destinationType, TypeAdapterConfig.GlobalSettings);
         }
@@ -275,6 +275,26 @@ namespace Mapster
             configAction(setter);
             setter.Settings.Resolvers.Reverse();
             return source.Adapt<TDestination>(config);
+        }
+
+        /// <summary>
+        /// Adapter from mapping open generic type configured with IOpenGeneric proxy stub 
+        /// </summary>
+        /// <typeparam name="TSource"></typeparam>
+        /// <typeparam name="TDestination"></typeparam>
+        /// <param name="source"></param>
+        /// <param name="config"></param>
+        /// <returns></returns>
+        public static object? Adapt<TSource, TDestination>(this object source, TypeAdapterConfig? config = null)
+        {
+            var configure = config ?? TypeAdapterConfig.GlobalSettings;
+
+            if (source != null && typeof(TSource).IsOpenGenericType() && typeof(TDestination).IsOpenGenericType())
+            {
+                var arg = source.GetType().GetGenericArguments();
+                return Adapt(source, typeof(TSource).GetGenericTypeDefinition().MakeGenericType(arg), typeof(TDestination).GetGenericTypeDefinition().MakeGenericType(arg), configure);
+            }
+            return Adapt(source, typeof(TSource), typeof(TDestination), configure);
         }
     }
 
