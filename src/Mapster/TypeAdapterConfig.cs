@@ -656,7 +656,7 @@ namespace Mapster
             {
                 try
                 {
-                    if (key.Source == typeof(void))
+                    if (key.Source == typeof(void) || key.Source.IsOpenGenericType() || key.Destination.IsOpenGenericType())
                         continue;
 
                     _mapDict[key] = Compiler(CreateMapExpression(key, MapType.Map));
