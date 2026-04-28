@@ -204,6 +204,12 @@ namespace Mapster.Adapters
                 blocks.Add(ifExpr);
             }
 
+            /// fix https://github.com/MapsterMapper/Mapster/issues/928
+            /// Not create destination is abstract type if source is null
+            if (arg.DestinationType.IsAbstract)
+                blocks.Add(Expression.IfThen(Expression.Equal(source, Expression.Constant(null, arg.SourceType)), 
+                    Expression.Return(label, Expression.Default(arg.DestinationType))));
+
             //new TDest();
             Expression transformedSource = source;
             var transform = TransformSource(source);
