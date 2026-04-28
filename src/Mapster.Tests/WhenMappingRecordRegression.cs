@@ -539,6 +539,40 @@ namespace Mapster.Tests
             resultJ.RootElement.GetProperty("key").ToString().ShouldBe("value");
         }
 
+        /// <summary>
+        /// https://github.com/MapsterMapper/Mapster/issues/927
+        /// </summary>
+        [TestMethod]
+        public void MappingToReadOnlyInterfaceUsingIgnoreNulValuesWithoutError()
+        {
+            var config = new TypeAdapterConfig();
+            config
+                .NewConfig<IDto927, IDomain934>()
+                .IgnoreNullValues(true);
+
+            Should.NotThrow(() => {
+
+                config.Compile();
+            });
+        }
+
+        /// <summary>
+        /// https://github.com/MapsterMapper/Mapster/issues/927
+        /// </summary>
+        [TestMethod]
+        public void MappingToReadOnlyRecordUsingIgnoreNulValuesWithoutError()
+        {
+            var config = new TypeAdapterConfig();
+            config
+                .NewConfig<IDto927, Domain927>()
+                .IgnoreNullValues(true);
+
+            Should.NotThrow(() => {
+
+                config.Compile();
+            });
+        }
+
         #region NowNotWorking
 
         /// <summary>
@@ -991,6 +1025,27 @@ namespace Mapster.Tests
     class InsiderWithCtorDestYx
     {
         public AutoCtorDestYx X { set; get; }
+    }
+
+    public interface IDto927
+    {
+        string Id { get; set; }
+        string Value { get; set; }
+        IList<string> ValueList { get; set; }
+    }
+
+    public interface IDomain934
+    {
+        string Id { get; }
+        string Value { get; }
+        IList<string> ValueList { get; }
+    }
+
+    public record Domain927
+    {
+        string Id { get; }
+        string Value { get; }
+        IList<string> ValueList { get; }
     }
 
     #endregion TestClasses
