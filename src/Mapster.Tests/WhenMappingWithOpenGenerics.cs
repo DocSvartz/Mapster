@@ -25,6 +25,8 @@ namespace Mapster.Tests
                 .NewConfig(typeof(A<>), typeof(B<>))
                 .Map("BProperty", "AProperty");
 
+            config.Compile(); // is not throw exception
+
             var a = new A<C> { AProperty = "A" };
             var c = new C { BProperty = "C" };
             var b = a.Adapt<B<C>>(config); // successful mapping

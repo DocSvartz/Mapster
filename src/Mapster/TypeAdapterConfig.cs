@@ -659,6 +659,19 @@ namespace Mapster
                     if (key.Source == typeof(void))
                         continue;
 
+                    if (key.Source.ContainsGenericParameters || key.Destination.ContainsGenericParameters)
+                    {
+                        var checkKey = new TypeTuple(
+                            key.Source.IsGenericType ? key.Source.GetGenericTypeDefinition().MakeGenericType(typeof(object)) : key.Source,
+                            key.Destination.IsGenericType ? key.Destination.GetGenericTypeDefinition().MakeGenericType(typeof(object)) : key.Destination
+                            );
+
+                        Compiler(CreateMapExpression(checkKey, MapType.Map));
+                        Compiler(CreateMapExpression(checkKey, MapType.MapToTarget));
+
+                        continue;
+                    }
+
                     _mapDict[key] = Compiler(CreateMapExpression(key, MapType.Map));
                     _mapToTargetDict[key] = Compiler(CreateMapExpression(key, MapType.MapToTarget));
                 }
