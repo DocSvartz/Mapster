@@ -261,7 +261,8 @@ namespace Mapster.Adapters
                 else
                 {
                     // IgnoreNullValues to Map type mapping
-                    if(arg.MapType == MapType.Map && arg.Settings.IgnoreNullValues == true && member.Getter.CanBeNull())
+                    if(arg.MapType == MapType.Map && arg.Settings.IgnoreNullValues == true && member.Getter.CanBeNull()
+                        && member.DestinationMember.SetterModifier != AccessModifier.None)
                     {
                         var adapt = CreateAdaptExpression(member.Getter, member.DestinationMember.Type, arg, member);
 
