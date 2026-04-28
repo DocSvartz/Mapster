@@ -140,7 +140,8 @@ namespace Mapster.Adapters
               
                 if (!member.UseDestinationValue)
                 {
-                    if (arg.Settings.IgnoreNullValues == true && member.Getter.CanBeNull())
+                    if (arg.Settings.IgnoreNullValues == true && member.Getter.CanBeNull() 
+                        && member.DestinationMember.SetterModifier != AccessModifier.None)
                     {
                         if (adapt is ConditionalExpression condEx)
                         {
