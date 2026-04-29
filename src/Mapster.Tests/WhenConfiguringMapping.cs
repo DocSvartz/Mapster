@@ -142,9 +142,9 @@ namespace Mapster.Tests
             obj.Name = "Tim";
             obj.Child = new TestNewInstanceF() { Name = "Kıvanç" };
 
-            TypeAdapterConfig<TestNewInstanceD, TestNewInstanceE>
+                TypeAdapterConfig<TestNewInstanceD, TestNewInstanceE>
                 .NewConfig()
-                .ShallowCopyForSameType(true);
+                .ShallowCopyForSameType(true); 
 
             var newObj2 = TypeAdapter.Adapt<TestNewInstanceD, TestNewInstanceE>(obj);
 

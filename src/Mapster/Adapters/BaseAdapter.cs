@@ -495,10 +495,13 @@ namespace Mapster.Adapters
             if (_source.Type == destinationType && arg.MapType == MapType.Projection)
                 return _source;
 
+            TypeAdapterRule? rule;
+            arg.Context.Config.RuleMap.TryGetValue(new TypeTuple(_source.Type, destinationType), out rule);
+
             //adapt(_source);
             var notUsingDestinationValue = mapping is not { UseDestinationValue: true };
-            var exp = _source.Type == destinationType && arg.Settings.ShallowCopyForSameType == true && notUsingDestinationValue &&
-                      !arg.Context.Config.HasRuleFor(_source.Type, destinationType)
+            var exp = _source.Type == destinationType && notUsingDestinationValue
+                && arg.IsShallowCopyForSameTypeEnable(rule) && arg.IsNotCustomConverterFactory(rule)
                 ? _source
                 : CreateAdaptExpressionCore(_source, destinationType, arg, mapping, destination);
 
