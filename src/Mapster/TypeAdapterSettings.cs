@@ -39,11 +39,18 @@ namespace Mapster
             get => Get(nameof(PreserveReference));
             set => Set(nameof(PreserveReference), value);
         }
+        public bool? DirectAssignmentForSameType
+        {
+            get => Get(nameof(DirectAssignmentForSameType));
+            set => Set(nameof(DirectAssignmentForSameType), value);
+        }
+
         public bool? ShallowCopyForSameType
         {
             get => Get(nameof(ShallowCopyForSameType));
             set => Set(nameof(ShallowCopyForSameType), value);
         }
+
         public bool? IgnoreNullValues
         {
             get => Get(nameof(IgnoreNullValues));

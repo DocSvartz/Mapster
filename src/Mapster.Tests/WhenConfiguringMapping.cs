@@ -142,9 +142,9 @@ namespace Mapster.Tests
             obj.Name = "Tim";
             obj.Child = new TestNewInstanceF() { Name = "Kıvanç" };
 
-            TypeAdapterConfig<TestNewInstanceD, TestNewInstanceE>
+                TypeAdapterConfig<TestNewInstanceD, TestNewInstanceE>
                 .NewConfig()
-                .ShallowCopyForSameType(true);
+                .ShallowCopyForSameType(true); 
 
             var newObj2 = TypeAdapter.Adapt<TestNewInstanceD, TestNewInstanceE>(obj);
 
@@ -155,6 +155,28 @@ namespace Mapster.Tests
 
             Assert.IsTrue(newObj2.Child.Name == "Antalya");
         }
+
+        [TestMethod]
+        public void WhenDirectAssignmentForSameTypeConfigurate()
+        {
+            TestNewInstanceD obj = new TestNewInstanceD();
+            obj.Name = "Tim";
+            obj.Child = new TestNewInstanceF() { Name = "Kıvanç" };
+
+            var config = new TypeAdapterConfig();
+            config.NewConfig<TestNewInstanceF, TestNewInstanceF>()
+            .DirectAssignmentForSameType(true);
+
+            var newObj2 = TypeAdapter.Adapt<TestNewInstanceD, TestNewInstanceE>(obj, config);
+
+            Assert.IsTrue(newObj2.Name == "Tim");
+            Assert.IsTrue(obj.Child.Name == newObj2.Child.Name);
+
+            obj.Child.Name = "Antalya";
+
+            Assert.IsTrue(newObj2.Child.Name == "Antalya");
+        }
+
 
         #region Data
 
