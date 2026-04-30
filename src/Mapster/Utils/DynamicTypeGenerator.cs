@@ -52,7 +52,7 @@ namespace Mapster.Utils
             return _generated.GetOrAdd(interfaceType, CreateTypeForInterface);
         }
 
-        public static Type GetTypeWitInterface(Type parentType, Type? interfaceType)
+        public static Type GetTypeWitInterface(Type parentType, IEnumerable<Type>? interfaceType)
         {
             if (parentType.IsValueType || parentType == typeof(ValueType))
                 return CreateParentTypeWithInterface(parentType, interfaceType);
@@ -185,7 +185,7 @@ namespace Mapster.Utils
             builder.DefineMethodOverride(classMethod, interfaceMethod);
         }
 
-        private static Type CreateParentTypeWithInterface(Type parentType, Type? interfaceType)
+        private static Type CreateParentTypeWithInterface(Type parentType, IEnumerable<Type> interfaceTypes)
         {
             TypeBuilder builder;
 
@@ -203,13 +203,13 @@ namespace Mapster.Utils
             }
 
 
-            if(interfaceType != null)
+            if(interfaceTypes != null)
             {
                 var args = new List<FieldBuilder>();
                 int propCount = 0;
                 var hasReadonlyProps = false;
 
-                foreach (Type currentInterface in interfaceType.GetAllInterfaces())
+                foreach (Type currentInterface in interfaceTypes)
                 {
                     builder.AddInterfaceImplementation(currentInterface);
                     foreach (PropertyInfo prop in currentInterface.GetProperties())

@@ -81,57 +81,76 @@ public static class TypeAdapterConfigExtensions
                     genericParams.Add(typeof(int));
                     continue;
                 }
+                if (constraints[i].Length == 1 && constraints[i][0].IsClass)
+                {
+                    if (constraints[i][0].IsAbstract)
+                    {
+                        genericParams.Add(DynamicTypeGenerator.GetTypeWitInterface(typeof(ValueType), null));
+                        continue;
+                    }
+                        
+
+                    genericParams.Add(constraints[i][0]);
+                    continue;
+                }
+
 
                 if (constraints[i].Any(x => x == typeof(ValueType)))
                 {
-                    var cInterface = constraints[i].FirstOrDefault(x => x.IsInterface);
+                    var cInterface = constraints[i].Where(x => x.IsInterface)
+                        .GetFlattenedUniqueInterfaces();
 
                     genericParams.Add(DynamicTypeGenerator.GetTypeWitInterface(typeof(ValueType), cInterface));
                     continue;
                 }
+
+
+
                 else
                 {
-                    var cClass = constraints[i].FirstOrDefault(x => x.IsClass);
-                    var cInterface = constraints[i].FirstOrDefault(x => x.IsInterface);
+                    //var cClass = constraints[i].FirstOrDefault(x => x.IsClass);
+                    //var cInterface = constraints[i].Where(x => x.IsInterface)
+                    //    .SelectMany(type => type.GetAllInterfaces())
+                    //    .Distinct();
 
 
-                    if ((cInterface?.IsAssignableFrom(cClass)).GetValueOrDefault())
-                    {
-                        if (cClass.IsAbstract)
-                        {
-                            genericParams.Add(DynamicTypeGenerator.GetTypeWitInterface(cClass, cInterface));
-                            continue;
-                        }
+                    //if ((cInterface?.IsAssignableFrom(cClass)).GetValueOrDefault())
+                    //{
+                    //    if (cClass.IsAbstract)
+                    //    {
+                    //        genericParams.Add(DynamicTypeGenerator.GetTypeWitInterface(cClass, cInterface));
+                    //        continue;
+                    //    }
 
-                        genericParams.Add(cClass);
-                        continue;
-                    }
-                    else if (cClass != null && cInterface == null && cClass.IsVisible)
-                    {
-                        if (cClass.IsAbstract)
-                        {
-                            genericParams.Add(DynamicTypeGenerator.GetTypeWitInterface(cClass, cInterface));
-                            continue;
-                        }
+                    //    genericParams.Add(cClass);
+                    //    continue;
+                    //}
+                    //else if (cClass != null && cInterface == null && cClass.IsVisible)
+                    //{
+                    //    if (cClass.IsAbstract)
+                    //    {
+                    //        genericParams.Add(DynamicTypeGenerator.GetTypeWitInterface(cClass, cInterface));
+                    //        continue;
+                    //    }
 
-                        genericParams.Add(cClass);
-                        continue;
-                    }
-                    else if (cInterface != null && cClass != null && cInterface.IsVisible)
-                    {
-                        genericParams.Add(DynamicTypeGenerator.GetTypeWitInterface(cClass, cInterface));
-                        continue;
-                    }
-                    else if (cInterface != null && cClass == null)
-                    {
-                        if (!cInterface.IsVisible)
-                            return (false, null);
+                    //    genericParams.Add(cClass);
+                    //    continue;
+                    //}
+                    //else if (cInterface != null && cClass != null && cInterface.IsVisible)
+                    //{
+                    //    genericParams.Add(DynamicTypeGenerator.GetTypeWitInterface(cClass, cInterface));
+                    //    continue;
+                    //}
+                    //else if (cInterface != null && cClass == null)
+                    //{
+                    //    if (!cInterface.IsVisible)
+                    //        return (false, null);
 
-                        genericParams.Add(cInterface);
-                        continue;
-                    }
+                    //    genericParams.Add(cInterface);
+                    //    continue;
+                    //}
                     
-                    else
+                    //else
                         return (false, null);
                 }
             }
@@ -169,10 +188,9 @@ public static class TypeAdapterConfigExtensions
                     if(NotParentClases.Count() == 1)
                     {
                         Type resultType = NotParentClases.First();
-                        foreach (var iresult in maxParentInterfaces)
-                        {
-                            resultType = DynamicTypeGenerator.GetTypeWitInterface(resultType, iresult);
-                        }
+                       
+                        resultType = DynamicTypeGenerator.GetTypeWitInterface(resultType, maxParentInterfaces.GetFlattenedUniqueInterfaces());
+                       
 
                         genericParams[item.Index] = resultType;
                     }
@@ -186,7 +204,46 @@ public static class TypeAdapterConfigExtensions
     }
 
 
-   
+
+    public static IEnumerable<Type> GetFlattenedUniqueInterfaces(this IEnumerable<Type> interfaces)
+    {
+        if (interfaces == null) yield break;
+
+        var visited = new HashSet<Type>(new GenericTypeDefinitionComparer());
+
+        foreach (var startingInterface in interfaces)
+        {
+          
+            if (!visited.Add(startingInterface))
+                continue;
+
+            var queue = new Queue<Type>();
+            queue.Enqueue(startingInterface);
+
+            while (queue.Count > 0)
+            {
+                var current = queue.Dequeue();
+
+               
+                yield return current;
+
+            
+                foreach (var nestedInterface in current.GetInterfaces())
+                {
+              
+                    if (visited.Add(nestedInterface))
+                    {
+                        queue.Enqueue(nestedInterface);
+                    }
+                }
+            }
+        }
+    }
+
+
+
+
+
     internal static void ForDestinationTypeRegsiter(this TypeAdapterConfig cfg, Type[] destTypes)
     {
         foreach (var item in destTypes)
@@ -194,4 +251,21 @@ public static class TypeAdapterConfigExtensions
             cfg.ForDestinationType(item).DirectAssignmentForSameType(true);
         }
     }
+
+
+    public class GenericTypeDefinitionComparer : IEqualityComparer<Type>
+    {
+        public bool Equals(Type? x, Type? y)
+        {
+            if (x == null || y == null) return false;
+            if (x.IsGenericType && y.IsGenericType)
+            {
+                return x.GetGenericTypeDefinition() == y.GetGenericTypeDefinition();
+            }
+            return x == y;
+        }
+        public int GetHashCode(Type obj) => (obj.IsGenericType ? obj.GetGenericTypeDefinition() : obj).GetHashCode();
+    }
+
+
 }
