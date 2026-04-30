@@ -139,12 +139,12 @@ public static class TypeAdapterConfigExtensions
         }
 
 
-        if(ConstraintsWithConstrain.Count != 0)
+        if (ConstraintsWithConstrain.Count != 0)
         {
             foreach (var item in ConstraintsWithConstrain)
             {
                 var result = item.RefOthetConstr
-                    .Where(i =>  i >= 0 && i < genericParams.Count)
+                    .Where(i => i >= 0 && i < genericParams.Count)
                     .Select(i => genericParams[i])
                     .Concat(item.ExtConstrains).ToList();
 
@@ -152,57 +152,30 @@ public static class TypeAdapterConfigExtensions
                     genericParams[item.Index] = result[0];
                 else
                 {
+                    var NotParentClases = result.Where(x => x.IsClass)
+                                                    .Except(result.Where(x => x.IsClass && x.BaseType == typeof(object)));
+                    var maxParentInterfaces = result.Where(x => x.IsInterface)
+                                                    .GroupBy(i => i.GetInterfaces().Length)
+                                                    .OrderByDescending(g => g.Key)
+                                                    .First().ToList();
 
-                    if(result.Any(x=>x.IsInterface) || result.Any(x => x.IsClass))
+                    var clasesImplimented = NotParentClases
+                        .Where(classType =>
+                         maxParentInterfaces
+                         .Any(interfaceType => interfaceType.IsAssignableFrom(classType)));
+
+                    
+
+                    if(NotParentClases.Count() == 1)
                     {
-                        var onlyInterface = result.Where(x => x.IsInterface);
-                        var onlyClass = result.Where(x => x.IsClass);
-
-
-                        if(result.Any(x => x.IsInterface) && result.Any(x => x.IsClass))
+                        Type resultType = NotParentClases.First();
+                        foreach (var iresult in maxParentInterfaces)
                         {
-                            foreach (var Interface in onlyInterface)
-                            {
-                                foreach (var res in result)
-                                {
-                                    if (Interface.IsAssignableFrom(res) && Interface != res)
-                                    {
-                                        genericParams[item.Index] = res;
-                                        continue;
-                                    }
-
-                                }
-
-                            }
-
-                            if (genericParams[item.Index] == typeof(Never))
-                                genericParams[item.Index] = DynamicTypeGenerator.GetTypeWitInterface(result.First(x => x.IsClass), result.FirstOrDefault(x => x.IsInterface));
-
+                            resultType = DynamicTypeGenerator.GetTypeWitInterface(resultType, iresult);
                         }
-                        else if(onlyClass.Any())
-                        {
-                            foreach (var classItem in onlyClass)
-                            {
-                                foreach (var res in result)
-                                {
-                                    if (classItem.IsAssignableFrom(res) && classItem != res)
-                                    {
-                                        genericParams[item.Index] = res;
-                                        continue;
-                                    }
 
-                                }
-                            }
-
-                            if (genericParams[item.Index] == typeof(Never))
-                                genericParams[item.Index] = DynamicTypeGenerator.GetTypeWitInterface(result.First(x => x.IsClass), result.FirstOrDefault(x => x.IsInterface));
-                        }
-                        else
-                            return (false, null);
-
+                        genericParams[item.Index] = resultType;
                     }
-                    else
-                        return (false, null);
 
                 }
             }
