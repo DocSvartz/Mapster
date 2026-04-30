@@ -73,8 +73,11 @@ public static class TypeAdapterConfigExtensions
                         genericParams.Add(cClass);
                         continue;
                     }
-                    else if(cInterface != null && cInterface.IsVisible)
+                    else if(cInterface != null && cClass == null)
                     {
+                        if(!cInterface.IsVisible)
+                            return (false, null);
+
                         genericParams.Add(cInterface);
                         continue;
                     }
