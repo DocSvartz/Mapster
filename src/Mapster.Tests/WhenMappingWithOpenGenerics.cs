@@ -53,16 +53,27 @@ namespace Mapster.Tests
         }
 
         public class DerivedPoco<T,X,Y>
-            where T : class
-            where X : T
-            where Y : new()
-        {
+            where T : A1
+            where X : C1,T, Y
+            where Y : IActivityDataBase
+        { 
            public T A { get; set; }
            public X B { get; set; }
            
            public Y C { get; set; }
         }
 
+
+        public class A1{ }
+
+        public class B1 { }
+
+        public class C1 : A1 { } 
+
+        public struct Mystruct
+        {
+
+        }
                
         public abstract class Activitybase
         {
