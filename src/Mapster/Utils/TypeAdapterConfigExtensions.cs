@@ -89,7 +89,6 @@ public static class TypeAdapterConfigExtensions
                         continue;
                     }
                         
-
                     genericParams.Add(constraints[i][0]);
                     continue;
                 }
@@ -104,59 +103,19 @@ public static class TypeAdapterConfigExtensions
                     continue;
                 }
 
-
-
-                else
+                if (constraints[i].Any(x => x.IsClass))
                 {
-                    //var cClass = constraints[i].FirstOrDefault(x => x.IsClass);
-                    //var cInterface = constraints[i].Where(x => x.IsInterface)
-                    //    .SelectMany(type => type.GetAllInterfaces())
-                    //    .Distinct();
+                    var classConstraint = constraints[i].First(x=> x.IsClass);
 
+                    var cInterface = constraints[i].Where(x => x.IsInterface)
+                        .GetFlattenedUniqueInterfaces();
 
-                    //if ((cInterface?.IsAssignableFrom(cClass)).GetValueOrDefault())
-                    //{
-                    //    if (cClass.IsAbstract)
-                    //    {
-                    //        genericParams.Add(DynamicTypeGenerator.GetTypeWitInterface(cClass, cInterface));
-                    //        continue;
-                    //    }
-
-                    //    genericParams.Add(cClass);
-                    //    continue;
-                    //}
-                    //else if (cClass != null && cInterface == null && cClass.IsVisible)
-                    //{
-                    //    if (cClass.IsAbstract)
-                    //    {
-                    //        genericParams.Add(DynamicTypeGenerator.GetTypeWitInterface(cClass, cInterface));
-                    //        continue;
-                    //    }
-
-                    //    genericParams.Add(cClass);
-                    //    continue;
-                    //}
-                    //else if (cInterface != null && cClass != null && cInterface.IsVisible)
-                    //{
-                    //    genericParams.Add(DynamicTypeGenerator.GetTypeWitInterface(cClass, cInterface));
-                    //    continue;
-                    //}
-                    //else if (cInterface != null && cClass == null)
-                    //{
-                    //    if (!cInterface.IsVisible)
-                    //        return (false, null);
-
-                    //    genericParams.Add(cInterface);
-                    //    continue;
-                    //}
-                    
-                    //else
-                        return (false, null);
+                    genericParams.Add(DynamicTypeGenerator.GetTypeWitInterface(classConstraint, cInterface));
+                    continue;
                 }
             }
 
         }
-
 
         if (ConstraintsWithConstrain.Count != 0)
         {
