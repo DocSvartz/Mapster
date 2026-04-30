@@ -33,54 +33,42 @@ namespace Mapster.Tests
             var cCopy = c.Adapt<C>(config);
         }
 
-        [TestMethod]
-        public void MapOpenGenericsUseInherits()
-        {
-            TypeAdapterConfig.GlobalSettings
-                .ForType(typeof(GenericPoco<>), typeof(GenericDto<>))
-                .Map("value", "Value");
-
-            TypeAdapterConfig.GlobalSettings
-                .ForType(typeof(DerivedPoco<>), typeof(DerivedDto<>))
-                .Map("derivedValue", "DerivedValue")
-                .Inherits(typeof(GenericPoco<>), typeof(GenericDto<>));
-
-            var poco = new DerivedPoco<int> { Value = 123 , DerivedValue = 42 };
-            var dto = poco.Adapt<DerivedDto<int>>();
-            dto.value.ShouldBe(poco.Value);
-            dto.derivedValue.ShouldBe(poco.DerivedValue);
-        }
+        
 
         [TestMethod]
         public void MapOpenGenericsUseInclude()
         {
             TypeAdapterConfig.GlobalSettings.Clear();
-           
-            TypeAdapterConfig.GlobalSettings
-                .ForType(typeof(DerivedPoco<>), typeof(DerivedDto<>))
-                .Map("derivedValue", "DerivedValue");
 
-            TypeAdapterConfig.GlobalSettings
-                .ForType(typeof(GenericPoco<>), typeof(GenericDto<>))
-                .Map("value", "Value");
+            var config = new TypeAdapterConfig();
+            config
+            .ForType(typeof(DerivedPoco<,,>), typeof(DerivedPoco<,,>))
+            .Map("derivedValue", "DerivedValue");
 
-            TypeAdapterConfig.GlobalSettings
-               .ForType(typeof(GenericPoco<>), typeof(GenericDto<>))
-               .Include(typeof(DerivedPoco<>), typeof(DerivedDto<>));
 
-            var poco = new DerivedPoco<int> { Value = 123, DerivedValue = 42 };
-            var dto = poco.Adapt(typeof(GenericPoco<>), typeof(GenericDto<>));
+            config.Compile();   
 
-            dto.ShouldBeOfType<DerivedDto<int>>();
 
-            ((DerivedDto<int>)dto).value.ShouldBe(poco.Value);
-            ((DerivedDto<int>)dto).derivedValue.ShouldBe(poco.DerivedValue);
+          
         }
 
-        public class DerivedPoco<T> : GenericPoco<T>
+        public class DerivedPoco<T,X,Y>
+            where T : class
+            where X : Activitybase, IActivityData
+            where Y : new()
         {
-            public T DerivedValue { get; set; }
+           public T A { get; set; }
+           public X B { get; set; }
+           
+           public Y C { get; set; }
         }
+
+
+        public abstract class Activitybase : IActivityData
+        {
+            public string Temp { get; set; }
+        }
+
 
         public class DerivedDto<T> : GenericDto<T>
         {

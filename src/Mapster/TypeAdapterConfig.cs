@@ -651,6 +651,7 @@ namespace Mapster
         {
             var exceptions = new List<Exception>();
             var keys = RuleMap.Keys.ToList();
+            TypeAdapterConfig? tempcfg = null; 
 
             foreach (var key in keys)
             {
@@ -661,13 +662,26 @@ namespace Mapster
 
                     if (key.Source.ContainsGenericParameters || key.Destination.ContainsGenericParameters)
                     {
-                      var checkKey = new TypeTuple(
-                            key.Source.IsGenericType ? key.Source.GetGenericTypeDefinition().MakeGenericType(key.Source.GetGenericArguments().Select(x=>x.BaseType).ToArray()) : key.Source,
-                            key.Destination.IsGenericType ? key.Destination.GetGenericTypeDefinition().MakeGenericType(key.Destination.GetGenericArguments().Select(x => x.BaseType).ToArray()) : key.Destination
-                            );
+                        if (tempcfg == null)
+                            tempcfg = new TypeAdapterConfig();
 
-                        Compiler(CreateMapExpression(checkKey, MapType.Map));
-                        Compiler(CreateMapExpression(checkKey, MapType.MapToTarget));
+                        var sourceparams = key.Source.GetOpenGenericTypeParamsStubs();
+                        var destparams = key.Destination.GetOpenGenericTypeParamsStubs();
+
+                        if(sourceparams.isSuccess && destparams.isSuccess)
+                        {
+                            tempcfg.ForDestinationTypeRegsiter(sourceparams.Result);
+                            tempcfg.ForDestinationTypeRegsiter(destparams.Result);
+
+                            var checkKey = new TypeTuple(
+                                sourceparams.Result.Any() ? key.Source.GetGenericTypeDefinition().MakeGenericType(sourceparams.Result) : key.Source,
+                                destparams.Result.Any() ? key.Destination.GetGenericTypeDefinition().MakeGenericType(destparams.Result) : key.Destination
+                                );
+
+                            tempcfg.Compiler(CreateMapExpression(checkKey, MapType.Map));
+                            tempcfg.Compiler(CreateMapExpression(checkKey, MapType.MapToTarget));
+                        }
+                        
 
                         continue;
                     }
