@@ -54,7 +54,7 @@ namespace Mapster.Tests
 
         public class DerivedPoco<T,X,Y>
             where T : class
-            where X : Activitybase, IActivityData
+            where X : T
             where Y : new()
         {
            public T A { get; set; }
@@ -63,10 +63,10 @@ namespace Mapster.Tests
            public Y C { get; set; }
         }
 
-
-        public abstract class Activitybase : IActivityData
+               
+        public abstract class Activitybase
         {
-            public string Temp { get; set; }
+            public string Hello { get; set; }
         }
 
 

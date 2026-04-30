@@ -53,13 +53,30 @@ public static class TypeAdapterConfigExtensions
                     continue;
                 }
 
-                if(item.Length == 1 && item[0] == typeof(ValueType))
+                if (item.Any(x => x.IsGenericParameter))
+                    return (false, null);
+
+                if (item.Length == 1 && item[0] == typeof(ValueType))
                 {
                     genericParams.Add(typeof(int));
                     continue;
                 }
 
-                if (!item.Contains(typeof(ValueType)) && !item.Any(x=>x.IsGenericParameter))
+                if(item.Any(x => x == typeof(ValueType) || x.IsValueType))
+                {
+                    var cStruct = item.FirstOrDefault(x => x == typeof(ValueType) || x.IsValueType);
+                    var cInterface = item.FirstOrDefault(x => x.IsInterface);
+
+                    if(cStruct == typeof(ValueType))
+                    {
+                        genericParams.Add(DynamicTypeGenerator.GetTypeWitInterface(cStruct, cInterface));
+                        continue;
+                    }
+                    genericParams.Add(cStruct);
+                    continue;
+
+                }
+                else
                 {
                     var cClass = item.FirstOrDefault(x => x.IsClass);
                     var cInterface = item.FirstOrDefault(x => x.IsInterface);
@@ -68,9 +85,17 @@ public static class TypeAdapterConfigExtensions
                     if ((cInterface?.IsAssignableFrom(cClass)).GetValueOrDefault())
                     {
                         if(cClass.IsAbstract)
-                            return (false, null);
-
+                        {
+                            genericParams.Add(DynamicTypeGenerator.GetTypeWitInterface(cClass, cInterface));
+                            continue;
+                        }
+                    
                         genericParams.Add(cClass);
+                        continue;
+                    }
+                    else if (cInterface != null && cClass != null && cInterface.IsVisible)
+                    {
+                        genericParams.Add(DynamicTypeGenerator.GetTypeWitInterface(cClass, cInterface));
                         continue;
                     }
                     else if(cInterface != null && cClass == null)
@@ -83,13 +108,7 @@ public static class TypeAdapterConfigExtensions
                     }
                     else
                         return (false, null);
-
-                   
-
                 }
-                else
-                    return(false, null);
-
             }
         }
 

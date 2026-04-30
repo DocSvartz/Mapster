@@ -52,6 +52,15 @@ namespace Mapster.Utils
             return _generated.GetOrAdd(interfaceType, CreateTypeForInterface);
         }
 
+        public static Type GetTypeWitInterface(Type parentType, Type? interfaceType)
+        {
+            if (parentType.IsValueType || parentType == typeof(ValueType))
+                return CreateParentTypeWithInterface(parentType, interfaceType);
+
+            return _generated.GetOrAdd(parentType, CreateParentTypeWithInterface(parentType, interfaceType));
+        }
+
+
         private static Type CreateTypeForInterface(Type interfaceType)
         {
             TypeBuilder builder = _moduleBuilder.DefineType("GeneratedType_" + Interlocked.Increment(ref _generatedCounter));
@@ -174,6 +183,56 @@ namespace Mapster.Utils
             classMethodIl.ThrowException(typeof(NotImplementedException));
 
             builder.DefineMethodOverride(classMethod, interfaceMethod);
+        }
+
+        private static Type CreateParentTypeWithInterface(Type parentType, Type? interfaceType)
+        {
+            TypeBuilder builder;
+
+            if (parentType.IsClass && parentType != typeof (ValueType))
+            {
+                builder = _moduleBuilder.DefineType("GeneratedType_" + Interlocked.Increment(ref _generatedCounter),
+                TypeAttributes.Public | TypeAttributes.Class,
+                parentType);
+            }
+            else
+            {
+                builder = _moduleBuilder.DefineType("GeneratedType_" + Interlocked.Increment(ref _generatedCounter),
+                TypeAttributes.Public | TypeAttributes.Sealed | TypeAttributes.SequentialLayout,
+                typeof(ValueType));
+            }
+
+
+            if(interfaceType != null)
+            {
+                var args = new List<FieldBuilder>();
+                int propCount = 0;
+                var hasReadonlyProps = false;
+
+                foreach (Type currentInterface in interfaceType.GetAllInterfaces())
+                {
+                    builder.AddInterfaceImplementation(currentInterface);
+                    foreach (PropertyInfo prop in currentInterface.GetProperties())
+                    {
+                        propCount++;
+                        FieldBuilder propField = builder.DefineField("_" + MapsterHelper.CamelCase(prop.Name), prop.PropertyType, FieldAttributes.Private);
+                        CreateProperty(currentInterface, builder, prop, propField);
+                        if (!prop.CanWrite) hasReadonlyProps = true;
+                        args.Add(propField);
+                    }
+                    foreach (MethodInfo method in currentInterface.GetMethods())
+                    {
+                        // MethodAttributes.SpecialName are methods for property getters and setters.
+                        if (!method.Attributes.HasFlag(MethodAttributes.SpecialName))
+                        {
+                            CreateMethod(builder, method);
+                        }
+                    }
+                }
+            }
+
+
+            return builder.CreateTypeInfo()!;
         }
     }
 }
