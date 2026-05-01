@@ -105,7 +105,7 @@ public static class TypeAdapterConfigExtensions
 
                 if (constraints[i].Any(x => x.IsClass))
                 {
-                    var classConstraint = constraints[i].First(x=> x.IsClass);
+                    var classConstraint = constraints[i].First(x => x.IsClass);
 
                     var cInterface = constraints[i].Where(x => x.IsInterface)
                         .GetFlattenedUniqueInterfaces();
@@ -113,6 +113,16 @@ public static class TypeAdapterConfigExtensions
                     genericParams.Add(DynamicTypeGenerator.GetTypeWitInterface(classConstraint, cInterface));
                     continue;
                 }
+                else if (constraints[i].All(x => x.IsInterface))
+                {
+                    var cInterface = constraints[i].Where(x => x.IsInterface)
+                        .GetFlattenedUniqueInterfaces();
+
+                    genericParams.Add(DynamicTypeGenerator.GetTypeWitInterface(typeof(object), cInterface));
+                    continue;
+                }
+                else
+                    return (false, null);
             }
 
         }
@@ -124,35 +134,34 @@ public static class TypeAdapterConfigExtensions
                 var result = item.RefOthetConstr
                     .Where(i => i >= 0 && i < genericParams.Count)
                     .Select(i => genericParams[i])
-                    .Concat(item.ExtConstrains).ToList();
+                    .Concat(item.ExtConstrains)
+                    .Distinct().ToList();
 
-                if (result.Count == 1)
+                if (result.Count() == 1)
                     genericParams[item.Index] = result[0];
                 else
                 {
-                    var NotParentClases = result.Where(x => x.IsClass)
-                                                    .Except(result.Where(x => x.IsClass && x.BaseType == typeof(object)));
-                    var maxParentInterfaces = result.Where(x => x.IsInterface)
-                                                    .GroupBy(i => i.GetInterfaces().Length)
-                                                    .OrderByDescending(g => g.Key)
-                                                    .First().ToList();
+                    var clases = result.Where(x => x.IsClass);
+                    var NotParentClases = !clases.Any() || clases.Take(2).Count() == 1 ? clases : 
+                        result.Where(x => x.IsClass).Except(result.Where(x => x.IsClass && x.BaseType == typeof(object)));
+                    var maxParentInterfaces = result.Where(x => x.IsInterface).GetFlattenedUniqueInterfaces();
 
                     var clasesImplimented = NotParentClases
                         .Where(classType =>
                          maxParentInterfaces
                          .Any(interfaceType => interfaceType.IsAssignableFrom(classType)));
 
-                    
 
-                    if(NotParentClases.Count() == 1)
+                    if (!NotParentClases.Any())
+                        genericParams[item.Index] = DynamicTypeGenerator.GetTypeWitInterface(typeof(object), maxParentInterfaces);
+                    else if(NotParentClases.Take(2).Count() == 1)
                     {
                         Type resultType = NotParentClases.First();
-                       
                         resultType = DynamicTypeGenerator.GetTypeWitInterface(resultType, maxParentInterfaces.GetFlattenedUniqueInterfaces());
-                       
-
                         genericParams[item.Index] = resultType;
                     }
+                    else
+                        return (false, null);
 
                 }
             }
