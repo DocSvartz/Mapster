@@ -1,5 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Shouldly;
+using System.Collections.Generic;
 using static Mapster.Tests.WhenMappingWithOpenGenerics;
 
 namespace Mapster.Tests
@@ -54,9 +55,9 @@ namespace Mapster.Tests
         }
 
         public class DerivedPoco<T,X,Y>
-            where T : A1
-            where X : C1
-            where Y : X, T, IActiveBase2, IActivityData
+            where T : IList<X>
+            where X : Y
+            where Y : A1, IActiveBase2, IActivityData
         { 
            public T A { get; set; }
            public X B { get; set; }

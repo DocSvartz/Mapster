@@ -1,6 +1,7 @@
 using Mapster.Models;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Reflection;
 
@@ -38,134 +39,222 @@ public static class TypeAdapterConfigExtensions
 
         List<(int Index, List<int> RefOthetConstr, List<Type> ExtConstrains)> ConstraintsWithConstrain = new();
 
-        if (type.IsGenericType)
+
+        if(type.IsGenericType)
         {
+
             var args = type.GetGenericArguments();
-            var constraints = args.Where(x => x.IsGenericParameter)
-                .Select(x=>x.GetGenericParameterConstraints()).ToList();
+                var constraints = args.Where(x => x.IsGenericParameter)
+                    .Select(x=>x.GetGenericParameterConstraints()).ToList();
 
-            if (!constraints.Any())
-                return (true,type.GetGenericArguments());
+                if (!constraints.Any())
+                    return (true,type.GetGenericArguments());
 
 
-            for (var i = 0; i < constraints.Count; i++)
+
+            foreach (var constrain in constraints)
             {
-                if (constraints[i].Length == 0)
-                {
-                    genericParams.Add(typeof(object));
-                    continue;
-                }
+                List<Type> types = new();
 
-                if (constraints[i].Any(x => x.IsGenericParameter))
+                foreach (var item in constrain)
                 {
-                    List<int> RefOthetConstr = new List<int>();
-                    List<Type> ExtConstrains = new List<Type>();
-
-                    foreach (var item in constraints[i])
+                   
+                    if (item.IsGenericType)
                     {
-                        if (item.IsGenericParameter)
-                            RefOthetConstr.Add(Array.IndexOf(args, item));
+                       var genericstub = item.GetOpenGenericTypeParamsStubs();
+
+                        if (genericstub.isSuccess)
+                            genericParams.Add(item.GetGenericTypeDefinition().MakeGenericType(genericstub.Result));
                         else
-                            ExtConstrains.Add(item);
-                    }
+                            return (false, null);
 
-                    ConstraintsWithConstrain.Add((i, RefOthetConstr, ExtConstrains));
-
-                    genericParams.Add(typeof(Never));
-                    continue;
-                }
-
-
-                if (constraints[i].Length == 1 && constraints[i][0] == typeof(ValueType))
-                {
-                    genericParams.Add(typeof(int));
-                    continue;
-                }
-                if (constraints[i].Length == 1 && constraints[i][0].IsClass)
-                {
-                    if (constraints[i][0].IsAbstract)
-                    {
-                        genericParams.Add(DynamicTypeGenerator.GetTypeWitInterface(typeof(ValueType), null));
-                        continue;
-                    }
-                        
-                    genericParams.Add(constraints[i][0]);
-                    continue;
-                }
-
-
-                if (constraints[i].Any(x => x == typeof(ValueType)))
-                {
-                    var cInterface = constraints[i].Where(x => x.IsInterface)
-                        .GetFlattenedUniqueInterfaces();
-
-                    genericParams.Add(DynamicTypeGenerator.GetTypeWitInterface(typeof(ValueType), cInterface));
-                    continue;
-                }
-
-                if (constraints[i].Any(x => x.IsClass))
-                {
-                    var classConstraint = constraints[i].First(x => x.IsClass);
-
-                    var cInterface = constraints[i].Where(x => x.IsInterface)
-                        .GetFlattenedUniqueInterfaces();
-
-                    genericParams.Add(DynamicTypeGenerator.GetTypeWitInterface(classConstraint, cInterface));
-                    continue;
-                }
-                else if (constraints[i].All(x => x.IsInterface))
-                {
-                    var cInterface = constraints[i].Where(x => x.IsInterface)
-                        .GetFlattenedUniqueInterfaces();
-
-                    genericParams.Add(DynamicTypeGenerator.GetTypeWitInterface(typeof(object), cInterface));
-                    continue;
-                }
-                else
-                    return (false, null);
-            }
-
-        }
-
-        if (ConstraintsWithConstrain.Count != 0)
-        {
-            foreach (var item in ConstraintsWithConstrain)
-            {
-                var result = item.RefOthetConstr
-                    .Where(i => i >= 0 && i < genericParams.Count)
-                    .Select(i => genericParams[i])
-                    .Concat(item.ExtConstrains)
-                    .Distinct().ToList();
-
-                if (result.Count() == 1)
-                    genericParams[item.Index] = result[0];
-                else
-                {
-                    var clases = result.Where(x => x.IsClass);
-                    var NotParentClases = !clases.Any() || clases.Take(2).Count() == 1 ? clases : 
-                        result.Where(x => x.IsClass).Except(result.Where(x => x.IsClass && x.BaseType == typeof(object)));
-                    var maxParentInterfaces = result.Where(x => x.IsInterface).GetFlattenedUniqueInterfaces();
-
-                    var clasesImplimented = NotParentClases
-                        .Where(classType =>
-                         maxParentInterfaces
-                         .Any(interfaceType => interfaceType.IsAssignableFrom(classType)));
-
-
-                    if (!NotParentClases.Any())
-                        genericParams[item.Index] = DynamicTypeGenerator.GetTypeWitInterface(typeof(object), maxParentInterfaces);
-                    else if(NotParentClases.Take(2).Count() == 1)
-                    {
-                        Type resultType = NotParentClases.First();
-                        resultType = DynamicTypeGenerator.GetTypeWitInterface(resultType, maxParentInterfaces.GetFlattenedUniqueInterfaces());
-                        genericParams[item.Index] = resultType;
                     }
                     else
-                        return (false, null);
+                    {
+                        var consrtype = item;
 
+                        while (consrtype.BaseType != null)
+                        {
+                            if (!consrtype.IsGenericParameter)
+                                types.Add(consrtype);
+
+                            types.AddRange(consrtype.GetInterfaces());
+
+                            consrtype = consrtype.BaseType;
+                        }
+                    }   
                 }
+
+                if (types.Any())
+                {
+                    var getclass = types.Where(x => x.IsClass).Distinct().FirstOrDefault();
+                    var getInterfaces = types.Where(x => x.IsInterface).Distinct();
+
+                    if (getclass == null)
+                        genericParams.Add(DynamicTypeGenerator.GetTypeWitInterface(typeof(object), getInterfaces));
+                    else
+                        genericParams.Add(DynamicTypeGenerator.GetTypeWitInterface(getclass, getInterfaces));
+                }
+
             }
         }
+
+
+
+
+        //if (type.IsGenericType)
+        //{
+        //    var args = type.GetGenericArguments();
+        //    var constraints = args.Where(x => x.IsGenericParameter)
+        //        .Select(x=>x.GetGenericParameterConstraints()).ToList();
+
+        //    if (!constraints.Any())
+        //        return (true,type.GetGenericArguments());
+
+
+        //    for (var i = 0; i < constraints.Count; i++)
+        //    {
+        //        if (constraints[i].Length == 0)
+        //        {
+        //            genericParams.Add(typeof(object));
+        //            continue;
+        //        }
+
+        //        if(constraints[i].Any(x => x.IsGenericType))
+        //        {
+        //            List<Type> generics = new();
+
+        //            foreach (var genconstrain in constraints[i].Where(x => x.IsGenericType))
+        //            {
+        //                var s = genconstrain.GetOpenGenericTypeParamsStubs();
+        //            }
+        //        }
+
+
+        //        if (constraints[i].Any(x => x.IsGenericParameter))
+        //        {
+        //            List<int> RefOthetConstr = new List<int>();
+        //            List<Type> ExtConstrains = new List<Type>();
+
+        //            List<Type> types = new List<Type>();
+
+
+
+        //            foreach (var item in constraints[i])
+        //            {
+        //                types.AddRange(item.GetInterfaces());
+
+        //               var consrtype = item.BaseType == typeof(object) ? null : item.BaseType;
+
+        //                while (type.BaseType != null)
+        //                {
+        //                    types.Add(consrtype);
+        //                }
+
+
+        //                if (item.IsGenericParameter)
+        //                    RefOthetConstr.Add(Array.IndexOf(args, item));
+        //                else
+        //                    ExtConstrains.Add(item);
+        //            }
+
+        //            ConstraintsWithConstrain.Add((i, RefOthetConstr, ExtConstrains));
+
+        //            genericParams.Add(typeof(Never));
+        //            continue;
+        //        }
+
+
+        //        if (constraints[i].Length == 1 && constraints[i][0] == typeof(ValueType))
+        //        {
+        //            genericParams.Add(typeof(int));
+        //            continue;
+        //        }
+        //        if (constraints[i].Length == 1 && constraints[i][0].IsClass)
+        //        {
+        //            if (constraints[i][0].IsAbstract)
+        //            {
+        //                genericParams.Add(DynamicTypeGenerator.GetTypeWitInterface(typeof(ValueType), null));
+        //                continue;
+        //            }
+                        
+        //            genericParams.Add(constraints[i][0]);
+        //            continue;
+        //        }
+
+
+        //        if (constraints[i].Any(x => x == typeof(ValueType)))
+        //        {
+        //            var cInterface = constraints[i].Where(x => x.IsInterface)
+        //                .GetFlattenedUniqueInterfaces();
+
+        //            genericParams.Add(DynamicTypeGenerator.GetTypeWitInterface(typeof(ValueType), cInterface));
+        //            continue;
+        //        }
+
+        //        if (constraints[i].Any(x => x.IsClass))
+        //        {
+        //            var classConstraint = constraints[i].First(x => x.IsClass);
+
+        //            var cInterface = constraints[i].Where(x => x.IsInterface)
+        //                .GetFlattenedUniqueInterfaces();
+
+        //            genericParams.Add(DynamicTypeGenerator.GetTypeWitInterface(classConstraint, cInterface));
+        //            continue;
+        //        }
+        //        else if (constraints[i].All(x => x.IsInterface))
+        //        {
+        //            var cInterface = constraints[i].Where(x => x.IsInterface)
+        //                .GetFlattenedUniqueInterfaces();
+
+        //            genericParams.Add(DynamicTypeGenerator.GetTypeWitInterface(typeof(object), cInterface));
+        //            continue;
+        //        }
+        //        else
+        //            return (false, null);
+        //    }
+
+        //}
+
+        //if (ConstraintsWithConstrain.Count != 0)
+        //{
+        //    foreach (var item in ConstraintsWithConstrain)
+        //    {
+        //        var result = item.RefOthetConstr
+        //            .Where(i => i >= 0 && i < genericParams.Count)
+        //            .Select(i => genericParams[i])
+        //            .Concat(item.ExtConstrains)
+        //            .Distinct().ToList();
+
+        //        if (result.Count() == 1)
+        //            genericParams[item.Index] = result[0];
+        //        else
+        //        {
+        //            var clases = result.Where(x => x.IsClass);
+        //            var NotParentClases = !clases.Any() || clases.Take(2).Count() == 1 ? clases : 
+        //                result.Where(x => x.IsClass).Except(result.Where(x => x.IsClass && x.BaseType == typeof(object)));
+        //            var maxParentInterfaces = result.Where(x => x.IsInterface).GetFlattenedUniqueInterfaces();
+
+        //            var clasesImplimented = NotParentClases
+        //                .Where(classType =>
+        //                 maxParentInterfaces
+        //                 .Any(interfaceType => interfaceType.IsAssignableFrom(classType)));
+
+
+        //            if (!NotParentClases.Any())
+        //                genericParams[item.Index] = DynamicTypeGenerator.GetTypeWitInterface(typeof(object), maxParentInterfaces);
+        //            else if(NotParentClases.Take(2).Count() == 1)
+        //            {
+        //                Type resultType = NotParentClases.First();
+        //                resultType = DynamicTypeGenerator.GetTypeWitInterface(resultType, maxParentInterfaces.GetFlattenedUniqueInterfaces());
+        //                genericParams[item.Index] = resultType;
+        //            }
+        //            else
+        //                return (false, null);
+
+        //        }
+        //    }
+        //}
 
 
         return (true,genericParams.ToArray());
