@@ -1,5 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Shouldly;
+using System.Collections;
 using System.Collections.Generic;
 using static Mapster.Tests.WhenMappingWithOpenGenerics;
 
@@ -48,15 +49,140 @@ namespace Mapster.Tests
             .Map("derivedValue", "DerivedValue");
 
 
+            //var s = new DerivedPoco<D,D,D>();
+
             config.Compile();   
 
 
           
         }
 
+
+        public class D : F, IList<D>
+        {
+            D IList<D>.this[int index] { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
+
+            public int Count => throw new System.NotImplementedException();
+
+            public bool IsReadOnly => throw new System.NotImplementedException();
+
+            public void Add(D item)
+            {
+                throw new System.NotImplementedException();
+            }
+
+            public void Clear()
+            {
+                throw new System.NotImplementedException();
+            }
+
+            public bool Contains(D item)
+            {
+                throw new System.NotImplementedException();
+            }
+
+            public void CopyTo(D[] array, int arrayIndex)
+            {
+                throw new System.NotImplementedException();
+            }
+
+            public IEnumerator<D> GetEnumerator()
+            {
+                throw new System.NotImplementedException();
+            }
+
+            public int IndexOf(D item)
+            {
+                throw new System.NotImplementedException();
+            }
+
+            public void Insert(int index, D item)
+            {
+                throw new System.NotImplementedException();
+            }
+
+            public bool Remove(D item)
+            {
+                throw new System.NotImplementedException();
+            }
+
+            public void RemoveAt(int index)
+            {
+                throw new System.NotImplementedException();
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return GetEnumerator();
+            }
+        }
+
+
+        public class F : A1, IActiveBase2, IActivityData, IList<F>
+        {
+            public F this[int index] { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
+
+            public string ActiveBase2 { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
+            public string Temp { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
+
+            public int Count => throw new System.NotImplementedException();
+
+            public bool IsReadOnly => throw new System.NotImplementedException();
+
+            public void Add(F item)
+            {
+                throw new System.NotImplementedException();
+            }
+
+            public void Clear()
+            {
+                throw new System.NotImplementedException();
+            }
+
+            public bool Contains(F item)
+            {
+                throw new System.NotImplementedException();
+            }
+
+            public void CopyTo(F[] array, int arrayIndex)
+            {
+                throw new System.NotImplementedException();
+            }
+
+            public IEnumerator<F> GetEnumerator()
+            {
+                throw new System.NotImplementedException();
+            }
+
+            public int IndexOf(F item)
+            {
+                throw new System.NotImplementedException();
+            }
+
+            public void Insert(int index, F item)
+            {
+                throw new System.NotImplementedException();
+            }
+
+            public bool Remove(F item)
+            {
+                throw new System.NotImplementedException();
+            }
+
+            public void RemoveAt(int index)
+            {
+                throw new System.NotImplementedException();
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return GetEnumerator();
+            }
+        }
+
         public class DerivedPoco<T,X,Y>
-            where T : IList<X>
-            where X : Y
+            where T : Poco<X, int>
+            where X : Y, T
             where Y : A1, IActiveBase2, IActivityData
         { 
            public T A { get; set; }
@@ -65,6 +191,11 @@ namespace Mapster.Tests
            public Y C { get; set; }
         }
 
+
+        public interface Poco<T1, T2>
+        {
+
+        }
 
         public  class A1{ }
 

@@ -1,6 +1,7 @@
 using Mapster.Models;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data;
 using System.Linq;
 using System.Reflection;
@@ -40,50 +41,81 @@ public static class TypeAdapterConfigExtensions
         List<(int Index, List<int> RefOthetConstr, List<Type> ExtConstrains)> ConstraintsWithConstrain = new();
 
 
-        if(type.IsGenericType)
+        if(type.IsGenericType || type.IsGenericParameter)
         {
 
-            var args = type.GetGenericArguments();
-                var constraints = args.Where(x => x.IsGenericParameter)
-                    .Select(x=>x.GetGenericParameterConstraints()).ToList();
+            List<Type[]> constraints;
+
+            if (type.IsGenericType)
+                constraints = type.GetGenericArguments()
+                    .Where(x => x.IsGenericParameter)
+                    .Select(x => x.GetGenericParameterConstraints())
+                    .ToList();
+            else
+                constraints = new List<Type[]> { type.GetGenericParameterConstraints() };
+
 
                 if (!constraints.Any())
                     return (true,type.GetGenericArguments());
 
 
 
+
+
+
+
             foreach (var constrain in constraints)
             {
-                List<Type> types = new();
+                List<Type> types = constrain
+                    .SelectMany(x => x.IsGenericParameter
+                    ? x.GetGenericParameterConstraints() : new[] { x })
+                    .Where(x => !x.IsGenericType).ToList();
 
-                foreach (var item in constrain)
+                var GenericType = constrain.Where(x => x.IsGenericType);
+
+                foreach (var generic in GenericType)
                 {
-                   
-                    if (item.IsGenericType)
-                    {
-                       var genericstub = item.GetOpenGenericTypeParamsStubs();
+                    var arguments = generic.GetGenericArguments();
 
-                        if (genericstub.isSuccess)
-                            genericParams.Add(item.GetGenericTypeDefinition().MakeGenericType(genericstub.Result));
-                        else
-                            return (false, null);
+                    if (arguments.Any(x=>x.IsGenericParameter))
+                    {
+                        return (false, null);
+
+
+                        //var consgen = generic.GetGenericArguments()
+                        //    .SelectMany(x => x.IsGenericParameter ? x.GetGenericParameterConstraints() : new[] { x }).Concat(arguments);
+
+                        //if(consgen.Count() >= constraints.Count)
+                        //{
+                        //    var unpakGenParams = consgen
+                        //        .SelectMany(x => x.IsGenericParameter ? x.GetGenericParameterConstraints() : new[] { x })
+                        //        .Distinct();
+
+
+                        //    var c = unpakGenParams.Where( x=> x.IsClass && !x.IsGenericType).FirstOrDefault();
+                        //    var i = unpakGenParams.Where(x => x.IsInterface && !x.IsGenericType);
+                        //    var gen = unpakGenParams.Where(x => x.IsGenericType);
+
+                        //    if(c != null)
+                        //    {
+
+                        //    }
+                        //}
+
 
                     }
                     else
                     {
-                        var consrtype = item;
-
-                        while (consrtype.BaseType != null)
-                        {
-                            if (!consrtype.IsGenericParameter)
-                                types.Add(consrtype);
-
-                            types.AddRange(consrtype.GetInterfaces());
-
-                            consrtype = consrtype.BaseType;
-                        }
-                    }   
+                        var result = generic.GetOpenGenericTypeParamsStubs();
+                        if (result.isSuccess)
+                            types.Add(generic.GetGenericTypeDefinition().MakeGenericType(result.Result));
+                        else
+                            return (false, null);
+                    }
                 }
+
+
+
 
                 if (types.Any())
                 {
