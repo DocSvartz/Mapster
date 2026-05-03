@@ -57,6 +57,23 @@ public static class TypeAdapterConfigExtensions
 
             foreach (var constrs in constraints)
             {
+                var c = constrs
+                        .Select(x => x)
+                        .SelectMany(x => x.IsGenericParameter ? x.GetGenericParameterConstraints() : new[] { x }).ToList();
+
+                if (c.Any(x=> x.IsGenericType))
+                {
+                    foreach (var item in c.Where(x=>x.IsGenericType))
+                    {
+
+                    }
+                }
+                
+
+
+
+
+
 
                 foreach (var item in constrs)
                 {
@@ -65,10 +82,15 @@ public static class TypeAdapterConfigExtensions
                         var result = type.GetGenericConstrains();
 
                         if(result != null)
-                            genericParams.Add( DynamicTypeGenerator.GetTypeWitInterface(result?.Parent, result?.Implemnets, result?.SelfGenericImpl));
-                        continue;
+                        {
+                            foreach (var c in constraints)
+                            {
+                                genericParams.Add(DynamicTypeGenerator.GetTypeWitInterface(result?.Parent, result?.Implemnets, result?.SelfGenericImpl));
+                            }
+                        }
+                            
+                        return (true,genericParams.ToArray());
                     }
-                    if()
                 }
 
 
