@@ -118,70 +118,9 @@ namespace Mapster.Tests
         }
 
 
-        public class F : A1, IActiveBase2, IActivityData, IList<F>
-        {
-            public F this[int index] { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
-
-            public string ActiveBase2 { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
-            public string Temp { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
-
-            public int Count => throw new System.NotImplementedException();
-
-            public bool IsReadOnly => throw new System.NotImplementedException();
-
-            public void Add(F item)
-            {
-                throw new System.NotImplementedException();
-            }
-
-            public void Clear()
-            {
-                throw new System.NotImplementedException();
-            }
-
-            public bool Contains(F item)
-            {
-                throw new System.NotImplementedException();
-            }
-
-            public void CopyTo(F[] array, int arrayIndex)
-            {
-                throw new System.NotImplementedException();
-            }
-
-            public IEnumerator<F> GetEnumerator()
-            {
-                throw new System.NotImplementedException();
-            }
-
-            public int IndexOf(F item)
-            {
-                throw new System.NotImplementedException();
-            }
-
-            public void Insert(int index, F item)
-            {
-                throw new System.NotImplementedException();
-            }
-
-            public bool Remove(F item)
-            {
-                throw new System.NotImplementedException();
-            }
-
-            public void RemoveAt(int index)
-            {
-                throw new System.NotImplementedException();
-            }
-
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return GetEnumerator();
-            }
-        }
 
         public class DerivedPoco<T,X,Y>
-            where T : Poco<X, int>
+            where T : IPoco<X, int>
             where X : Y, T
             where Y : A1, IActiveBase2, IActivityData
         { 
@@ -192,7 +131,7 @@ namespace Mapster.Tests
         }
 
 
-        public interface Poco<T1, T2>
+        public interface IPoco<T1, T2>
         {
 
         }

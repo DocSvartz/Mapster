@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace Mapster.Utils;
 
@@ -40,95 +41,107 @@ public static class TypeAdapterConfigExtensions
 
         List<(int Index, List<int> RefOthetConstr, List<Type> ExtConstrains)> ConstraintsWithConstrain = new();
 
+        List<(Type parent, List<Type> Implemnets)> valuesConstr = new();
 
-        if(type.IsGenericType || type.IsGenericParameter)
+
+        if(type.IsGenericType)
         {
 
-            List<Type[]> constraints;
 
-            if (type.IsGenericType)
-                constraints = type.GetGenericArguments()
-                    .Where(x => x.IsGenericParameter)
-                    .Select(x => x.GetGenericParameterConstraints())
-                    .ToList();
-            else
-                constraints = new List<Type[]> { type.GetGenericParameterConstraints() };
-
-
-                if (!constraints.Any())
-                    return (true,type.GetGenericArguments());
+            var args = type.GetGenericArguments();
+            var constraints = args.Where(x => x.IsGenericParameter)
+                .Select(x=>x.GetGenericParameterConstraints())
+                .ToList();
 
 
 
-
-
-
-
-            foreach (var constrain in constraints)
+            foreach (var constrs in constraints)
             {
-                List<Type> types = constrain
-                    .SelectMany(x => x.IsGenericParameter
-                    ? x.GetGenericParameterConstraints() : new[] { x })
-                    .Where(x => !x.IsGenericType).ToList();
 
-                var GenericType = constrain.Where(x => x.IsGenericType);
-
-                foreach (var generic in GenericType)
+                foreach (var item in constrs)
                 {
-                    var arguments = generic.GetGenericArguments();
-
-                    if (arguments.Any(x=>x.IsGenericParameter))
+                    if(item.IsGenericType)
                     {
-                        return (false, null);
+                        var result = type.GetGenericConstrains();
 
-
-                        //var consgen = generic.GetGenericArguments()
-                        //    .SelectMany(x => x.IsGenericParameter ? x.GetGenericParameterConstraints() : new[] { x }).Concat(arguments);
-
-                        //if(consgen.Count() >= constraints.Count)
-                        //{
-                        //    var unpakGenParams = consgen
-                        //        .SelectMany(x => x.IsGenericParameter ? x.GetGenericParameterConstraints() : new[] { x })
-                        //        .Distinct();
-
-
-                        //    var c = unpakGenParams.Where( x=> x.IsClass && !x.IsGenericType).FirstOrDefault();
-                        //    var i = unpakGenParams.Where(x => x.IsInterface && !x.IsGenericType);
-                        //    var gen = unpakGenParams.Where(x => x.IsGenericType);
-
-                        //    if(c != null)
-                        //    {
-
-                        //    }
-                        //}
-
-
+                        if(result != null)
+                            genericParams.Add( DynamicTypeGenerator.GetTypeWitInterface(result?.Parent, result?.Implemnets, result?.SelfGenericImpl));
+                        continue;
                     }
-                    else
-                    {
-                        var result = generic.GetOpenGenericTypeParamsStubs();
-                        if (result.isSuccess)
-                            types.Add(generic.GetGenericTypeDefinition().MakeGenericType(result.Result));
-                        else
-                            return (false, null);
-                    }
+                    if()
                 }
 
 
-
-
-                if (types.Any())
-                {
-                    var getclass = types.Where(x => x.IsClass).Distinct().FirstOrDefault();
-                    var getInterfaces = types.Where(x => x.IsInterface).Distinct();
-
-                    if (getclass == null)
-                        genericParams.Add(DynamicTypeGenerator.GetTypeWitInterface(typeof(object), getInterfaces));
-                    else
-                        genericParams.Add(DynamicTypeGenerator.GetTypeWitInterface(getclass, getInterfaces));
-                }
 
             }
+
+
+            //foreach (var constrain in constraints)
+            //{
+            //    //List<Type> types = constrain
+            //    //    .SelectMany(x => x.IsGenericParameter
+            //    //    ? x.GetGenericParameterConstraints() : new[] { x })
+            //    //    .Where(x => !x.IsGenericType).ToList();
+
+
+            //    var GenericType = constrain.Where(x => x.IsGenericType);
+
+            //    foreach (var generic in GenericType)
+            //    {
+            //        var arguments = generic.GetGenericArguments();
+
+            //        if (arguments.Any(x=>x.IsGenericParameter))
+            //        {
+            //            return (false, null);
+
+
+            //            //var consgen = generic.GetGenericArguments()
+            //            //    .SelectMany(x => x.IsGenericParameter ? x.GetGenericParameterConstraints() : new[] { x }).Concat(arguments);
+
+            //            //if(consgen.Count() >= constraints.Count)
+            //            //{
+            //            //    var unpakGenParams = consgen
+            //            //        .SelectMany(x => x.IsGenericParameter ? x.GetGenericParameterConstraints() : new[] { x })
+            //            //        .Distinct();
+
+
+            //            //    var c = unpakGenParams.Where( x=> x.IsClass && !x.IsGenericType).FirstOrDefault();
+            //            //    var i = unpakGenParams.Where(x => x.IsInterface && !x.IsGenericType);
+            //            //    var gen = unpakGenParams.Where(x => x.IsGenericType);
+
+            //            //    if(c != null)
+            //            //    {
+
+            //            //    }
+            //            //}
+
+
+            //        }
+            //        else
+            //        {
+            //            var result = generic.GetOpenGenericTypeParamsStubs();
+            //            if (result.isSuccess)
+            //                types.Add(generic.GetGenericTypeDefinition().MakeGenericType(result.Result));
+            //            else
+            //                return (false, null);
+            //        }
+            //    }
+
+
+
+
+            //    if (types.Any())
+            //    {
+            //        var getclass = types.Where(x => x.IsClass).Distinct().FirstOrDefault();
+            //        var getInterfaces = types.Where(x => x.IsInterface).Distinct();
+
+            //        if (getclass == null)
+            //            genericParams.Add(DynamicTypeGenerator.GetTypeWitInterface(typeof(object), getInterfaces));
+            //        else
+            //            genericParams.Add(DynamicTypeGenerator.GetTypeWitInterface(getclass, getInterfaces));
+            //    }
+
+            //}
         }
 
 
@@ -290,6 +303,55 @@ public static class TypeAdapterConfigExtensions
 
 
         return (true,genericParams.ToArray());
+    }
+
+
+
+
+    public static (Type Parent, IEnumerable<Type> Implemnets, IEnumerable<Type> SelfGenericImpl)? GetGenericConstrains(this Type type)
+    {
+        List<(Type parent, List<Type> Implemnets)> valuesConstr = new();
+
+
+        if (type.IsGenericType)
+        {
+            var constraints = type.GetGenericArguments()
+                 .SelectMany(x => x.IsGenericParameter ? x.GetGenericParameterConstraints() : new[] { x })
+                 .Select(x => x)
+                 .SelectMany(x => x.IsGenericParameter ? x.GetGenericParameterConstraints() : new[] { x })
+                 .Distinct();
+
+            var parentClass = constraints.Where(x => x.IsClass).FirstOrDefault();
+            var implements = constraints.Where(x => x.IsInterface).GetFlattenedUniqueInterfaces();
+
+            if (parentClass != null)
+                return (parentClass, implements.Where(x => !x.IsGenericType), implements.Where(x => x.IsGenericType));
+            else
+                return (typeof(object), implements.Where(x => !x.IsGenericType), implements.Where(x => x.IsGenericType));
+
+        }
+
+        return null;
+    }
+
+    public static Type GenericParamsSelpReplaser(this Type generic, Type self)
+    {
+        var paramsT = new List<Type>();
+
+        if (generic.IsGenericType)
+        {
+            var p = generic.GetGenericArguments();
+
+            foreach ( var x in p)
+            {
+                if(x.IsGenericParameter)
+                    paramsT.Add(self);
+                else
+                    paramsT.Add(x);
+            }
+        }
+
+        return generic.GetGenericTypeDefinition().MakeGenericType(paramsT.ToArray());
     }
 
 
