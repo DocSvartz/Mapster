@@ -203,6 +203,7 @@ namespace Mapster.Utils
                 typeof(ValueType));
             }
 
+            var s = interfaceTypes.Concat(SelfGenericImpl.Select(x => x.GenericParamsSelpReplaser(builder))).ToList();  
 
             if (interfaceTypes != null)
             {
@@ -210,7 +211,7 @@ namespace Mapster.Utils
                 int propCount = 0;
                 var hasReadonlyProps = false;
 
-                foreach (Type currentInterface in interfaceTypes)
+                foreach (Type currentInterface in s)
                 {
                     builder.AddInterfaceImplementation(currentInterface);
                     foreach (PropertyInfo prop in currentInterface.GetProperties())

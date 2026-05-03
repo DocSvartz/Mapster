@@ -83,7 +83,7 @@ public static class TypeAdapterConfigExtensions
 
                         if(result != null)
                         {
-                            foreach (var c in constraints)
+                            foreach (var cx in constraints)
                             {
                                 genericParams.Add(DynamicTypeGenerator.GetTypeWitInterface(result?.Parent, result?.Implemnets, result?.SelfGenericImpl));
                             }

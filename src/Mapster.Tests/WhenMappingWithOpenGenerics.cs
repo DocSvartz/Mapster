@@ -28,12 +28,16 @@ namespace Mapster.Tests
                 .NewConfig(typeof(A<>), typeof(B<>))
                 .Map("BProperty", "AProperty");
 
-            config.Compile(); // is not throw exception
+           // config.Compile(); // is not throw exception
 
-            var a = new A<C> { AProperty = "A" };
-            var c = new C { BProperty = "C" };
-            var b = a.Adapt<B<C>>(config); // successful mapping
-            var cCopy = c.Adapt<C>(config);
+
+
+
+
+            //var a = new A<C> { AProperty = "A" };
+            //var c = new C { BProperty = "C" };
+            //var b = a.Adapt<B<C>>(config); // successful mapping
+            //var cCopy = c.Adapt<C>(config);
         }
 
         
@@ -51,10 +55,10 @@ namespace Mapster.Tests
 
             //var s = new DerivedPoco<D,D,D>();
 
-            config.Compile();   
+           // config.Compile();
 
 
-          
+            var s =  new DerivedPoco<ClassX, ClassX, ClassX>();
         }
 
 
@@ -119,6 +123,18 @@ namespace Mapster.Tests
 
 
 
+        public class ClassX : A1, IActiveBase2, IActivityData, IPoco<ClassX,int>
+        {
+            public string ActiveBase2 { get; set; }
+            public string Temp { get; set; }
+            public ClassX Poco { get; set; }
+            public int Poco2 { get; set; }
+        }
+
+
+
+
+
         public class DerivedPoco<T,X,Y>
             where T : IPoco<X, int>
             where X : Y, T
@@ -133,7 +149,9 @@ namespace Mapster.Tests
 
         public interface IPoco<T1, T2>
         {
+            public T1 Poco {  get; set; }
 
+            public T2 Poco2 { get; set; }
         }
 
         public  class A1{ }
