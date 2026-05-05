@@ -55,7 +55,7 @@ namespace Mapster.Tests
 
             //var s = new DerivedPoco<D,D,D>();
 
-           // config.Compile();
+            config.Compile();
 
 
             var s =  new DerivedPoco<ClassX, ClassX, ClassX>();
@@ -134,7 +134,7 @@ namespace Mapster.Tests
 
 
 
-
+        // Recurcive Fail Example
         public class DerivedPoco<T,X,Y>
             where T : IPoco<X, int>
             where X : Y, T
