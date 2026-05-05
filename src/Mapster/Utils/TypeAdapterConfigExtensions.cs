@@ -37,31 +37,30 @@ public static class TypeAdapterConfigExtensions
 
     public static (bool isSuccess,Type[]? Result) GetOpenGenericTypeParamsStubs(this Type type)
     {
-        var genericParams = new List<Type>();
+        var constrains = new List<Type[]>();
+        var stubs = new List<Type>();
 
-        List<(int Index, List<int> RefOthetConstr, List<Type> ExtConstrains)> ConstraintsWithConstrain = new();
+        List<(Type param, Type stub)> stub2 = new();
 
-        List<(Type parent, List<Type> Implemnets)> valuesConstr = new();
-
-
-        if(type.IsGenericType)
+        if (type.IsGenericType)
         {
-            var args = type.GetGenericArguments();
-            
-            if(args.Where(x => x.IsGenericParameter).Any())
-            {
-                var constrains = new List<Type[]>();
+            Type[] args;
+            args = type.GetGenericArguments();
 
-                foreach (var arg in args.Where(x => x.IsGenericParameter).Select(x=>x.GetGenericParameterConstraints())) 
+            var defArgs = type.GetGenericTypeDefinition().GetGenericArguments();
+
+            for (int i = 0; i < args.Length; i++)
+            {
+                if (args[i].IsGenericParameter)
                 {
-                    var constrParam = arg.UnpackGenericParameterConstraints();
+                    var constrParam = defArgs[i].GetGenericParameterConstraints().UnpackGenericParameterConstraints();
 
                     // check generic recursive Constrains - not avalible create stub in Runtime
-                    foreach (var generic in constrParam.Where(x=>x.IsGenericType))
+                    foreach (var generic in constrParam.Where(x => x.IsGenericType))
                     {
-                      var IsRecursiveLink =  generic.GetGenericArguments().UnpackGenericParameterConstraints()
-                            .Where(x => x.IsClass && x != typeof(ValueType))
-                            .Any(constrParam.Contains);
+                        var IsRecursiveLink = generic.GetGenericArguments().UnpackGenericParameterConstraints()
+                              .Where(x => x.IsClass && x != typeof(ValueType))
+                              .Any(constrParam.Contains);
 
                         if (IsRecursiveLink)
                             return (false, null);
@@ -69,52 +68,42 @@ public static class TypeAdapterConfigExtensions
                     }
                     constrains.Add(constrParam);
                 }
-
-
+                else
+                    stubs.Add(args[i]);
             }
 
-
-            //foreach (var constrs in constraints)
-            //{
-            //    var c = constrs
-            //            .Select(x => x)
-            //            .SelectMany(x => x.IsGenericParameter ? x.GetGenericParameterConstraints() : new[] { x }).ToList();
-
-            //    if (c.Any(x=> x.IsGenericType))
-            //    {
-            //        foreach (var item in c.Where(x=>x.IsGenericType))
-            //        {
-
-            //        }
-            //    }
+            foreach (var arg in args)
+            {
                 
 
-
-
-
-
-
-            //    foreach (var item in constrs)
-            //    {
-            //        if(item.IsGenericType)
-            //        {
-            //           var result = type.GetGenericConstrains();
-
-            //            if(result != null)
-            //            {
-            //                foreach (var cx in constraints)
-            //                {
-            //                    genericParams.Add(DynamicTypeGenerator.GetTypeWitInterface(result?.Parent, result?.Implemnets, result?.SelfGenericImpl));
-            //                }
-            //            }
-                            
-            //            return (true,genericParams.ToArray());
-            //        }
-            //    }
-
-
-
             }
+
+
+
+            
+        }
+
+        foreach (var item in constrains)
+        {
+            var genericstubs = new List<Type>();
+            var interfaceConstr = new List<Type>();
+
+            foreach (var generic in item.Where(x=> x.IsGenericType && x.IsInterface))
+            {
+                var stub = generic.GetOpenGenericTypeParamsStubs();
+                if (stub.isSuccess)
+                    interfaceConstr.Add(generic.GetGenericTypeDefinition().MakeGenericType(stub.Result));
+            }
+
+            var classConstr = item.Where(x => x.IsClass).FirstOrDefault();
+            interfaceConstr.AddRange(item.Where(x => x.IsInterface && !x.IsGenericType));
+
+            if (classConstr is null)
+                stubs.Add(DynamicTypeGenerator.GetTypeWitInterface(typeof(object), interfaceConstr.GetFlattenedUniqueInterfaces()));
+            else
+                stubs.Add(DynamicTypeGenerator.GetTypeWitInterface(classConstr, interfaceConstr.GetFlattenedUniqueInterfaces()));
+        }
+
 
 
         //foreach (var constrain in constraints)
@@ -184,7 +173,7 @@ public static class TypeAdapterConfigExtensions
 
         //}
 
-            return (false, null);
+        return (true, stubs.ToArray());
         }
 
 
@@ -448,8 +437,6 @@ public static class TypeAdapterConfigExtensions
                 typeconstrains = new(typeconstrains.SelectMany(x => x.IsGenericParameter ? x.GetGenericParameterConstraints() : new[] { x }));
             else
                 typeconstrains = new(constrains.SelectMany(x => x.IsGenericParameter ? x.GetGenericParameterConstraints() : new[] { x }));
-
-            var generics = typeconstrains.Select(x => x.IsGenericType);
         }
         while (typeconstrains.Any(x => x.IsGenericParameter));
 

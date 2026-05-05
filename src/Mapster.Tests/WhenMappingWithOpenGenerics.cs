@@ -136,8 +136,8 @@ namespace Mapster.Tests
 
         // Recurcive Fail Example
         public class DerivedPoco<T,X,Y>
-            where T : IPoco<X, int>
-            where X : Y, T
+            where T : class
+            where X : Y, IPoco<T, int>
             where Y : A1, IActiveBase2, IActivityData
         { 
            public T A { get; set; }

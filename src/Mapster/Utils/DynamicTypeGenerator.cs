@@ -52,12 +52,12 @@ namespace Mapster.Utils
             return _generated.GetOrAdd(interfaceType, CreateTypeForInterface);
         }
 
-        public static Type GetTypeWitInterface(Type parentType, IEnumerable<Type>? interfaceType, IEnumerable<Type> SelfGenericImpl)
+        public static Type GetTypeWitInterface(Type parentType, IEnumerable<Type>? interfaceType)
         {
             if (parentType.IsValueType || parentType == typeof(ValueType))
-                return CreateParentTypeWithInterface(parentType, interfaceType, SelfGenericImpl);
+                return CreateParentTypeWithInterface(parentType, interfaceType);
 
-            return _generated.GetOrAdd(parentType, CreateParentTypeWithInterface(parentType, interfaceType, SelfGenericImpl));
+            return _generated.GetOrAdd(parentType, CreateParentTypeWithInterface(parentType, interfaceType));
         }
 
 
@@ -185,7 +185,7 @@ namespace Mapster.Utils
             builder.DefineMethodOverride(classMethod, interfaceMethod);
         }
 
-        private static Type CreateParentTypeWithInterface(Type parentType, IEnumerable<Type> interfaceTypes, IEnumerable<Type>? SelfGenericImpl)
+        private static Type CreateParentTypeWithInterface(Type parentType, IEnumerable<Type>? interfaceTypes)
         {
             TypeBuilder builder;
             
@@ -202,16 +202,14 @@ namespace Mapster.Utils
                 TypeAttributes.Public | TypeAttributes.Sealed | TypeAttributes.SequentialLayout,
                 typeof(ValueType));
             }
-
-            var s = interfaceTypes.Concat(SelfGenericImpl.Select(x => x.GenericParamsSelpReplaser(builder))).ToList();  
-
+                       
             if (interfaceTypes != null)
             {
                 var args = new List<FieldBuilder>();
                 int propCount = 0;
                 var hasReadonlyProps = false;
 
-                foreach (Type currentInterface in s)
+                foreach (Type currentInterface in interfaceTypes)
                 {
                     builder.AddInterfaceImplementation(currentInterface);
                     foreach (PropertyInfo prop in currentInterface.GetProperties())
@@ -231,13 +229,6 @@ namespace Mapster.Utils
                         }
                     }
                 }
-            }
-
-            if (SelfGenericImpl != null)
-            {
-                var result1 = builder.CreateTypeInfo()!;
-
-                return CreateParentTypeWithInterface(result1, SelfGenericImpl.Select(x=>x.GenericParamsSelpReplaser(result1)), null);
             }
 
             return builder.CreateTypeInfo()!;
