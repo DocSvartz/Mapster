@@ -466,5 +466,18 @@ namespace Mapster
 
             return type.GetFieldsAndProperties().All(it => (it.SetterModifier & (AccessModifier.Public | AccessModifier.NonPublic)) == 0);
         }
+
+        public static bool IsNotCustomConverterFactory(this CompileArgument arg, TypeAdapterRule? rule)
+        {
+            if(rule != null)
+            {
+                if(arg.MapType == MapType.Map && rule.Settings.ConverterFactory != null)
+                    return false;
+                if (arg.MapType == MapType.MapToTarget && rule.Settings.ConverterToTargetFactory != null)
+                    return false;
+            }
+
+            return true;
+        }
     }
 }

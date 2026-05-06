@@ -108,6 +108,14 @@ namespace Mapster
             return setter;
         }
 
+        public static TSetter DirectAssignmentForSameType<TSetter>(this TSetter setter, bool value) where TSetter : TypeAdapterSetter
+        {
+            setter.CheckCompiled();
+
+            setter.Settings.DirectAssignmentForSameType = value;
+            return setter;
+        }
+
         public static TSetter EnumMappingStrategy<TSetter>(this TSetter setter, EnumMappingStrategy strategy) where TSetter : TypeAdapterSetter
         {
             setter.CheckCompiled();
