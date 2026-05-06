@@ -291,5 +291,18 @@ namespace Mapster.Adapters
 
             return Expression.MemberInit(newInstance, lines);
         }
+
+        protected override Expression CreateExpressionBody(Expression source, Expression? destination, CompileArgument arg)
+        {
+            TypeAdapterRule? rule;
+            var tuple = new TypeTuple(source.Type, arg.DestinationType);
+            arg.Context.Config.RuleMap.TryGetValue(tuple, out rule);
+
+            if (source.Type == arg.DestinationType && !arg.UseDestinationValue
+                && arg.Settings.DirectAssignmentForSameType.GetValueOrDefault() && arg.IsNotCustomConverterFactory(rule))
+                return source;
+
+            return base.CreateExpressionBody(source, destination, arg);
+        }
     }
 }

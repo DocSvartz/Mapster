@@ -501,11 +501,6 @@ namespace Mapster.Adapters
 
             //adapt(_source);
             var notUsingDestinationValue = mapping is not { UseDestinationValue: true };
-
-            if(_source.Type == destinationType && notUsingDestinationValue
-                && arg.IsDirectAssignmentForSameTypeEnable(rule, tuple) && arg.IsNotCustomConverterFactory(rule))
-                return _source.To(destinationType);
-
            var exp = _source.Type == destinationType && arg.Settings.ShallowCopyForSameType == true && notUsingDestinationValue 
                      && rule == null
                 ? _source

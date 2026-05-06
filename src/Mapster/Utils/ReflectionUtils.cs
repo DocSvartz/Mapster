@@ -467,24 +467,6 @@ namespace Mapster
             return type.GetFieldsAndProperties().All(it => (it.SetterModifier & (AccessModifier.Public | AccessModifier.NonPublic)) == 0);
         }
 
-        public static bool IsDirectAssignmentForSameTypeEnable(this CompileArgument arg, TypeAdapterRule? rule, TypeTuple tuple)
-        {
-            if (rule != null
-                && rule.Settings.DirectAssignmentForSameType.HasValue)
-                return rule.Settings.DirectAssignmentForSameType.GetValueOrDefault();
-
-            if (arg.Context.Config.Rules
-                .Where(x => x.Settings.DestinationType == tuple.Destination)
-                .Select(x => x.Settings)
-                .Any(x => x.DirectAssignmentForSameType.HasValue && x.DirectAssignmentForSameType.GetValueOrDefault()))
-                return true;
-
-            if (arg.Context.Config.Default.Settings.DirectAssignmentForSameType.GetValueOrDefault())
-                return true;
-
-            return false;
-        }
-
         public static bool IsNotCustomConverterFactory(this CompileArgument arg, TypeAdapterRule? rule)
         {
             if(rule != null)
