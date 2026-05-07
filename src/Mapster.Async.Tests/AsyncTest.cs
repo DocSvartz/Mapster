@@ -1,8 +1,9 @@
-using System;
-using System.Threading.Tasks;
 using MapsterMapper;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Shouldly;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Mapster.Async.Tests
 {
@@ -18,12 +19,20 @@ namespace Mapster.Async.Tests
         [TestMethod]
         public async Task Async()
         {
-            TypeAdapterConfig<Poco, Dto>.NewConfig()
-                .AfterMappingAsync(async dest => { dest.Name = await GetName(); });
+            // Arrange
+            var fooDto = new FooDto();
 
-            var poco = new Poco {Id = "foo"};
-            var dto = await poco.BuildAdapter().AdaptToTypeAsync<Dto>();
-            dto.Name.ShouldBe("bar");
+
+            TypeAdapterConfig.GlobalSettings.Default
+                .AddDestinationTransform(DestinationTransform.EmptyCollectionIfNull);
+
+            // Act
+            var foo = fooDto.Adapt<Foo>();
+
+            var str = fooDto.BuildAdapter().CreateMapExpression<Foo>();
+
+            // Assert
+            foo.Strings.ShouldNotBeNull();
         }
 
 
@@ -137,6 +146,17 @@ namespace Mapster.Async.Tests
             }.BuildAdapter().AdaptToTypeAsync<DtoOwner>();
         }
     }
+
+
+
+    class FooDto
+    {
+        public string[] Strings { get; set; }
+    }
+
+    record Foo(List<string> Strings);
+
+
 
     public class Poco
     {

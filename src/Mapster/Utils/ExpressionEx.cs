@@ -344,6 +344,13 @@ namespace Mapster.Utils
             return visitor.CanBeNull.GetValueOrDefault();
         }
 
+        public static bool CanBeNullParam(this Expression exp)
+        {
+            var visitor = new NullableExpressionVisitor();
+            visitor.Visit(exp);
+            return visitor.CanBeNull.GetValueOrDefault();
+        }
+
         public static bool IsComplex(this Expression exp)
         {
             var visitor = new ComplexExpressionVisitor();
@@ -455,6 +462,9 @@ namespace Mapster.Utils
             var checks = arg.Context.NullChecks
                 .Where(x=> !object.ReferenceEquals(x.arg,arg))
                 .Select(x=>x.param?.Type);
+
+            if (!adapt.CanBeNullParam() && adapt is BinaryExpression)
+                return adapt;
 
             while (current != null) 
             {
