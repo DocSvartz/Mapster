@@ -457,18 +457,17 @@ namespace Mapster.Utils
             if (getter == null)
                 return adapt;
 
-            Expression? condition = null;
+            BinaryExpression? condition = null;
             var current = getter;
             var checks = arg.Context.NullChecks
                 .Where(x=> !object.ReferenceEquals(x.arg,arg))
                 .Select(x=>x.param?.Type);
 
-            if (!adapt.CanBeNullParam() && adapt is BinaryExpression)
-                return adapt;
+            
 
             while (current != null) 
             {
-                Expression? compareNull = null;
+                BinaryExpression? compareNull = null;
 
                 if (current.CanBeNull() && current is not ParameterExpression)
                     compareNull = Expression.NotEqual(current, Expression.Constant(null, current.Type));
@@ -493,7 +492,13 @@ namespace Mapster.Utils
             if (condition == null)
                 return adapt;
 
-            return Expression.Condition(condition, adapt, adapt.Type.CreateDefault());
+            if (!adapt.CanBeNullParam())
+            {
+                if(adapt.NodeType is ExpressionType.Coalesce || adapt.NodeType is ExpressionType.Coalesce)
+                    return Expression.Condition(condition.Left, adapt, Expression.Default(adapt.Type));
+            }
+
+            return Expression.Condition(condition, adapt, Expression.Default(adapt.Type));
         }
 
         public static string? GetMemberPath(this LambdaExpression lambda, bool firstLevelOnly = false, bool noError = false)
