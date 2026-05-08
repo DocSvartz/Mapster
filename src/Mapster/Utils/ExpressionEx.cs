@@ -492,11 +492,9 @@ namespace Mapster.Utils
             if (condition == null)
                 return adapt;
 
-            if (!adapt.CanBeNullParam())
-            {
-                if(adapt.NodeType is ExpressionType.Coalesce || adapt.NodeType is ExpressionType.Coalesce)
-                    return Expression.Condition(condition.Left, adapt, Expression.Default(adapt.Type));
-            }
+            var transform = arg.Settings.DestinationTransforms.Find(it => it.Condition(adapt.Type));
+            if (transform != null)
+                return transform.TransformFunc(adapt.Type).Apply(arg.MapType, Expression.Condition(condition.Left, adapt, Expression.Default(adapt.Type)));
 
             return Expression.Condition(condition, adapt, Expression.Default(adapt.Type));
         }

@@ -448,7 +448,7 @@ namespace Mapster.Adapters
             }
         }
 
-        private static Expression CreateAdaptExpressionCore(Expression source, Type destinationType, CompileArgument arg, MemberMapping? mapping = null, Expression? destination = null)
+        internal static Expression CreateAdaptExpressionCore(Expression source, Type destinationType, CompileArgument arg, MemberMapping? mapping = null, Expression? destination = null)
         {
             var mapType = arg.MapType == MapType.MapToTarget && destination == null ? MapType.Map :
                 mapping?.UseDestinationValue == true ? MapType.MapToTarget :
