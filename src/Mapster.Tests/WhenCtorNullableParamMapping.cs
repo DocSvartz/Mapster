@@ -1,5 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Shouldly;
+using System.Collections.Generic;
 
 namespace Mapster.Tests
 {
@@ -60,6 +61,27 @@ namespace Mapster.Tests
         }
 
 
+        /// <summary>
+        /// https://github.com/MapsterMapper/Mapster/issues/943
+        /// </summary>
+        [TestMethod]
+        public void NullableCtorPropagationCurrentWorkWithDestinationTransform()
+        {
+            var config = new TypeAdapterConfig();
+
+            config.Default
+                .AddDestinationTransform(DestinationTransform.EmptyCollectionIfNull);
+
+            // Arrange
+            var fooDto = new FooDto943();
+
+            // Act
+            var foo = fooDto.Adapt<Foo943>(config);
+
+            // Assert
+            foo.Strings.ShouldNotBeNull();
+        }
+
         #region Immutable classes with private setters, map via ctors
         private abstract class AbstractDomainTestClass
         {
@@ -96,6 +118,13 @@ namespace Mapster.Tests
         #endregion
 
         #region DTO classes
+
+        class FooDto943
+        {
+            public string[] Strings { get; set; }
+        }
+
+        record Foo943(List<string> Strings);
         private abstract class AbstractDtoTestClass
         {
             public string AbstractProperty { get; set; }

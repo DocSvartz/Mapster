@@ -448,7 +448,7 @@ namespace Mapster.Adapters
             }
         }
 
-        private static Expression CreateAdaptExpressionCore(Expression source, Type destinationType, CompileArgument arg, MemberMapping? mapping = null, Expression? destination = null)
+        internal static Expression CreateAdaptExpressionCore(Expression source, Type destinationType, CompileArgument arg, MemberMapping? mapping = null, Expression? destination = null)
         {
             var mapType = arg.MapType == MapType.MapToTarget && destination == null ? MapType.Map :
                 mapping?.UseDestinationValue == true ? MapType.MapToTarget :
@@ -501,10 +501,24 @@ namespace Mapster.Adapters
 
             //adapt(_source);
             var notUsingDestinationValue = mapping is not { UseDestinationValue: true };
-           var exp = _source.Type == destinationType && arg.Settings.ShallowCopyForSameType == true && notUsingDestinationValue 
-                     && rule == null
-                ? _source
-                : CreateAdaptExpressionCore(_source, destinationType, arg, mapping, destination);
+            Expression exp;
+
+            if (_source.Type == destinationType && arg.Settings.ShallowCopyForSameType == true
+                && notUsingDestinationValue && rule == null)
+                exp = _source;
+            else if (source is ConditionalExpression cond && mapping != null)
+            {
+                // convert ApplyNullable Propagation for NotPrimitive Nullable types
+                if (mapping.Getter.Type.IsNotPrimitiveNullableType() && !mapping.DestinationMember.Type.IsNullable())
+                {
+                    var adapt = CreateAdaptExpressionCore(cond.IfTrue.GetNotPrimitiveNullableValue(), mapping.DestinationMember.Type, arg, mapping);
+                    exp = Expression.Condition(cond.Test, adapt, mapping.DestinationMember.Type.CreateDefault());
+                }
+                else
+                    exp = CreateAdaptExpressionCore(_source, destinationType, arg, mapping, destination);
+            }
+            else
+                exp = CreateAdaptExpressionCore(_source, destinationType, arg, mapping, destination);
 
             //transform(adapt(_source));
             if (notUsingDestinationValue)
