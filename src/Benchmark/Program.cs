@@ -1,7 +1,7 @@
-﻿using Benchmark.Benchmarks;
-using BenchmarkDotNet.Running;
+﻿using BenchmarkDotNet.Running;
+using Mapster.Benchmark.Benchmarks;
 
-namespace Benchmark
+namespace Mapster.Benchmark
 {
     class Program
     {

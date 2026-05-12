@@ -6,7 +6,7 @@ using BenchmarkDotNet.Exporters.Csv;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Loggers;
 
-namespace Benchmark.Benchmarks
+namespace Mapster.Benchmark.Benchmarks
 {
     public class Config : ManualConfig
     {
@@ -20,12 +20,14 @@ namespace Benchmark.Benchmarks
 
             AddDiagnoser(MemoryDiagnoser.Default);
             AddColumn(TargetMethodColumn.Method);
+            AddColumnProvider(DefaultColumnProviders.Params);
 
             AddColumn(StatisticColumn.Mean);
             AddColumn(StatisticColumn.StdDev);
             AddColumn(StatisticColumn.Error);
 
             AddColumn(BaselineRatioColumn.RatioMean);
+            AddColumn(BaselineAllocationRatioColumn.RatioMean);
             AddColumnProvider(DefaultColumnProviders.Metrics);
 
             AddJob(Job.ShortRun

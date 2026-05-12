@@ -1,5 +1,5 @@
-﻿using Benchmark.Benchmarks;
-using BenchmarkDotNet.Running;
+﻿using BenchmarkDotNet.Running;
+using Mapster.Benchmark.Development.Benchmarks;
 
 var switcher = new BenchmarkSwitcher(new[]
             {

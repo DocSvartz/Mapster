@@ -1,4 +1,8 @@
-﻿[*.cs]
+﻿[*.{csproj,props}]
+indent_style = space
+indent_size = 2
+
+[*.cs]
 
 # S3220: Method calls should not resolve ambiguously to overloads with "params"
 dotnet_diagnostic.S3220.severity = suggestion

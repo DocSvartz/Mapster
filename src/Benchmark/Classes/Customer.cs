@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Benchmark.Classes
+﻿namespace Mapster.Benchmark.Classes
 {
     public class Address
     {

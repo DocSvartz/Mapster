@@ -1,26 +1,30 @@
-﻿using Benchmark.Classes;
+﻿using AutoMapper;
 using FastExpressionCompiler;
-using Mapster;
-using System;
-using System.Collections.Generic;
+using Mapster.Benchmark.Classes;
+using Mapster.Benchmark.Comparisons;
 using System.Linq.Expressions;
 
-namespace Benchmark
+namespace Mapster.Benchmark
 {
     public static class TestAdaptHelper
     {
-        //private static readonly IMapper _mapper = new Mapper(new MapperConfiguration(cfg =>
-        //{
-        //    cfg.CreateMap<Foo, Foo>();
-        //    cfg.CreateMap<Address, Address>();
-        //    cfg.CreateMap<Address, AddressDTO>();
-        //    cfg.CreateMap<Customer, CustomerDTO>();
-        //}));
+        private static readonly MapperConfiguration AutoMapperConfiguration = new(cfg =>
+        {
+            cfg.CreateMap<Foo, Foo>();
+            cfg.CreateMap<Address, Address>();
+            cfg.CreateMap<Address, AddressDTO>();
+            cfg.CreateMap<Customer, CustomerDTO>()
+                .ForMember(destination => destination.AddressCity,
+                    options => options.MapFrom(source => source.Address != null ? source.Address.City : null));
+        });
 
-        public const string MapsterVersion = "10.0.0";
-        public const string AutoMapperVersion = "13.0.0";
-        public const string ExpressionTranslatorVersion = "2.5.0";
-        public const string ExpressionMapperVersion = "1.9.1";
+        private static readonly IMapper AutoMapperInstance = CreateAutoMapper();
+        private static readonly Func<LambdaExpression, Delegate> DefaultCompiler = TypeAdapterConfig.GlobalSettings.Compiler;
+
+        public const string MapsterVersion = "10.0.7";
+        public const string AutoMapperVersion = "14.0.0";
+        public const string FacetVersion = "6.5.5";
+        public const string MapperlyVersion = "4.3.1";
 
         public static Customer SetupCustomerInstance()
         {
@@ -72,82 +76,112 @@ namespace Benchmark
             };
         }
 
-        private static readonly Func<LambdaExpression, Delegate> _defaultCompiler = TypeAdapterConfig.GlobalSettings.Compiler;
+        private static IMapper CreateAutoMapper()
+        {
+            AutoMapperConfiguration.AssertConfigurationIsValid();
+            AutoMapperConfiguration.CompileMappings();
+            return AutoMapperConfiguration.CreateMapper();
+        }
 
         private static void SetupCompiler(MapsterCompilerType type)
         {
             TypeAdapterConfig.GlobalSettings.Compiler = type switch
             {
-                MapsterCompilerType.Default => _defaultCompiler,
-                MapsterCompilerType.Roslyn => exp => exp.CompileWithDebugInfo(),
-                MapsterCompilerType.FEC => exp => exp.CompileFast(),
+                MapsterCompilerType.Default => DefaultCompiler,
+                MapsterCompilerType.Roslyn => expression => expression.CompileWithDebugInfo(),
+                MapsterCompilerType.FEC => expression => expression.CompileFast(),
                 _ => throw new ArgumentOutOfRangeException(nameof(type)),
             };
         }
-        public static void ConfigureMapster(Foo fooInstance, MapsterCompilerType type)
+
+        public static void ConfigureMapster<TSource, TDestination>(TSource sourceInstance, MapsterCompilerType type)
+            where TSource : class
+            where TDestination : class
         {
             SetupCompiler(type);
-            TypeAdapterConfig.GlobalSettings.Compile(typeof(Foo), typeof(Foo)); //recompile
-            fooInstance.Adapt<Foo, Foo>(); //exercise
+            TypeAdapterConfig.GlobalSettings.Compile(typeof(TSource), typeof(TDestination));
+            _ = sourceInstance.Adapt<TSource, TDestination>();
         }
-        public static void ConfigureExpressMapper(Foo fooInstance)
-        {
-            //ExpressMapper.Mapper.Map<Foo, Foo>(fooInstance); //exercise
-        }
-        //public static void ConfigureAutoMapper(Foo fooInstance)
-        //{
-        //    _mapper.Map<Foo, Foo>(fooInstance); //exercise
-        //}
 
-        public static void ConfigureMapster(Customer customerInstance, MapsterCompilerType type)
+        public static void ConfigureAutoMapper<TSource, TDestination>(TSource sourceInstance)
+            where TSource : class
         {
-            SetupCompiler(type);
-            TypeAdapterConfig.GlobalSettings.Compile(typeof(Customer), typeof(CustomerDTO));    //recompile
-            customerInstance.Adapt<Customer, CustomerDTO>();    //exercise
+            _ = AutoMapperInstance.Map<TSource, TDestination>(sourceInstance);
         }
-        public static void ConfigureExpressMapper(Customer customerInstance)
-        {
-            //ExpressMapper.Mapper.Map<Customer, CustomerDTO>(customerInstance);  //exercise
-        }
-        //public static void ConfigureAutoMapper(Customer customerInstance)
-        //{
-        //    _mapper.Map<Customer, CustomerDTO>(customerInstance);    //exercise
-        //}
 
-        public static void TestMapsterAdapter<TSrc, TDest>(TSrc item, int iterations)
+        public static void ConfigureFacet(Foo sourceInstance)
+        {
+            _ = new FooFacetDto(sourceInstance);
+        }
+
+        public static void ConfigureFacet(Customer sourceInstance)
+        {
+            _ = new CustomerFacetDto(sourceInstance);
+        }
+
+        public static void ConfigureMapperly(Foo sourceInstance)
+        {
+            _ = MapperlyMappings.MapFoo(sourceInstance);
+        }
+
+        public static void ConfigureMapperly(Customer sourceInstance)
+        {
+            _ = MapperlyMappings.MapCustomer(sourceInstance);
+        }
+
+        public static void TestMapsterAdapter<TSrc, TDest>(TSrc item, int mapOperations)
             where TSrc : class
             where TDest : class, new()
         {
-            Loop(item, get => get.Adapt<TSrc, TDest>(), iterations);
+            Loop(item, source => source.Adapt<TSrc, TDest>(), mapOperations);
         }
 
-        public static void TestExpressMapper<TSrc, TDest>(TSrc item, int iterations)
+        public static void TestAutoMapper<TSrc, TDest>(TSrc item, int mapOperations)
             where TSrc : class
             where TDest : class, new()
         {
-            //Loop(item, get => ExpressMapper.Mapper.Map<TSrc, TDest>(get), iterations);
+            Loop(item, source => AutoMapperInstance.Map<TSrc, TDest>(source), mapOperations);
         }
 
-        //public static void TestAutoMapper<TSrc, TDest>(TSrc item, int iterations)
-        //    where TSrc : class
-        //    where TDest : class, new()
-        //{
-        //    Loop(item, get => _mapper.Map<TSrc, TDest>(get), iterations);
-        //}
-
-        public static void TestCodeGen(Foo item, int iterations)
+        public static void TestFacet(Foo item, int mapOperations)
         {
-            //Loop(item, get => FooMapper.Map(get), iterations);
+            Loop(item, source => new FooFacetDto(source), mapOperations);
         }
 
-        public static void TestCodeGen(Customer item, int iterations)
+        public static void TestFacet(Customer item, int mapOperations)
         {
-            //Loop(item, get => CustomerMapper.Map(get), iterations);
+            Loop(item, source => new CustomerFacetDto(source), mapOperations);
         }
 
-        private static void Loop<T>(T item, Action<T> action, int iterations)
+        public static void TestMapperly(Foo item, int mapOperations)
         {
-            for (var i = 0; i < iterations; i++) action(item);
+            Loop(item, MapperlyMappings.MapFoo, mapOperations);
+        }
+
+        public static void TestMapperly(Customer item, int mapOperations)
+        {
+            Loop(item, MapperlyMappings.MapCustomer, mapOperations);
+        }
+
+        public static void TestCodeGen(Foo item, int mapOperations)
+        {
+            Loop(item, FooMapper.Map, mapOperations);
+        }
+
+        public static void TestCodeGen(Customer item, int mapOperations)
+        {
+            Loop(item, CustomerMapper.Map, mapOperations);
+        }
+
+        private static void Loop<TSource, TDestination>(TSource item, Func<TSource, TDestination> map, int mapOperations)
+        {
+            TDestination result = default!;
+            for (var i = 0; i < mapOperations; i++)
+            {
+                result = map(item);
+            }
+
+            GC.KeepAlive(result);
         }
     }
 

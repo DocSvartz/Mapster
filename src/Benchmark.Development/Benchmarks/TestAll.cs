@@ -1,7 +1,7 @@
-﻿using Benchmark.Classes;
-using BenchmarkDotNet.Attributes;
+﻿using BenchmarkDotNet.Attributes;
+using Mapster.Benchmark.Development.Classes;
 
-namespace Benchmark.Benchmarks
+namespace Mapster.Benchmark.Development.Benchmarks
 {
     public class TestAll
     {

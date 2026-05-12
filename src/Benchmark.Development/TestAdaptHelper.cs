@@ -1,12 +1,11 @@
-﻿using Benchmark.Classes;
-using Mapster;
+﻿using Mapster.Benchmark.Development.Classes;
 using System.Linq.Expressions;
 
-namespace Benchmark
+namespace Mapster.Benchmark.Development
 {
     public static class TestAdaptHelper
     {
-        
+
         public static Customer SetupCustomerInstance()
         {
             return new Customer
@@ -64,8 +63,8 @@ namespace Benchmark
             TypeAdapterConfig.GlobalSettings.Compiler = type switch
             {
                 MapsterCompilerType.Default => _defaultCompiler,
-               // MapsterCompilerType.Roslyn => exp => exp.CompileWithDebugInfo(),
-               // MapsterCompilerType.FEC => exp => exp.CompileFast(),
+                // MapsterCompilerType.Roslyn => exp => exp.CompileWithDebugInfo(),
+                // MapsterCompilerType.FEC => exp => exp.CompileFast(),
                 _ => throw new ArgumentOutOfRangeException(nameof(type)),
             };
         }
@@ -75,14 +74,14 @@ namespace Benchmark
             TypeAdapterConfig.GlobalSettings.Compile(typeof(Foo), typeof(Foo)); //recompile
             fooInstance.Adapt<Foo, Foo>(); //exercise
         }
-     
+
         public static void ConfigureMapster(Customer customerInstance, MapsterCompilerType type)
         {
             SetupCompiler(type);
             TypeAdapterConfig.GlobalSettings.Compile(typeof(Customer), typeof(CustomerDTO));    //recompile
             customerInstance.Adapt<Customer, CustomerDTO>();    //exercise
         }
-      
+
         public static void TestMapsterAdapter<TSrc, TDest>(TSrc item, int iterations)
             where TSrc : class
             where TDest : class, new()
