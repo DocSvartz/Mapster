@@ -19,4 +19,9 @@ namespace Mapster.Benchmark.Comparisons
         [MapFrom("Address.City")]
         public string AddressCity { get; set; }
     }
+
+    [Facet(typeof(Person))]
+    public partial class PersonFacetDto
+    {
+    }
 }

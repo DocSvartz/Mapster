@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using Mapster;
 using Mapster.Benchmark.Classes;
@@ -9,9 +9,9 @@ namespace Mapster.Benchmark
 {
 	public static partial class FooMapper
 	{
-		public static Foo Map(Foo p1)
+		public static FooDTO Map(Foo p1)
 		{
-			return p1 == null ? null : new Foo()
+			return p1 == null ? null : new FooDTO()
 			{
 				Name = p1.Name,
 				Int32 = p1.Int32,
@@ -21,25 +21,25 @@ namespace Mapster.Benchmark
 				Doublen = p1.Doublen,
 				DateTime = p1.DateTime,
 				Foo1 = Map(p1.Foo1),
-				Foos = p1.Foos == null ? null : p1.Foos.Select<Foo, Foo>(func1),
+				Foos = p1.Foos == null ? null : p1.Foos.Select<Foo, FooDTO>(func1),
 				FooArr = func2(p1.FooArr),
 				IntArr = func3(p1.IntArr),
 				Ints = p1.Ints == null ? null : MapsterHelper.ToEnumerable<int>(p1.Ints)
 			};
 		}
 
-		private static Foo func1(Foo p2)
+		private static FooDTO func1(Foo p2)
 		{
 			return Map(p2);
 		}
 
-		private static Foo[] func2(Foo[] p3)
+		private static FooDTO[] func2(Foo[] p3)
 		{
 			if (p3 == null)
 			{
 				return null;
 			}
-			Foo[] result = new Foo[p3.Length];
+			FooDTO[] result = new FooDTO[p3.Length];
 
 			int v = 0;
 

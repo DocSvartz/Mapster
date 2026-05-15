@@ -22,8 +22,8 @@
         TypeName = "FooMapper"
     };
     var code = foo.BuildAdapter()
-        .CreateMapExpression<Foo>()
+        .CreateMapExpression<FooDTO>()
         .ToScript(def);
-    code = code.Replace("TypeAdapter<Foo, Foo>.Map.Invoke", "Map");
+    code = code.Replace("TypeAdapter<Foo, FooDTO>.Map.Invoke", "Map");
     WriteLine(code);
 #>

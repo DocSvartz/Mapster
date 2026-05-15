@@ -19,16 +19,19 @@ namespace Mapster.Benchmark.Benchmarks
             AddExporter(HtmlExporter.Default);
 
             AddDiagnoser(MemoryDiagnoser.Default);
+            AddColumn(ScenarioColumn.Default);
             AddColumn(TargetMethodColumn.Method);
             AddColumnProvider(DefaultColumnProviders.Params);
 
             AddColumn(StatisticColumn.Mean);
+            AddColumn(PerMapColumn.Nanoseconds);
             AddColumn(StatisticColumn.StdDev);
             AddColumn(StatisticColumn.Error);
 
             AddColumn(BaselineRatioColumn.RatioMean);
             AddColumn(BaselineAllocationRatioColumn.RatioMean);
             AddColumnProvider(DefaultColumnProviders.Metrics);
+            AddColumn(PerMapColumn.Bytes);
 
             AddJob(Job.ShortRun
                 .WithLaunchCount(1)

@@ -9,9 +9,10 @@ namespace Mapster.Benchmark
         {
             var switcher = new BenchmarkSwitcher(new[]
             {
-                typeof(TestSimpleTypes),
+                typeof(TestFlatTypes),
+                typeof(TestRecursiveTypes),
                 typeof(TestComplexTypes),
-                typeof(TestAll),
+                typeof(TestTotalAllTypes),
             });
 
             switcher.Run(args, new Config());

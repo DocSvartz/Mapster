@@ -45,6 +45,18 @@ namespace Mapster.Benchmark.Comparisons
         public string AddressCity { get; set; }
     }
 
+    public class PersonMapperlyDto
+    {
+        public int Id { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public string Email { get; set; }
+        public int Age { get; set; }
+        public DateTime BirthDate { get; set; }
+        public decimal Salary { get; set; }
+        public bool IsActive { get; set; }
+    }
+
     [Riok.Mapperly.Abstractions.Mapper(UseDeepCloning = true)]
     public static partial class MapperlyMappings
     {
@@ -58,5 +70,7 @@ namespace Mapster.Benchmark.Comparisons
         [MapperIgnoreSource(nameof(Customer.Credit))]
         [MapProperty("Address.City", nameof(CustomerMapperlyDto.AddressCity))]
         public static partial CustomerMapperlyDto MapCustomer(Customer source);
+
+        public static partial PersonMapperlyDto MapPerson(Person source);
     }
 }
