@@ -149,15 +149,21 @@ Mapster was designed to be efficient on both speed and memory. The repository in
 - Facet
 - Mapperly
 
-| Method | MapOperations | Mean | StdDev | Error | Ratio | Gen0 | Gen1 | Allocated | Alloc Ratio |
-| -------- | -------------- | -----: | -------: | ------: | ------: | -----: | -----: | ----------: | ----------: |
-| `Mapster 10.0.7` | 1000000 | 412,534 us | 2,704 us | 4,543 us | 1.00 | 77000 | - | 1243.59 MB | 1.00 |
-| `Mapster 10.0.7 (Roslyn)` | 1000000 | 397,028 us | 5,174 us | 8,695 us | 0.96 | 75000 | - | 1205.44 MB | 0.97 |
-| `Mapster 10.0.7 (FEC)` | 1000000 | 124,374 us | 1,290 us | 2,466 us | 0.30 | 74000 | - | 1182.56 MB | 0.95 |
-| `Mapster 10.0.7 (Codegen)` | 1000000 | 105,214 us | 1,312 us | 2,206 us | 0.26 | 75500 | 166 | 1205.44 MB | 0.97 |
-| `AutoMapper 14.0.0` | 1000000 | 600,077 us | 63,170 us | 95,505 us | 1.45 | 197000 | 1000 | 3158.59 MB | 2.54 |
-| `Facet 6.5.5` | 1000000 | 628,280 us | 7,326 us | 11,076 us | 1.52 | 325000 | 1000 | 5187.99 MB | 4.17 |
-| `Mapperly 4.3.1` | 1000000 | 128,521 us | 1,453 us | 2,442 us | 0.31 | 94500 | 250 | 1510.62 MB | 1.21 |
+The snapshot below shows the `FlatTypes` scenario (`Person -> PersonDTO`), a best-case DTO with simple property-to-property mapping and no nested objects or collections.
+
+> [!NOTE]
+> More complex object shapes can change the relative results. See the [complete benchmark results](https://mapstermapper.github.io/Mapster/articles/benchmarks.html) for `ComplexTypes`, `RecursiveTypes`, and `TotalAllTypes`.
+
+| Method                              | MapOperations | Mean      | StdDev    | Error     | Ns/Map | Ratio | Gen0 | Allocated | Alloc Ratio | Bytes/Map |
+|------------------------------------ |-------------- |----------:|----------:|----------:|-------:|------:|-----:|----------:|------------:|----------:|
+| `Mapster 10.0.7`                    | 1000000       |  6.849 ms | 0.6851 ms | 1.0358 ms |  6.849 |  1.01 | 4781 |  76.29 MB |        1.00 |        80 |
+| `Mapster 10.0.7 (Roslyn)`           | 1000000       |  6.579 ms | 0.2782 ms | 0.4206 ms |  6.579 |  0.97 | 4781 |  76.29 MB |        1.00 |        80 |
+| `Mapster 10.0.7 (FEC)`              | 1000000       |  6.549 ms | 0.9130 ms | 1.3803 ms |  6.549 |  0.97 | 4781 |  76.29 MB |        1.00 |        80 |
+| `Mapster 10.0.7 (Codegen)`          | 1000000       |  5.868 ms | 0.3266 ms | 0.5488 ms |  5.868 |  0.86 | 4781 |  76.29 MB |        1.00 |        80 |
+| `AutoMapper 14.0.0`                 | 1000000       | 29.645 ms | 0.8963 ms | 1.5062 ms | 29.645 |  4.37 | 4750 |  76.29 MB |        1.00 |        80 |
+| `Facet 6.5.5`                       | 1000000       |  7.801 ms | 1.0231 ms | 1.5467 ms |  7.801 |  1.15 | 8601 | 137.33 MB |        1.80 |       144 |
+| `Facet 6.5.5 (Compiled Projection)` | 1000000       |  5.508 ms | 0.7064 ms | 1.0679 ms |  5.508 |  0.81 | 4781 |  76.29 MB |        1.00 |        80 |
+| `Mapperly 4.3.1`                    | 1000000       |  6.521 ms | 0.8369 ms | 1.2652 ms |  6.521 |  0.96 | 4781 |  76.29 MB |        1.00 |        80 |
 
 ### Step into debugging
 
