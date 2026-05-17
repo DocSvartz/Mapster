@@ -141,7 +141,7 @@ public static class StudentMapper {
 
 ### Performance & Memory efficient
 
-Mapster was designed to be efficient on both speed and memory. The repository includes a benchmark project in [`src/Benchmark`](src/Benchmark) that compares the local Mapster build, its compiler variants, and other modern mapping libraries like AutoMapper, Mapperly, and Facet.
+Mapster was designed to be efficient on both speed and memory. The repository includes a benchmark project in [`src/Benchmark`](https://github.com/MapsterMapper/Mapster/tree/master/src/Benchmark) that compares the local Mapster build, its compiler variants, and other modern mapping libraries like AutoMapper, Mapperly, and Facet.
 
 - [Roslyn Compiler](https://mapstermapper.github.io/Mapster/articles/packages/ExpressionDebugging.html)
 - [FEC](https://mapstermapper.github.io/Mapster/articles/packages/FastExpressionCompiler.html)
