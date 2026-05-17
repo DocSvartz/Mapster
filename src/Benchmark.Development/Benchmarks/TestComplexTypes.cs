@@ -1,7 +1,7 @@
-﻿using Benchmark.Classes;
-using BenchmarkDotNet.Attributes;
+﻿using BenchmarkDotNet.Attributes;
+using Mapster.Benchmark.Development.Classes;
 
-namespace Benchmark.Benchmarks
+namespace Mapster.Benchmark.Development.Benchmarks
 {
     public class TestComplexTypes
     {
@@ -15,7 +15,7 @@ namespace Benchmark.Benchmarks
         {
             TestAdaptHelper.TestMapsterAdapter<Customer, CustomerDTO>(_customerInstance, Iterations);
         }
-         
+
         [GlobalSetup(Target = nameof(MapsterTest))]
         public void SetupMapster()
         {

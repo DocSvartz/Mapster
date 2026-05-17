@@ -1,0 +1,23 @@
+using Mapster.Benchmark.Classes;
+
+
+namespace Mapster.Benchmark
+{
+    public static partial class PersonMapper
+    {
+        public static PersonDTO Map(Person p1)
+        {
+            return p1 == null ? null : new PersonDTO()
+            {
+                Id = p1.Id,
+                FirstName = p1.FirstName,
+                LastName = p1.LastName,
+                Email = p1.Email,
+                Age = p1.Age,
+                BirthDate = p1.BirthDate,
+                Salary = p1.Salary,
+                IsActive = p1.IsActive
+            };
+        }
+    }
+}

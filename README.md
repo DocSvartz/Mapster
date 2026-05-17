@@ -141,21 +141,29 @@ public static class StudentMapper {
 
 ### Performance & Memory efficient
 
-Mapster was designed to be efficient on both speed and memory. You could gain a 4x performance improvement whilst using only 1/3 of memory.
-And you could gain up to 12x faster performance with:
+Mapster was designed to be efficient on both speed and memory. The repository includes a benchmark project in [`src/Benchmark`](https://github.com/MapsterMapper/Mapster/tree/master/src/Benchmark) that compares the local Mapster build, its compiler variants, and other modern mapping libraries like AutoMapper, Mapperly, and Facet.
 
 - [Roslyn Compiler](https://mapstermapper.github.io/Mapster/articles/packages/ExpressionDebugging.html)
 - [FEC](https://mapstermapper.github.io/Mapster/articles/packages/FastExpressionCompiler.html)
 - Code generation
+- Facet
+- Mapperly
 
-|                    Method |      Mean |    StdDev |     Error |      Gen 0 | Gen 1 | Gen 2 | Allocated |
-|-------------------------- |----------:|----------:|----------:|-----------:|------:|------:|----------:|
-|           'Mapster 6.0.0' | 108.59 ms |  1.198 ms |  1.811 ms | 31000.0000 |     - |     - | 124.36 MB |
-|  'Mapster 6.0.0 (Roslyn)' |  38.45 ms |  0.494 ms |  0.830 ms | 31142.8571 |     - |     - | 124.36 MB |
-|     'Mapster 6.0.0 (FEC)' |  37.03 ms |  0.281 ms |  0.472 ms | 29642.8571 |     - |     - | 118.26 MB |
-| 'Mapster 6.0.0 (Codegen)' |  34.16 ms |  0.209 ms |  0.316 ms | 31133.3333 |     - |     - | 124.36 MB |
-|     'ExpressMapper 1.9.1' | 205.78 ms |  5.357 ms |  8.098 ms | 59000.0000 |     - |     - | 236.51 MB |
-|       'AutoMapper 10.0.0' | 420.97 ms | 23.266 ms | 35.174 ms | 87000.0000 |     - |     - | 350.95 MB |
+The snapshot below shows the `FlatTypes` scenario (`Person -> PersonDTO`), a best-case DTO with simple property-to-property mapping and no nested objects or collections.
+
+> [!NOTE]
+> More complex object shapes can change the relative results. See the [complete benchmark results](https://mapstermapper.github.io/Mapster/articles/benchmarks.html) for `ComplexTypes`, `RecursiveTypes`, and `TotalAllTypes`.
+
+| Method                              | MapOperations | Mean      | StdDev    | Error     | Ns/Map | Ratio | Gen0 | Allocated | Alloc Ratio | Bytes/Map |
+|------------------------------------ |-------------- |----------:|----------:|----------:|-------:|------:|-----:|----------:|------------:|----------:|
+| `Mapster 10.0.7`                    | 1000000       |  6.849 ms | 0.6851 ms | 1.0358 ms |  6.849 |  1.01 | 4781 |  76.29 MB |        1.00 |        80 |
+| `Mapster 10.0.7 (Roslyn)`           | 1000000       |  6.579 ms | 0.2782 ms | 0.4206 ms |  6.579 |  0.97 | 4781 |  76.29 MB |        1.00 |        80 |
+| `Mapster 10.0.7 (FEC)`              | 1000000       |  6.549 ms | 0.9130 ms | 1.3803 ms |  6.549 |  0.97 | 4781 |  76.29 MB |        1.00 |        80 |
+| `Mapster 10.0.7 (Codegen)`          | 1000000       |  5.868 ms | 0.3266 ms | 0.5488 ms |  5.868 |  0.86 | 4781 |  76.29 MB |        1.00 |        80 |
+| `AutoMapper 14.0.0`                 | 1000000       | 29.645 ms | 0.8963 ms | 1.5062 ms | 29.645 |  4.37 | 4750 |  76.29 MB |        1.00 |        80 |
+| `Facet 6.5.5`                       | 1000000       |  7.801 ms | 1.0231 ms | 1.5467 ms |  7.801 |  1.15 | 8601 | 137.33 MB |        1.80 |       144 |
+| `Facet 6.5.5 (Compiled Projection)` | 1000000       |  5.508 ms | 0.7064 ms | 1.0679 ms |  5.508 |  0.81 | 4781 |  76.29 MB |        1.00 |        80 |
+| `Mapperly 4.3.1`                    | 1000000       |  6.521 ms | 0.8369 ms | 1.2652 ms |  6.521 |  0.96 | 4781 |  76.29 MB |        1.00 |        80 |
 
 ### Step into debugging
 

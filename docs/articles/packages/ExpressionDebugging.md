@@ -50,12 +50,8 @@ TypeAdapterConfig.GlobalSettings.Compiler = exp => exp.CompileWithDebugInfo(opt)
 var dto = poco.Adapt<SimplePoco, SimpleDto>(); //<-- you can step-into this function!!
 ```
 
-### Do not worry about performance
+### Performance notes
 
-In `RELEASE` mode, Roslyn compiler is actually faster than default dynamic compilation by 2x.
-Here is the result:
+In modern .NET runtimes, the Roslyn compiler path is mostly useful for step-into debugging and inspecting generated mapping code. In the current benchmark snapshot it performs close to the default Mapster compiler in steady-state execution.
 
-|                    Method |           Mean |       StdDev |        Error |       Gen 0 | Gen 1 | Gen 2 |  Allocated |
-|-------------------------- |---------------:|-------------:|-------------:|------------:|------:|------:|-----------:|
-|           'Mapster 4.1.1' | 115.31 ms | 0.849 ms | 1.426 ms | 31000.0000 |     - |     - | 124.36 MB |
-|  'Mapster 4.1.1 (Roslyn)' |  53.55 ms | 0.342 ms | 0.654 ms | 31100.0000 |     - |     - | 124.36 MB |
+See the [benchmark snapshot in README](../../../README.md#performance--memory-efficient) for current numbers.

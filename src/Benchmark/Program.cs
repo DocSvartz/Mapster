@@ -1,7 +1,7 @@
-﻿using Benchmark.Benchmarks;
-using BenchmarkDotNet.Running;
+﻿using BenchmarkDotNet.Running;
+using Mapster.Benchmark.Benchmarks;
 
-namespace Benchmark
+namespace Mapster.Benchmark
 {
     class Program
     {
@@ -9,9 +9,10 @@ namespace Benchmark
         {
             var switcher = new BenchmarkSwitcher(new[]
             {
-                typeof(TestSimpleTypes),
+                typeof(TestFlatTypes),
+                typeof(TestRecursiveTypes),
                 typeof(TestComplexTypes),
-                typeof(TestAll),
+                typeof(TestTotalAllTypes),
             });
 
             switcher.Run(args, new Config());

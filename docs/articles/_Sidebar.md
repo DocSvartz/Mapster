@@ -54,3 +54,8 @@
   * [Fluent API](https://github.com/MapsterMapper/Mapster/wiki/Fluent-API-Code-generation)
   * [Attributes](https://github.com/MapsterMapper/Mapster/wiki/Attribute-base-Code-generation)
   * [Interfaces](https://github.com/MapsterMapper/Mapster/wiki/Interface-base-Code-generation)
+
+## Benchmarks
+
+* [Benchmark results](https://mapstermapper.github.io/Mapster/articles/benchmarks.html)
+* 

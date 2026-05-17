@@ -16,3 +16,5 @@ items:
 - name: Tools
   href: tools/toc.yml
   topicHref: xref:Mapster.Tools.MapsterTool.Overview
+- name: Benchmarks
+  href: benchmarks.md
