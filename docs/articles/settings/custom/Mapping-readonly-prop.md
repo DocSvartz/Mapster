@@ -14,7 +14,7 @@ public class Order {
 }
 ```
 
-## Using `UseDestinationValue` attribute
+### Using `UseDestinationValue` attribute
 
 You can make your type pure readonly and annotate with `[UseDestinationValue]`.
 
@@ -27,7 +27,7 @@ public class Order {
 }
 ```
 
-## Convention based setup using `UseDestinationValue` Extension Method
+### Convention based setup using `UseDestinationValue` Extension Method
 
 Or you can apply without annotate each type, for example, if you would like all readonly `ICollection<>` to use destination value.
 
@@ -36,4 +36,12 @@ TypeAdapterConfig.GlobalSettings.Default
     .UseDestinationValue(member => member.SetterModifier == AccessModifier.None &&
                                    member.Type.IsGenericType &&
                                    member.Type.GetGenericTypeDefinition() == typeof(ICollection<>));
+```
+
+### Using `UseDestinationValue` [v10.0.4+]
+
+```csharp
+TypeAdapterConfig.GlobalSettings
+    .ForDestinationType<Order>()
+    .UseDestinationValue(dest=>dest.Items);
 ```
