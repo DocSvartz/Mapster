@@ -50,7 +50,8 @@
           "articles/toc.yml",
           "articles/**/toc.yml",
           "toc.yml",
-          "index.md"
+          "index.md",
+          "tags-reference.md"
         ],
         "exclude": [
           "**/.include/**",
