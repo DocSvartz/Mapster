@@ -86,8 +86,7 @@
       }
     ],
     "template": [
-      "default",
-      "modern"
+      "_template/wtf"
     ],
     "xref": [ "https://learn.microsoft.com/en-us/dotnet/.xrefmap.json" ],
     "markdownEngineProperties": {
@@ -107,6 +106,14 @@
       "baseUrl": "https://mapstermapper.github.io/Mapster",
       "priority": 0.1,
       "changefreq": "monthly"
-    }
+    },
+    "plugins": [
+      {
+        "name": "TagReferenceBuildStep", // Имя может быть любым, для справки
+        "path": "./_template/wtf/Plugins/DocFX.WN.PostProcessor.dll" // Путь к вашей DLL
+      }
+    ]
+    //,
+    //"postProcessors": ["WhatsNew"]
   }
 }
