@@ -111,7 +111,77 @@ namespace Mapster.Tests
 
         }
 
+        /// <summary>
+        /// https://github.com/MapsterMapper/Mapster/issues/953
+        /// </summary>
+        [TestMethod]
+        public void RemoveIgnoredFeatureIsWorked()
+        {
+            TypeAdapterConfig<BaseDTO953, BasePoco953>
+                .NewConfig()
+                .Map(dest => dest.PocoName, src => src.DtoName)
+                .Ignore(x=>x.PocoName);
+
+            TypeAdapterConfig<DerivedDTO953, DerivedPoco953>
+                .NewConfig()
+                .Inherits<BaseDTO953, BasePoco953>();
+
+            var srcDerived = new DerivedPoco953 { PocoName = "Alice" };
+
+            // standart cases
+            var resultDerived = srcDerived.Adapt<DerivedPoco953>();
+            
+            // when igrored member is remove
+
+            var resultDerivedRemoveAllIgnored = srcDerived
+                .Adapt<DerivedPoco953>(cfg =>
+                {
+                    cfg
+                        .NewConfig<DerivedDTO953, DerivedPoco953>()
+                        .Inherits<BaseDTO953, BasePoco953>()
+                        .IgnoredClear();
+                });
+
+            var resultDerivedRemove = srcDerived
+               .Adapt<DerivedPoco953>(cfg =>
+               {
+                   cfg
+                       .NewConfig<DerivedDTO953, DerivedPoco953>()
+                       .Inherits<BaseDTO953, BasePoco953>()
+                       .IgnoredRemove(x=>x.PocoName);
+               });
+
+            var resultDerivedRemoveByName = srcDerived
+               .Adapt<DerivedPoco953>(cfg =>
+               {
+                   cfg
+                       .NewConfig<DerivedDTO953, DerivedPoco953>()
+                       .Inherits<BaseDTO953, BasePoco953>()
+                       .IgnoredRemove("PocoName");
+               });
+
+
+            resultDerived.PocoName.ShouldNotBeNullOrEmpty();
+            resultDerivedRemoveAllIgnored.PocoName.ShouldBe("Alice");
+            resultDerivedRemove.PocoName.ShouldBe("Alice");
+            resultDerivedRemoveByName.PocoName.ShouldBe("Alice");
+
+        }
+
         #region TestClasses
+
+        public class BaseDTO953
+        {
+            public string DtoName { get; set; }
+        }
+        public class DerivedDTO953: BaseDTO953 { }
+
+        public class BasePoco953
+        {
+            public string PocoName { get; set; }
+        }
+
+        public class DerivedPoco953 : BasePoco953 { }
 
         public interface InterfaceDestination723
         {
