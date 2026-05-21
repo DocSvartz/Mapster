@@ -70,7 +70,8 @@ TypeAdapterConfig.GlobalSettings.ForDestinationType<IValidator>()
                                 .AfterMapping(dest => dest.Validate());
 ```
 
-NOTE: `ForDestinationType` above will always apply to all types assignable to `IValidator`. If destination class implements `IValidator`, it will also apply the `AfterMapping` config.
+>[!NOTE] 
+>`ForDestinationType` above will always apply to all types assignable to `IValidator`. If destination class implements `IValidator`, it will also apply the `AfterMapping` config.
 
 ## Open generics
 
@@ -80,3 +81,14 @@ If the mapping type is generic, you can create a setting by passing generic type
 TypeAdapterConfig.GlobalSettings.ForType(typeof(GenericPoco<>), typeof(GenericDto<>))
                                 .Map("value", "Value");
 ```
+>[!Note]
+> Starting with Mapster version 10.0.8, [validation](xref:Mapster.Configuration.ValidationAndCompilation#validating-mappings) for type pairs settings containing open generic type is disabled.
+>If you require validation of such settings, you must register the configuration for at least one pair of closed generic types:
+>```csharp
+>TypeAdapterConfig.GlobalSettings.RequireDestinationMemberSource = true; // check all destination member mapping
+>TypeAdapterConfig.GlobalSettings.ForType(typeof(GenericPoco<>), typeof(GenericDto<>))
+>                                .Map("value", "Value");
+>
+> TypeAdapterConfig<GenericPoco<int>, GenericDto<string>>.NewConfig();
+> TypeAdapterConfig.GlobalSettings.Compile(); // validate
+>```
