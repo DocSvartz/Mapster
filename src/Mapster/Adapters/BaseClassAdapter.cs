@@ -222,11 +222,27 @@ namespace Mapster.Adapters
             {
                 arg.Context.NullChecks.UnionWith(members.Where(x=>x.Getter != null).Select(x=>(x.Getter,arg)));
                 var parameterInfo = (ParameterInfo)member.DestinationMember.Info!;
-                var defaultConst = parameterInfo.IsOptional
+                Expression defaultConst;
+                Expression getter;
+
+#if NETSTANDARD2_0
+                try
+                {
+                    defaultConst = parameterInfo.IsOptional && parameterInfo.DefaultValue != null
                     ? Expression.Constant(parameterInfo.DefaultValue, member.DestinationMember.Type)
                     : parameterInfo.ParameterType.CreateDefault();
+                }
+                catch (FormatException)
+                {
+                    defaultConst = parameterInfo.ParameterType.CreateDefault();
+                }
 
-                Expression getter;
+#else
+                defaultConst = parameterInfo.IsOptional && parameterInfo.DefaultValue != null
+                    ? Expression.Constant(parameterInfo.DefaultValue, member.DestinationMember.Type)
+                    : parameterInfo.ParameterType.CreateDefault();
+#endif
+                
                 if (member.Getter == null)
                 {
                     getter = defaultConst;
@@ -352,6 +368,6 @@ namespace Mapster.Adapters
                 new[] { member.Destination, memberAsObject });
         }
 
-        #endregion
+#endregion
     }
 }
