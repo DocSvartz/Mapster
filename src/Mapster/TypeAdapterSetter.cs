@@ -73,6 +73,25 @@ namespace Mapster
             return setter;
         }
 
+        public static TSetter IgnoredClear<TSetter>(this TSetter setter) where TSetter : TypeAdapterSetter
+        {
+            setter.CheckCompiled();
+            setter.Settings.Ignore.Clear();
+
+            return setter;
+        }
+
+        public static TSetter IgnoredRemove<TSetter>(this TSetter setter, params string[] names) where TSetter : TypeAdapterSetter
+        {
+            setter.CheckCompiled();
+
+            foreach (var name in names)
+            {
+                setter.Settings.Ignore.TryRemove(name, out _);
+            }
+            return setter;
+        }
+
         public static TSetter IncludeAttribute<TSetter>(this TSetter setter, params Type[] types) where TSetter : TypeAdapterSetter
         {
             setter.CheckCompiled();
@@ -554,6 +573,16 @@ namespace Mapster
             return (TypeAdapterSetter<TSource, TDestination>)base.Ignore(members);
         }
 
+        public TypeAdapterSetter<TDestination> IgnoredRemove(params Expression<Func<TDestination, object>>[] members)
+        {
+            this.CheckCompiled();
+
+            foreach (var member in members)
+            {
+                Settings.Ignore.TryRemove(member.GetMemberPath()!, out _);
+            }
+            return this;
+        }
         public new TypeAdapterSetter<TSource, TDestination> Map<TDestinationMember, TSourceMember>(
             Expression<Func<TDestination, TDestinationMember>> member,
             Expression<Func<TSourceMember>> source)
