@@ -218,9 +218,9 @@ namespace Mapster.Adapters
             var members = classConverter.Members;
 
             var arguments = new List<Expression>();
+            arg.Context.NullChecks.UnionWith(members.Where(x => x.Getter != null).Select(x => (x.Getter, arg)));
             foreach (var member in members)
             {
-                arg.Context.NullChecks.UnionWith(members.Where(x=>x.Getter != null).Select(x=>(x.Getter,arg)));
                 var parameterInfo = (ParameterInfo)member.DestinationMember.Info!;
                 Expression defaultConst;
                 Expression getter;
@@ -253,12 +253,13 @@ namespace Mapster.Adapters
                 else
                 {
 
-                    if (member.Getter.CanBeNull() && member.DestinationMember.Type.IsAbstractOrNotPublicCtor()
-                        && member.Ignore.Condition == null)
+                    if (member.Getter.CanBeNull() && member.Ignore.Condition == null
+                        && (member.DestinationMember.Type.IsAbstractOrNotPublicCtor()
+                            || member.DestinationMember.Type.UnwrapNullable().IsRecordType()))
                     {
                         var compareNull = Expression.Equal(member.Getter, Expression.Constant(null, member.Getter.Type));
                         getter = Expression.Condition(ExpressionEx.Not(compareNull),
-                            CreateAdaptExpression(member.Getter, member.DestinationMember.Type, arg, member),
+                            CreateAdaptExpressionCore(member.Getter, member.DestinationMember.Type, arg, member),
                            defaultConst);
                     }
                     else
