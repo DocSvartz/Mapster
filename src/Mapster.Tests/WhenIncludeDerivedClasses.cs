@@ -40,6 +40,37 @@ namespace Mapster.Tests
             ((BikeDto)dto[1]).Brand.ShouldBe("BMX");
         }
 
+        /// <summary>
+        /// https://github.com/MapsterMapper/Mapster/issues/801
+        /// </summary>
+        [TestMethod]
+        public void CompileProjection_Including_Derived_Class()
+        {
+            TypeAdapterConfig<PocoA801, DtoA801>.NewConfig()
+                .Include<PocoDerived801, DtoDerived801>()
+                .CompileProjection();
+        }
+
+        public abstract class PocoA801
+        {
+            public int Id { get; set; }
+        }
+
+        public class PocoDerived801 : PocoA801
+        {
+            public int DerivedVal { get; set; }
+        }
+
+        public abstract class DtoA801
+        {
+            public int Id { get; set; }
+        }
+
+        public class DtoDerived801 : DtoA801
+        {
+            public int DerivedVal { get; set; }
+        }
+
         #region test classes
         public abstract class Vehicle
         {

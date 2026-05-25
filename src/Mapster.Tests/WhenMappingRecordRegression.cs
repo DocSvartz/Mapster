@@ -540,6 +540,49 @@ namespace Mapster.Tests
         }
 
         /// <summary>
+        /// https://github.com/MapsterMapper/Mapster/issues/911
+        /// </summary>
+        [TestMethod]
+        public void NotSelfCreationTypeMappingInContainingClassWithoutError()
+        {
+            var jsonSource = new SourceClassWithJsonDocument911
+            {
+                Json = JsonDocument.Parse("{\"key\": \"value\"}")
+            };
+
+            var uriSource = new SourceClassWithUri911
+            {
+                Uri = new Uri("https://www.google.com/")
+            };
+
+            var jsonDest = jsonSource.Adapt<DestinationClassWithJsonDocument911>();
+            var uriDest = uriSource.Adapt<DestinationClassWithUri911>();
+
+            jsonDest.Json.RootElement.GetProperty("key").GetString().ShouldBe("value");
+            uriDest.Uri.ToString().ShouldBe("https://www.google.com/");
+        }
+
+        class SourceClassWithJsonDocument911
+        {
+            public required JsonDocument Json { get; init; }
+        }
+
+        class DestinationClassWithJsonDocument911
+        {
+            public required JsonDocument Json { get; init; }
+        }
+
+        class SourceClassWithUri911
+        {
+            public required Uri Uri { get; init; }
+        }
+
+        class DestinationClassWithUri911
+        {
+            public required Uri Uri { get; init; }
+        }
+
+        /// <summary>
         /// https://github.com/MapsterMapper/Mapster/issues/927
         /// </summary>
         [TestMethod]
