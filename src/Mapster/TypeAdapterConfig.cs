@@ -431,12 +431,28 @@ namespace Mapster
                 throw new CompileException(arg, new InvalidOperationException("ConverterFactory is not found"));
             try
             {
-                return fn(arg);
+                return AdjustInheritedConverterReturnType(fn(arg), arg);
             }
             catch (Exception ex)
             {
                 throw new CompileException(arg, ex);
             }
+        }
+
+        private static LambdaExpression AdjustInheritedConverterReturnType(LambdaExpression lambda, CompileArgument arg)
+        {
+            var destinationType = arg.DestinationType;
+            var returnType = lambda.ReturnType;
+            if (returnType == destinationType)
+                return lambda;
+
+            // MapWith configured on a base destination type returns the base type, but implicit
+            // destination inheritance can compile the converter for a derived destination.
+            if (!returnType.IsAssignableFrom(destinationType))
+                return lambda;
+
+            var body = lambda.Body.To(destinationType, force: true);
+            return Expression.Lambda(body, lambda.Parameters);
         }
 
         private LambdaExpression CreateDynamicMapExpression(TypeTuple tuple)
