@@ -43,6 +43,12 @@ namespace Mapster.Adapters
                         from src in sources
                         select fn(src, destinationMember, arg))
                     .FirstOrDefault(result => result != null);
+                if(getter is MemberExpression mem && mem?.Expression?.Type == source.Type)
+                {
+                    getter = Expression.PropertyOrField(source, mem.Member.Name);
+                }
+
+              var   test = resolvers.Where(ValueAccessingStrategy.CustomResolvers.Contains);
 
                 if (arg.MapType == MapType.Projection && getter != null)
                 {
@@ -103,6 +109,10 @@ namespace Mapster.Adapters
                 var nextResolvers = arg.Settings.Resolvers.Next(arg.Settings.Ignore, (ParameterExpression)source, destinationMember.Name)
                     .ToList();
 
+                var overideSettings = arg.Settings.Resolvers
+                    .Where(x => x.DestinationMemberName == destinationMember.Name && x.OvverideSettings != null)
+                    .Select(x=>x.OvverideSettings).FirstOrDefault();
+
                 var propertyModel = new MemberMapping
                 {
                     DestinationMember = destinationMember,
@@ -112,6 +122,7 @@ namespace Mapster.Adapters
                     Source = (ParameterExpression)source,
                     Destination = (ParameterExpression?)destination,
                     UseDestinationValue = IsCanUsingDestinationValue(arg, destinationMember),
+                    OverrideSettings = overideSettings
                 };
                 if(arg.MapType == MapType.ApplyNullPropagation &&
                     getter == null && !arg.DestinationType.IsRecordType()  
@@ -264,6 +275,7 @@ namespace Mapster.Adapters
                     else
                        getter = member.Getter
                             .ApplyNullPropagationFromCtor(CreateAdaptExpressionCore(member.Getter, member.DestinationMember.Type, arg, member), arg);
+
                     
 
                     if (member.Ignore.Condition != null)
@@ -282,6 +294,7 @@ namespace Mapster.Adapters
                         if (arg.MapType == MapType.MapToTarget && arg.DestinationType.IsRecordType())
                            getter = TryRestoreRecordMember(member.DestinationMember, recordRestorParamModel, destination) ?? getter;
                     }
+
                 }
                 arguments.Add(getter);
             }

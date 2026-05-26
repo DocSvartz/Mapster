@@ -474,6 +474,13 @@ namespace Mapster
                     arg.Settings.Resolvers.AddRange(mapping.NextResolvers);
                     arg.Settings.Ignore.Apply(mapping.NextIgnore);
                     arg.UseDestinationValue = mapping.UseDestinationValue;
+
+                    if (mapping.OverrideSettings != null)
+                    {
+                        mapping.OverrideSettings.Apply(arg.Settings);
+                        arg.Settings = mapping.OverrideSettings;
+                    }
+                        
                 }
 
                 return CreateMapExpression(arg);

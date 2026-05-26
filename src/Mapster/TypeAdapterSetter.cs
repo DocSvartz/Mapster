@@ -639,10 +639,10 @@ namespace Mapster
 
         #endregion
 
-        public TypeAdapterSetter<TSource, TDestination> MapOverride<TDestinationMember, TSourceMember>(
+        public TypeAdapterSetter<TSource, TDestination> MapWithTypeSettingsOverride<TDestinationMember, TSourceMember>(
             Expression<Func<TDestination, TDestinationMember>> member,
             Expression<Func<TSource, TSourceMember>> source,
-            Action<TypeAdapterSetter<TSourceMember, TDestinationMember>>? configAction = null)
+            Action<OverrideTypesSetter<TSourceMember, TDestinationMember>>? configAction = null)
         {
             this.CheckCompiled();
 
@@ -653,20 +653,22 @@ namespace Mapster
                 return this;
             }
 
+            TypeAdapterSettings? overrideSettings = null;
+
             if (configAction != null)
             {
-                var settings = TypeAdapterSetter.CreateMapTypeOverride<TSourceMember, TDestinationMember>();
+                var Tempsetter = new OverrideTypesSetter<TSourceMember, TDestinationMember>();
+                configAction(Tempsetter);
 
-                configAction(settings);
-
+                overrideSettings = Tempsetter.Settings;
             }
-
 
             Settings.Resolvers.Add(new InvokerModel
             {
                 DestinationMemberName = member.GetMemberPath()!,
                 Invoker = invoker,
-                Condition = null
+                Condition = null,
+                OvverideSettings = overrideSettings
             });
             return this;
         }
