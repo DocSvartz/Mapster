@@ -59,6 +59,12 @@ namespace Mapster.Tests
               .Map(e => e.Description, e => e.Get("Description"))
               .Map(e => e.Phone, e => e.Get("Phone"));
 
+            config
+                .NewConfig<Dto980, Entity980>().Map(e => e.Props, e => e);
+
+            config.NewConfig<Dto980, List<EntityProp980>>()
+              .MapWith(x=> x.ToMemerList());
+
             Entity980 ent = new()
             {
                 Name = "My entity",
@@ -71,10 +77,20 @@ namespace Mapster.Tests
 
 
             var dto = ent.Adapt<Dto980>(config);
-            
-            dto.Phone.ShouldBe("12345678");
-            dto.Address.ShouldBe("Default street");
-            dto.Description.ShouldBe("Sample text");
+            var entity = dto.Adapt<Entity980>(config);
+
+            entity
+                .ShouldSatisfyAllConditions(() =>
+                {
+                    dto.Phone.ShouldBe("12345678");
+                    dto.Address.ShouldBe("Default street");
+                    dto.Description.ShouldBe("Sample text");
+
+                    entity.Name.ShouldBe("My entity");
+                    entity.Props.Count.ShouldBe(3);
+                    entity.Props[0].Key.ShouldBe("Phone");
+                    entity.Props[0].Value.ShouldBe("12345678");
+                });
         }
 
         #region TestClasses
@@ -153,6 +169,17 @@ namespace Mapster.Tests
         public string? Address { get; set; }
         public string? Description { get; set; }
         public string? Phone { get; set; }
+
+        public List<EntityProp980> ToMemerList()
+        {
+            var result = new List<EntityProp980>();
+
+            result.Add(new EntityProp980 { Key = "Phone", Value = Phone });
+            result.Add(new() { Key = "Address", Value = Address });
+            result.Add(new() { Key = "Description", Value = Description });
+
+            return result;
+        }
     }
 
     public static class ListExtensions980
