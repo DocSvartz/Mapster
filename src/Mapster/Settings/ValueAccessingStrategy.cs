@@ -26,7 +26,7 @@ namespace Mapster
 
         private static Expression? CustomResolverFn(Expression source, IMemberModel destinationMember, CompileArgument arg)
         {
-            var config = arg.Settings;
+            var config = source.Type == arg.SourceType ? arg.Settings : arg.Context.Config.GetMergedSettings(new TypeTuple(source.Type, arg.DestinationType),arg.MapType);
             var resolvers = config.Resolvers;
             if (resolvers.Count == 0)
                 return null;
