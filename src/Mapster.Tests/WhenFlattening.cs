@@ -1,6 +1,7 @@
-﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Shouldly;
+using System;
+using System.Collections.Generic;
 using Assert = Microsoft.VisualStudio.TestTools.UnitTesting.Assert;
 
 namespace Mapster.Tests
@@ -78,12 +79,40 @@ namespace Mapster.Tests
         public string SubSubSubCoolProperty { get; set; }
     }
 
+    public class Source915
+    {
+        public ICollection<Case> Cases { get; set; } = new List<Case>
+        {
+            new Case(),
+            new Case(),
+            new Case()
+        };
+    }
+
+    public class Destination915
+    {
+        public int CasesCount { get; set; }
+    }
 
     #endregion
+
 
     [TestClass]
     public class WhenFlattening
     {
+
+        /// <summary>
+        /// https://github.com/MapsterMapper/Mapster/issues/915
+        /// </summary>
+        [TestMethod]
+        public void FlatteningUsingSourceInterface()
+        {
+            var source = new Source915();
+            var result = source.Adapt<Destination915>();
+
+            result.CasesCount.ShouldBe(source.Cases.Count);
+        }
+
         [TestMethod]
         public void GetMethodTest()
         {

@@ -448,5 +448,36 @@ namespace Mapster
         {
           return  type.GetConstructor(new Type[] { }) is not null ? true : false;
         }
+
+        public static bool IsMapsterImmutable(this Type type)
+        {
+            return type.IsMapsterPrimitive() || type.IsRecordType();
+        }
+
+        public static bool IsNotSelfCreation(this Type type)
+        {
+            if (type.IsMapsterPrimitive())
+                return false;
+            if(type.IsCollectionCompatible())
+                return false;
+
+            if (type == typeof(Type) || type.BaseType == typeof(MulticastDelegate))
+                return true;
+
+            return type.GetFieldsAndProperties().All(it => (it.SetterModifier & (AccessModifier.Public | AccessModifier.NonPublic)) == 0);
+        }
+
+        public static bool IsNotCustomConverterFactory(this CompileArgument arg, TypeAdapterRule? rule)
+        {
+            if(rule != null)
+            {
+                if(arg.MapType == MapType.Map && rule.Settings.ConverterFactory != null)
+                    return false;
+                if (arg.MapType == MapType.MapToTarget && rule.Settings.ConverterToTargetFactory != null)
+                    return false;
+            }
+
+            return true;
+        }
     }
 }

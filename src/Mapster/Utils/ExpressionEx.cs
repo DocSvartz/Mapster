@@ -1,8 +1,9 @@
-﻿using System.Linq.Expressions;
+﻿using Mapster.Models;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 
 namespace Mapster.Utils
@@ -406,31 +407,88 @@ namespace Mapster.Utils
 
             return param;
         }
-        public static Expression ApplyNullPropagation(this Expression getter)
+        public static Expression ApplyPropertyNullPropagation(this Expression getter)
         {
             var current = getter;
             var result = getter;
+            Expression? condition = null;
+
             while (current.NodeType == ExpressionType.MemberAccess)
             {
                 var memEx = (MemberExpression) current;
                 var expr = memEx.Expression;
                 if (expr == null)
                     break;
-                if (expr.NodeType == ExpressionType.Parameter) 
-                    return result;
+                if (expr.NodeType == ExpressionType.Parameter && condition != null)
+                {
+                    if (!getter.CanBeNull())
+                    {
+                        var transform = Expression.Convert(getter, typeof(Nullable<>).MakeGenericType(getter.Type));
+                        return Expression.Condition(condition, transform, transform.Type.CreateDefault());
+                    }
+                    else
+                        return Expression.Condition(condition, getter, getter.Type.CreateDefault());
+                }
 
                 if (expr.CanBeNull())
                 {
-                    var compareNull = Expression.Equal(expr, Expression.Constant(null, expr.Type));
-                    if (!result.Type.CanBeNull())
-                        result = Expression.Convert(result, typeof(Nullable<>).MakeGenericType(result.Type));
-                    result = Expression.Condition(compareNull, result.Type.CreateDefault(), result);
+                    var compareNull = Expression.NotEqual(expr, Expression.Constant(null, expr.Type));
+                    if (condition == null)
+                        condition = compareNull;
+                    else
+                        condition = Expression.AndAlso(compareNull, condition);
                 }
 
                 current = expr;
             }
 
             return getter;
+        }
+
+        public static Expression ApplyNullPropagationFromCtor(this Expression getter, Expression adapt, CompileArgument arg)
+        {
+            if (getter == null)
+                return adapt;
+
+            Expression? condition = null;
+            var current = getter;
+            var checks = arg.Context.NullChecks
+                .Where(x=> !object.ReferenceEquals(x.arg,arg))
+                .Select(x=>x.param?.Type);
+
+            while (current != null) 
+            {
+                Expression? compareNull = null;
+
+                if (current.CanBeNull() && current is not ParameterExpression)
+                    compareNull = Expression.NotEqual(current, Expression.Constant(null, current.Type));
+                else if (current.CanBeNull() && current is ParameterExpression
+                    && !checks.Contains(current.Type))
+                    compareNull = Expression.NotEqual(current, Expression.Constant(null, current.Type));
+
+                if (compareNull != null)
+                {
+                    if (condition == null)
+                        condition = compareNull;
+                    else
+                        condition = Expression.AndAlso(compareNull, condition);
+                }
+
+                if (current is MemberExpression member)
+                    current = member.Expression;
+                else
+                    current = null;
+            }
+
+            if (condition == null)
+                return adapt;
+
+            // add supporting DestinationTransforms
+            var transform = arg.Settings.DestinationTransforms.Find(it => it.Condition(adapt.Type));
+            if (transform != null)
+                return transform.TransformFunc(adapt.Type).Apply(arg.MapType, Expression.Condition(condition, adapt, Expression.Default(adapt.Type)));
+
+            return Expression.Condition(condition, adapt, Expression.Default(adapt.Type));
         }
 
         public static string? GetMemberPath(this LambdaExpression lambda, bool firstLevelOnly = false, bool noError = false)
@@ -477,6 +535,24 @@ namespace Mapster.Utils
             if (converter == MapsterHelper.LowerCase)
                 return Expression.Field(null, typeof(MapsterHelper), nameof(MapsterHelper.LowerCase));
             return Expression.Constant(converter);
+        }
+
+        public static bool IsNotPrimitiveNullableType(this Type type)
+        {
+            return Nullable.GetUnderlyingType(type) != null && !type.IsMapsterPrimitive();
+        }
+
+        public static Expression GetNotPrimitiveNullableValue(this Expression exp)
+        {
+            if (exp.Type.IsNotPrimitiveNullableType())
+            {
+                var getValueOrDefaultMethod = exp.Type.GetMethod("GetValueOrDefault", Type.EmptyTypes);
+                var getValue = Expression.Call(exp, getValueOrDefaultMethod);
+
+                return getValue;
+            }
+
+            return exp;
         }
 
     }

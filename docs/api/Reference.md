@@ -11,7 +11,7 @@ uid: Mapster.References
 | `src.Adapt<Dest>()`     | Mapping to new type | [basic](xref:Mapster.Mapping.BasicUsages) |
 | `src.Adapt(dest)`       | Mapping to existing object      | [basic](xref:Mapster.Mapping.BasicUsages) |
 | `query.ProjectToType<Dest>()` | Mapping from queryable     | [basic](xref:Mapster.Mapping.BasicUsages) |
-| | Convention & Data type support | [data types](xref:Mapster.Mapping.DataTypes) |
+| | Convention & Data type support | [data types](xref:Mapster.Mapping.DataTypes.Overview) |
 
 ### Mapper instance (for dependency injection)
 
@@ -84,7 +84,7 @@ uid: Mapster.References
 | `BeforeMapping` | Add steps before mapping start |  | [before-after](xref:Mapster.Settings.BeforeAfterMapping) |
 | `ConstructUsing` | Define how to create object | x | [constructor](xref:Mapster.Settings.ConstructorMapping) |
 | `EnableNonPublicMembers` | Mapping non-public properties |  | [non-public](xref:Mapster.Settings.Custom.NonPublicMembers) |
-| `EnumMappingStrategy` | Choose whether mapping enum by value or by name |  | [data types](xref:Mapster.Mapping.DataTypes) |
+| `EnumMappingStrategy` | Choose whether mapping enum by value or by name |  | [data types](xref:Mapster.Mapping.DataTypes.Primitives) |
 | `Fork` | Add new settings without side effect on main config | x | [nested mapping](xref:Mapster.Configuration.NestedMapping) |
 | `GetMemberName` | Define how to resolve property name | x | [custom naming](xref:Mapster.Settings.Custom.NamingConvention) |
 | `Ignore` | Ignore specific properties | x | [ignore](xref:Mapster.Settings.Custom.IgnoringMembers) |

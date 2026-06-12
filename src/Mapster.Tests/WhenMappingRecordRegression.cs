@@ -2,6 +2,8 @@
 using Shouldly;
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
+using static Mapster.Tests.WhenExplicitMappingRequired;
 using static Mapster.Tests.WhenMappingDerived;
 
 namespace Mapster.Tests
@@ -442,26 +444,7 @@ namespace Mapster.Tests
             result.Order.Payment.CVV.ShouldBe("234");
             resultID.UserID.ShouldBe("256");
         }
-
-        [TestMethod]
-        public void RequiredProperty()
-        {
-            var source = new Person553 { FirstMidName = "John", LastName = "Dow" };
-            var destination = new Person554 { ID = 245, FirstMidName = "Mary", LastName = "Dow" };
-
-            TypeAdapterConfig<Person553, Person554>.NewConfig()
-                //.Map(dest => dest.ID, source => 0)
-                .Ignore(x => x.ID);
-
-            var s = source.BuildAdapter().CreateMapToTargetExpression<Person554>();
-
-            var result = source.Adapt(destination);
-
-            result.ID.ShouldBe(245);
-            result.FirstMidName.ShouldBe(source.FirstMidName);
-            result.LastName.ShouldBe(source.LastName);
-        }
-
+               
         /// <summary>
         /// https://github.com/MapsterMapper/Mapster/issues/842
         /// </summary>
@@ -472,22 +455,6 @@ namespace Mapster.Tests
             var result = source.Adapt<AutoCtorDestX>();
 
             result.X.ShouldBe(100);
-        }
-
-        /// <summary>
-        /// https://github.com/MapsterMapper/Mapster/issues/842
-        /// </summary>
-        [TestMethod]
-        public void ClassCustomCtorWitoutMapNotWorking()
-        {
-            TypeAdapterConfig.GlobalSettings.Clear();
-
-            var source = new TestRecord() { X = 100 };
-
-            Should.Throw<InvalidOperationException>(() => 
-            {
-                source.Adapt<AutoCtorDestYx>();
-            });
         }
 
         /// <summary>
@@ -537,6 +504,74 @@ namespace Mapster.Tests
             result.X.ShouldBe(200);
         }
 
+        /// <summary>
+        /// https://github.com/MapsterMapper/Mapster/issues/883
+        /// </summary>
+        [TestMethod]
+        public void ClassCtorActivateDefaultValue()
+        {
+            var source = new Source833
+            {
+                Value1 = "123",
+            };
+
+            Should.NotThrow(() =>
+            {
+                var target = source.Adapt<Target833>();
+                target.Value1.ShouldBe("123");
+                target.Value2.ShouldBe(default);
+            });
+        }
+
+        /// <summary>
+        /// https://github.com/MapsterMapper/Mapster/issues/911
+        /// </summary>
+        [TestMethod]
+        public void NotSelfCreationTypeMappingToSelfWithOutError()
+        {
+            var src = new Uri("https://www.google.com/");
+            var srcJ = JsonDocument.Parse("{\"key\": \"value\"}");
+                       
+            var result = src.Adapt<Uri>();
+            var resultJ = srcJ.Adapt<JsonDocument>();
+
+            result.ToString().ShouldBe("https://www.google.com/");
+            resultJ.RootElement.GetProperty("key").ToString().ShouldBe("value");
+        }
+
+        /// <summary>
+        /// https://github.com/MapsterMapper/Mapster/issues/927
+        /// </summary>
+        [TestMethod]
+        public void MappingToReadOnlyInterfaceUsingIgnoreNulValuesWithoutError()
+        {
+            var config = new TypeAdapterConfig();
+            config
+                .NewConfig<IDto927, IDomain934>()
+                .IgnoreNullValues(true);
+
+            Should.NotThrow(() => {
+
+                config.Compile();
+            });
+        }
+
+        /// <summary>
+        /// https://github.com/MapsterMapper/Mapster/issues/927
+        /// </summary>
+        [TestMethod]
+        public void MappingToReadOnlyRecordUsingIgnoreNulValuesWithoutError()
+        {
+            var config = new TypeAdapterConfig();
+            config
+                .NewConfig<IDto927, Domain927>()
+                .IgnoreNullValues(true);
+
+            Should.NotThrow(() => {
+
+                config.Compile();
+            });
+        }
 
         #region NowNotWorking
 
@@ -564,6 +599,24 @@ namespace Mapster.Tests
 
 
     #region TestClasses
+
+    public class Source833
+    {
+        public required string Value1 { get; init; }
+    }
+
+    public class Target833
+    {
+        public Target833(string value1, string value2)
+        {
+            Value1 = value1;
+            Value2 = value2;
+        }
+
+        public string Value1 { get; }
+
+        public string Value2 { get; }
+    }
 
     public sealed record Database746(
     string Server = "",
@@ -972,6 +1025,27 @@ namespace Mapster.Tests
     class InsiderWithCtorDestYx
     {
         public AutoCtorDestYx X { set; get; }
+    }
+
+    public interface IDto927
+    {
+        string Id { get; set; }
+        string Value { get; set; }
+        IList<string> ValueList { get; set; }
+    }
+
+    public interface IDomain934
+    {
+        string Id { get; }
+        string Value { get; }
+        IList<string> ValueList { get; }
+    }
+
+    public record Domain927
+    {
+        string Id { get; }
+        string Value { get; }
+        IList<string> ValueList { get; }
     }
 
     #endregion TestClasses

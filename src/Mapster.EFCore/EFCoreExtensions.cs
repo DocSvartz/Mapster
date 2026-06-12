@@ -82,7 +82,7 @@ namespace Mapster.EFCore
                                 var memberv = new TopLevelMemberNameVisitor();
                                 memberv.Visit(item);
 
-                                IncludeExpression.TryAdd(memberv.MemeberName, item);
+                                IncludeExpression.TryAdd(memberv.MemberName, item);
                             }
                         }
                         return base.Visit(node);

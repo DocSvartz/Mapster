@@ -1,7 +1,29 @@
-﻿using System.Collections.Generic;
-
-namespace Benchmark.Classes
+﻿namespace Mapster.Benchmark.Classes
 {
+    // Nested object and collection mapping source.
+    public class Customer
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public decimal? Credit { get; set; }
+        public Address Address { get; set; }
+        public Address HomeAddress { get; set; }
+        public Address[] Addresses { get; set; }
+        public ICollection<Address> WorkAddresses { get; set; }
+    }
+
+    // DTO with flattening and collection shape changes.
+    public class CustomerDTO
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public Address Address { get; set; }
+        public AddressDTO HomeAddress { get; set; }
+        public AddressDTO[] Addresses { get; set; }
+        public List<AddressDTO> WorkAddresses { get; set; }
+        public string AddressCity { get; set; }
+    }
+
     public class Address
     {
         public int Id { get; set; }
@@ -15,27 +37,5 @@ namespace Benchmark.Classes
         public int Id { get; set; }
         public string City { get; set; }
         public string Country { get; set; }
-    }
-
-    public class Customer
-    {
-        public int Id { get; set; }
-        public string Name { get; set; }
-        public decimal? Credit { get; set; }
-        public Address Address { get; set; }
-        public Address HomeAddress { get; set; }
-        public Address[] Addresses { get; set; }
-        public ICollection<Address> WorkAddresses { get; set; }
-    }
-
-    public class CustomerDTO
-    {
-        public int Id { get; set; }
-        public string Name { get; set; }
-        public Address Address { get; set; }
-        public AddressDTO HomeAddress { get; set; }
-        public AddressDTO[] Addresses { get; set; }
-        public List<AddressDTO> WorkAddresses { get; set; }
-        public string AddressCity { get; set; }
     }
 }

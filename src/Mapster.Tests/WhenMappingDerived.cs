@@ -85,6 +85,77 @@ namespace Mapster.Tests
             (container.Nested is Derived794E).ShouldBeTrue(); // is not Base794 type, MapWith is working when Polymorphic mapping to null
         }
 
+        /// <summary>
+        /// https://github.com/MapsterMapper/Mapster/issues/928
+        /// </summary>
+        [TestMethod]
+        public void NullNotCreationValue()
+        {
+            var config = new TypeAdapterConfig();
+
+            config.Default.PreserveReference(true);
+            config.Default.EnumMappingStrategy(EnumMappingStrategy.ByName);
+            config.Default.EnableNonPublicMembers(true);
+            //config.Default.IgnoreNullValues(true); // not update if source in null
+            config.Default.MapToConstructor(true);
+            config.Default.ShallowCopyForSameType(false);
+            config.AllowImplicitSourceInheritance = true;
+            config.RequireDestinationMemberSource = true;
+
+            config.ForType<DtoBase928, DomainBase928>()
+           .Include<DtoDerived928, DomainDerived928>();
+
+            var dto = new DtoFoo928
+            {
+                Field = new DtoDerived928 { Id = "123" }
+            };
+
+            var dtoNull = new DtoFoo928
+            {
+                Field = null
+            };
+
+            var domainnotnull = dto.Adapt<DomainFoo928>(config);
+            var nullresult = dtoNull.Adapt<DomainFoo928>(config);
+
+
+            nullresult.ShouldSatisfyAllConditions(() =>
+            {
+                domainnotnull.Field.ShouldBeOfType<DomainDerived928>();
+                (domainnotnull.Field as DomainDerived928).Id.ShouldBe("123");
+                nullresult.Field.ShouldBeNull();
+            });
+
+        }
+
+        public abstract class DtoBase928
+        {
+        }
+
+        public class DtoDerived928 : DtoBase928
+        {
+            public string Id { get; set; } = null!;
+        }
+
+        public class DtoFoo928
+        {
+            public DtoBase928? Field { get; set; }
+        }
+
+        public abstract class DomainBase928
+        {
+        }
+
+        public class DomainDerived928 : DomainBase928
+        {
+            public string Id { get; set; } = null!;
+        }
+
+        public class DomainFoo928
+        {
+            public DomainBase928? Field { get; set; }
+        }
+
         internal class Derived794E : Derived794
         {
 

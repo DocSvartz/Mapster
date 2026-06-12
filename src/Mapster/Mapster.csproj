@@ -1,10 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Description>A fast, fun and stimulating object to object mapper.  Kind of like AutoMapper, just simpler and way, way faster.</Description>
-    <Copyright>Copyright (c) 2016 Chaowlert Chaisrichalermpol, Eric Swann</Copyright>
-    <Authors>chaowlert;eric_swann</Authors>
-    <TargetFrameworks>netstandard2.0;net10.0;net9.0;net8.0</TargetFrameworks>
+    <TargetFrameworks>$(MapsterTFMs)</TargetFrameworks>
     <AssemblyName>Mapster</AssemblyName>
     <Description>A fast, fun and stimulating object to object mapper. Kind of like AutoMapper, just simpler and way, way faster.</Description>
     <PackageId>Mapster</PackageId>
@@ -14,9 +11,10 @@
     <PackageProjectUrl>https://github.com/MapsterMapper/Mapster</PackageProjectUrl>
     <RepositoryUrl>https://github.com/MapsterMapper/Mapster</RepositoryUrl>
     <PackageLicenseUrl></PackageLicenseUrl>
+	<SignAssembly>true</SignAssembly>
+	<AssemblyOriginatorKeyFile>Mapster.snk</AssemblyOriginatorKeyFile>
 	<IsPackable>true</IsPackable>
     <RootNamespace>Mapster</RootNamespace>
-    <Version>10.0.0</Version>
     <Nullable>enable</Nullable>
     <NoWarn>1701;1702;8618</NoWarn>
   </PropertyGroup>

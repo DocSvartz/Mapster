@@ -1,91 +1,87 @@
-﻿using Benchmark.Classes;
 using BenchmarkDotNet.Attributes;
+using Mapster.Benchmark.Classes;
+using Mapster.Benchmark.Comparisons;
 
-namespace Benchmark.Benchmarks
+namespace Mapster.Benchmark.Benchmarks
 {
-    public class TestComplexTypes
+    // Customer/CustomerDTO: nested object of different type, two collection shape changes
+    // (Address[] -> AddressDTO[], ICollection<Address> -> List<AddressDTO>) and a flattening rule (AddressCity <- Address.City).
+    public class TestComplexTypes : MappingBenchmarkBase
     {
-        private Customer _customerInstance;
+        private static readonly Func<Customer, CustomerFacetDto> CustomerFacetCompiled =
+            CustomerFacetDto.Projection.Compile();
 
-        [Params(1000, 10_000, 100_000, 1_000_000)]
-        public int Iterations { get; set; }
+        private Customer _customer;
 
-        [Benchmark]
+        [Benchmark(Baseline = true, Description = $"Mapster {TestAdaptHelper.MapsterVersion}")]
         public void MapsterTest()
-        {
-            TestAdaptHelper.TestMapsterAdapter<Customer, CustomerDTO>(_customerInstance, Iterations);
-        }
-        
+            => TestAdaptHelper.Loop(_customer, src => src.Adapt<Customer, CustomerDTO>(), MapOperations);
+
         [Benchmark(Description = $"Mapster {TestAdaptHelper.MapsterVersion} (Roslyn)")]
         public void RoslynTest()
-        {
-            TestAdaptHelper.TestMapsterAdapter<Customer, CustomerDTO>(_customerInstance, Iterations);
-        }
+            => TestAdaptHelper.Loop(_customer, src => src.Adapt<Customer, CustomerDTO>(), MapOperations);
 
         [Benchmark(Description = $"Mapster {TestAdaptHelper.MapsterVersion} (FEC)")]
         public void FecTest()
-        {
-            TestAdaptHelper.TestMapsterAdapter<Customer, CustomerDTO>(_customerInstance, Iterations);
-        }
+            => TestAdaptHelper.Loop(_customer, src => src.Adapt<Customer, CustomerDTO>(), MapOperations);
 
-        [Benchmark]
+        [Benchmark(Description = $"Mapster {TestAdaptHelper.MapsterVersion} (Codegen)")]
         public void CodegenTest()
-        {
-            TestAdaptHelper.TestCodeGen(_customerInstance, Iterations);
-        }
+            => TestAdaptHelper.Loop(_customer, CustomerMapper.Map, MapOperations);
 
-        [Benchmark]
-        public void ExpressMapperTest()
-        {
-            TestAdaptHelper.TestExpressMapper<Customer, CustomerDTO>(_customerInstance, Iterations);
-        }
+        [Benchmark(Description = $"AutoMapper {TestAdaptHelper.AutoMapperVersion}")]
+        public void AutoMapperTest()
+            => TestAdaptHelper.Loop(_customer, src => TestAdaptHelper.AutoMapper.Map<Customer, CustomerDTO>(src), MapOperations);
 
-        //[Benchmark]
-        //public void AutoMapperTest()
-        //{
-        //    TestAdaptHelper.TestAutoMapper<Customer, CustomerDTO>(_customerInstance, Iterations);
-        //}
+        [Benchmark(Description = $"Facet {TestAdaptHelper.FacetVersion}")]
+        public void FacetTest()
+            => TestAdaptHelper.Loop(_customer, src => new CustomerFacetDto(src), MapOperations);
+
+        [Benchmark(Description = $"Facet {TestAdaptHelper.FacetVersion} (Compiled Projection)")]
+        public void FacetCompiledTest()
+            => TestAdaptHelper.Loop(_customer, CustomerFacetCompiled, MapOperations);
+
+        [Benchmark(Description = $"Mapperly {TestAdaptHelper.MapperlyVersion}")]
+        public void MapperlyTest()
+            => TestAdaptHelper.Loop(_customer, MapperlyMappings.MapCustomer, MapOperations);
 
         [GlobalSetup(Target = nameof(MapsterTest))]
         public void SetupMapster()
         {
-            _customerInstance = TestAdaptHelper.SetupCustomerInstance();
-            TestAdaptHelper.ConfigureMapster(_customerInstance, MapsterCompilerType.Default);
+            _customer = TestAdaptHelper.SetupCustomerInstance();
+            TestAdaptHelper.UseMapsterCompiler(MapsterCompilerType.Default);
+            _ = _customer.Adapt<Customer, CustomerDTO>();
         }
 
         [GlobalSetup(Target = nameof(RoslynTest))]
         public void SetupRoslyn()
         {
-            _customerInstance = TestAdaptHelper.SetupCustomerInstance();
-            TestAdaptHelper.ConfigureMapster(_customerInstance, MapsterCompilerType.Roslyn);
+            _customer = TestAdaptHelper.SetupCustomerInstance();
+            TestAdaptHelper.UseMapsterCompiler(MapsterCompilerType.Roslyn);
+            _ = _customer.Adapt<Customer, CustomerDTO>();
         }
 
         [GlobalSetup(Target = nameof(FecTest))]
         public void SetupFec()
         {
-            _customerInstance = TestAdaptHelper.SetupCustomerInstance();
-            TestAdaptHelper.ConfigureMapster(_customerInstance, MapsterCompilerType.FEC);
+            _customer = TestAdaptHelper.SetupCustomerInstance();
+            TestAdaptHelper.UseMapsterCompiler(MapsterCompilerType.FEC);
+            _ = _customer.Adapt<Customer, CustomerDTO>();
         }
 
         [GlobalSetup(Target = nameof(CodegenTest))]
-        public void SetupCodegen()
-        {
-            //_customerInstance = TestAdaptHelper.SetupCustomerInstance();
-            //CustomerMapper.Map(_customerInstance);
-        }
+        public void SetupCodegen() => _customer = TestAdaptHelper.SetupCustomerInstance();
 
-        [GlobalSetup(Target = nameof(ExpressMapperTest))]
-        public void SetupExpressMapper()
-        {
-            _customerInstance = TestAdaptHelper.SetupCustomerInstance();
-            TestAdaptHelper.ConfigureExpressMapper(_customerInstance);
-        }
+        [GlobalSetup(Target = nameof(AutoMapperTest))]
+        public void SetupAutoMapper() => _customer = TestAdaptHelper.SetupCustomerInstance();
 
-        //[GlobalSetup(Target = nameof(AutoMapperTest))]
-        //public void SetupAutoMapper()
-        //{
-        //    _customerInstance = TestAdaptHelper.SetupCustomerInstance();
-        //    TestAdaptHelper.ConfigureAutoMapper(_customerInstance);
-        //}
+        [GlobalSetup(Target = nameof(FacetTest))]
+        public void SetupFacet() => _customer = TestAdaptHelper.SetupCustomerInstance();
+
+        [GlobalSetup(Target = nameof(FacetCompiledTest))]
+        public void SetupFacetCompiled() => _customer = TestAdaptHelper.SetupCustomerInstance();
+
+        [GlobalSetup(Target = nameof(MapperlyTest))]
+        public void SetupMapperly() => _customer = TestAdaptHelper.SetupCustomerInstance();
     }
 }

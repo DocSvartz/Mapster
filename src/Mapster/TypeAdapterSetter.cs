@@ -73,6 +73,25 @@ namespace Mapster
             return setter;
         }
 
+        public static TSetter IgnoredClear<TSetter>(this TSetter setter) where TSetter : TypeAdapterSetter
+        {
+            setter.CheckCompiled();
+            setter.Settings.Ignore.Clear();
+
+            return setter;
+        }
+
+        public static TSetter IgnoredRemove<TSetter>(this TSetter setter, params string[] names) where TSetter : TypeAdapterSetter
+        {
+            setter.CheckCompiled();
+
+            foreach (var name in names)
+            {
+                setter.Settings.Ignore.TryRemove(name, out _);
+            }
+            return setter;
+        }
+
         public static TSetter IncludeAttribute<TSetter>(this TSetter setter, params Type[] types) where TSetter : TypeAdapterSetter
         {
             setter.CheckCompiled();
@@ -105,6 +124,14 @@ namespace Mapster
             setter.CheckCompiled();
 
             setter.Settings.ShallowCopyForSameType = value;
+            return setter;
+        }
+
+        public static TSetter DirectAssignmentForSameType<TSetter>(this TSetter setter, bool value) where TSetter : TypeAdapterSetter
+        {
+            setter.CheckCompiled();
+
+            setter.Settings.DirectAssignmentForSameType = value;
             return setter;
         }
 
@@ -510,6 +537,26 @@ namespace Mapster
             Settings.AfterMappingFactories.Add(arg => lambda);
             return this;
         }
+
+        public TypeAdapterSetter<TDestination> UseDestinationValue<TDestinationMember>(Expression<Func<TDestination, TDestinationMember>> destinationMember)
+        {
+            this.CheckCompiled();
+            var memberName = destinationMember.GetMemberPath()!;
+
+            if (memberName != null)
+                Settings.UseDestinationMembers.Add(memberName);
+
+            return this;
+        }
+
+        public TypeAdapterSetter UseDestinationValue(string destinationMemberName)
+        {
+            this.CheckCompiled();
+            Settings.UseDestinationMembers.Add(destinationMemberName);
+
+            return this;
+        }
+
     }
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Minor Code Smell", "S4136:Method overloads should be grouped together", Justification = "<Pending>")]
@@ -526,6 +573,16 @@ namespace Mapster
             return (TypeAdapterSetter<TSource, TDestination>)base.Ignore(members);
         }
 
+        public TypeAdapterSetter<TDestination> IgnoredRemove(params Expression<Func<TDestination, object>>[] members)
+        {
+            this.CheckCompiled();
+
+            foreach (var member in members)
+            {
+                Settings.Ignore.TryRemove(member.GetMemberPath()!, out _);
+            }
+            return this;
+        }
         public new TypeAdapterSetter<TSource, TDestination> Map<TDestinationMember, TSourceMember>(
             Expression<Func<TDestination, TDestinationMember>> member,
             Expression<Func<TSourceMember>> source)

@@ -1,14 +1,12 @@
-﻿using Benchmark.Development;
-using BenchmarkDotNet.Columns;
+﻿using BenchmarkDotNet.Columns;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Diagnosers;
 using BenchmarkDotNet.Exporters;
 using BenchmarkDotNet.Exporters.Csv;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Loggers;
-using Perfolizer.Models;
 
-namespace Benchmark.Benchmarks
+namespace Mapster.Benchmark.Development.Benchmarks
 {
     public class Config : ManualConfig
     {
@@ -32,7 +30,7 @@ namespace Benchmark.Benchmarks
 
             AddColumn(BaselineRatioColumn.RatioMean);
             AddColumnProvider(DefaultColumnProviders.Metrics);
-                              
+
 
 
             foreach (var version in MapsterVersion.Get())

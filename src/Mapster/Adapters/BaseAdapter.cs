@@ -204,6 +204,12 @@ namespace Mapster.Adapters
                 blocks.Add(ifExpr);
             }
 
+            /// fix https://github.com/MapsterMapper/Mapster/issues/928
+            /// Not create destination is abstract type if source is null
+            if (arg.DestinationType.IsAbstract)
+                blocks.Add(Expression.IfThen(Expression.Equal(source, Expression.Constant(null, arg.SourceType)), 
+                    Expression.Return(label, Expression.Default(arg.DestinationType))));
+
             //new TDest();
             Expression transformedSource = source;
             var transform = TransformSource(source);
@@ -219,8 +225,8 @@ namespace Mapster.Adapters
                 .Where(x => x.GetCustomAttributes()
                 .Any(y => y.GetType().FullName == "System.Runtime.CompilerServices.RequiredMemberAttribute"));
 
-            if (requiremembers.Count() != 0)
-                set = CreateInlineExpression(source, arg, true);
+            if (requiremembers.Count() != 0 && !arg.DestinationType.IsAbstract)
+                set = CreateInlineExpression(source, arg.CloneWith(MapType.ApplyNullPropagation), true);
             else
                 set = CreateInstantiationExpression(transformedSource, destination, arg);
 
@@ -442,7 +448,7 @@ namespace Mapster.Adapters
             }
         }
 
-        private static Expression CreateAdaptExpressionCore(Expression source, Type destinationType, CompileArgument arg, MemberMapping? mapping = null, Expression? destination = null)
+        internal static Expression CreateAdaptExpressionCore(Expression source, Type destinationType, CompileArgument arg, MemberMapping? mapping = null, Expression? destination = null)
         {
             var mapType = arg.MapType == MapType.MapToTarget && destination == null ? MapType.Map :
                 mapping?.UseDestinationValue == true ? MapType.MapToTarget :
@@ -489,12 +495,30 @@ namespace Mapster.Adapters
             if (_source.Type == destinationType && arg.MapType == MapType.Projection)
                 return _source;
 
+            TypeAdapterRule? rule;
+            var tuple = new TypeTuple(_source.Type, destinationType);
+            arg.Context.Config.RuleMap.TryGetValue(tuple, out rule);
+
             //adapt(_source);
             var notUsingDestinationValue = mapping is not { UseDestinationValue: true };
-            var exp = _source.Type == destinationType && arg.Settings.ShallowCopyForSameType == true && notUsingDestinationValue &&
-                      !arg.Context.Config.HasRuleFor(_source.Type, destinationType)
-                ? _source
-                : CreateAdaptExpressionCore(_source, destinationType, arg, mapping, destination);
+            Expression exp;
+
+            if (_source.Type == destinationType && arg.Settings.ShallowCopyForSameType == true
+                && notUsingDestinationValue && rule == null)
+                exp = _source;
+            else if (source is ConditionalExpression cond && mapping != null)
+            {
+                // convert ApplyNullable Propagation for NotPrimitive Nullable types
+                if (mapping.Getter.Type.IsNotPrimitiveNullableType() && !mapping.DestinationMember.Type.IsNullable())
+                {
+                    var adapt = CreateAdaptExpressionCore(cond.IfTrue.GetNotPrimitiveNullableValue(), mapping.DestinationMember.Type, arg, mapping);
+                    exp = Expression.Condition(cond.Test, adapt, mapping.DestinationMember.Type.CreateDefault());
+                }
+                else
+                    exp = CreateAdaptExpressionCore(_source, destinationType, arg, mapping, destination);
+            }
+            else
+                exp = CreateAdaptExpressionCore(_source, destinationType, arg, mapping, destination);
 
             //transform(adapt(_source));
             if (notUsingDestinationValue)

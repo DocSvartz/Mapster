@@ -1,5 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Shouldly;
+using System;
+using System.Collections.Generic;
 
 namespace Mapster.Tests
 {
@@ -60,6 +62,48 @@ namespace Mapster.Tests
         }
 
 
+        /// <summary>
+        /// https://github.com/MapsterMapper/Mapster/issues/943
+        /// </summary>
+        [TestMethod]
+        public void NullableCtorPropagationCurrentWorkWithDestinationTransform()
+        {
+            var config = new TypeAdapterConfig();
+
+            config.Default
+                .AddDestinationTransform(DestinationTransform.EmptyCollectionIfNull);
+
+            // Arrange
+            var fooDto = new FooDto943();
+
+            // Act
+            var foo = fooDto.Adapt<Foo943>(config);
+
+            // Assert
+            foo.Strings.ShouldNotBeNull();
+        }
+
+
+        /// <summary>
+        /// https://github.com/MapsterMapper/Mapster/issues/954
+        /// </summary>
+        [TestMethod]
+        public void MappingValueTypeParametrUsingDefaultValueCorrect()
+        {
+            // Arrange
+            var src = new DateTimeFoo954(DateTime.Today);
+
+            // Assert
+            Should.NotThrow(() =>
+            {
+                var foo = src.Adapt<DateTimeFooDto954>();
+
+                foo.Timestamp.ShouldBe(src.Timestamp);
+            });
+        }
+
+
+
         #region Immutable classes with private setters, map via ctors
         private abstract class AbstractDomainTestClass
         {
@@ -96,6 +140,25 @@ namespace Mapster.Tests
         #endregion
 
         #region DTO classes
+
+        public class DateTimeFooDto954
+        {
+            public DateTime Timestamp { get; set; }
+
+            public DateTimeFooDto954(DateTime timestamp = default(DateTime))
+            {
+                this.Timestamp = timestamp;
+            }
+        }
+
+        record DateTimeFoo954(DateTime Timestamp);
+
+        class FooDto943
+        {
+            public string[] Strings { get; set; }
+        }
+
+        record Foo943(List<string> Strings);
         private abstract class AbstractDtoTestClass
         {
             public string AbstractProperty { get; set; }

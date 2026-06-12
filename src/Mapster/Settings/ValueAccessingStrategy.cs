@@ -26,7 +26,7 @@ namespace Mapster
 
         private static Expression? CustomResolverFn(Expression source, IMemberModel destinationMember, CompileArgument arg)
         {
-            var config = arg.Settings;
+            var config = source.Type == arg.SourceType ? arg.Settings : arg.Context.Config.GetMergedSettings(new TypeTuple(source.Type, arg.DestinationType),arg.MapType);
             var resolvers = config.Resolvers;
             if (resolvers.Count == 0)
                 return null;
@@ -116,8 +116,7 @@ namespace Mapster
                     return member.GetExpression(source);
 
                 var propertyType = member.Type;
-                if (propertyName.StartsWith(sourceMemberName) &&
-                    (propertyType.IsPoco() || propertyType.IsRecordType()))
+                if (propertyName.StartsWith(sourceMemberName) && !propertyType.IsMapsterPrimitive())
                 {
                     var exp = member.GetExpression(source);
                     var ifTrue = GetDeepFlattening(exp, propertyName.Substring(sourceMemberName.Length).TrimStart('_'), arg);

@@ -19,9 +19,11 @@ Then add following code on start up
 TypeAdapterConfig.GlobalSettings.Compiler = exp => exp.CompileFast();
 ```
 
-That's it. Now your code will enjoy performance boost. Here is result.
+That's it. Now your code will enjoy performance boost. Here is a current benchmark snapshot:
 
-|                    Method |           Mean |       StdDev |        Error |       Gen 0 | Gen 1 | Gen 2 |  Allocated |
-|-------------------------- |---------------:|-------------:|-------------:|------------:|------:|------:|-----------:|
-|           'Mapster 4.1.1' | 115.31 ms | 0.849 ms | 1.426 ms | 31000.0000 |     - |     - | 124.36 MB |
-|     'Mapster 4.1.1 (FEC)' |  54.70 ms | 1.023 ms | 1.546 ms | 29600.0000 |     - |     - | 118.26 MB |
+| Method | MapOperations | Mean | StdDev | Error | Ratio | Gen0 | Gen1 | Allocated | Alloc Ratio |
+| -------- | -------------- | -----: | -------: | ------: | ------: | -----: | -----: | ----------: | ----------: |
+| `Mapster 10.0.7` | 1000000 | 412,534 us | 2,704 us | 4,543 us | 1.00 | 77000 | - | 1243.59 MB | 1.00 |
+| `Mapster 10.0.7 (FEC)` | 1000000 | 124,374 us | 1,290 us | 2,466 us | 0.30 | 74000 | - | 1182.56 MB | 0.95 |
+
+See the [benchmark snapshot in README](../../../README.md#performance--memory-efficient) for the full comparison.

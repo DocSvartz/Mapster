@@ -1,7 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Shouldly;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using static Mapster.Tests.WhenMappingDerived;
 
 namespace Mapster.Tests
 {
@@ -44,7 +46,58 @@ namespace Mapster.Tests
             dto.AnotherName.ShouldBeNull();
         }
 
+        /// <summary>
+        /// https://github.com/MapsterMapper/Mapster/issues/980
+        /// </summary>
+        [TestMethod]
+        public void ExtraSourceUsingCustomResolverSuccessfully()
+        {
+            TypeAdapterConfig config = new();
+            config.NewConfig<Entity980, Dto980>().Map(e => e, e => e.Props);
+            config.NewConfig<List<EntityProp980>, Dto980>()
+              .Map(e => e.Address, e => e.Get("Address"))
+              .Map(e => e.Description, e => e.Get("Description"))
+              .Map(e => e.Phone, e => e.Get("Phone"));
+
+            config
+                .NewConfig<Dto980, Entity980>().Map(e => e.Props, e => e);
+
+            config.NewConfig<Dto980, List<EntityProp980>>()
+              .MapWith(x=> x.ToMemerList());
+
+            Entity980 ent = new()
+            {
+                Name = "My entity",
+                Props = new(),
+            };
+
+            ent.Props.Add(new() { Key = "Phone", Value = "12345678" });
+            ent.Props.Add(new() { Key = "Address", Value = "Default street" });
+            ent.Props.Add(new() { Key = "Description", Value = "Sample text" });
+
+
+            var dto = ent.Adapt<Dto980>(config);
+            var entity = dto.Adapt<Entity980>(config);
+
+            entity
+                .ShouldSatisfyAllConditions(() =>
+                {
+                    dto.Phone.ShouldBe("12345678");
+                    dto.Address.ShouldBe("Default street");
+                    dto.Description.ShouldBe("Sample text");
+
+                    entity.Name.ShouldBe("My entity");
+                    entity.Props.Count.ShouldBe(3);
+                    entity.Props[0].Key.ShouldBe("Phone");
+                    entity.Props[0].Value.ShouldBe("12345678");
+                });
+        }
+
         #region TestClasses
+
+        
+       
+
 
         public class SimplePoco
         {
@@ -97,5 +150,42 @@ namespace Mapster.Tests
         }
 
         #endregion
+    }
+    class Entity980
+    {
+        public string Name { get; set; } = default!;
+        public List<EntityProp980> Props { get; set; } = default!;
+    }
+
+    public class EntityProp980
+    {
+        public string Key { get; set; } = default!;
+        public string Value { get; set; } = default!;
+    }
+
+    public class Dto980
+    {
+        public string Name { get; set; } = default!;
+        public string? Address { get; set; }
+        public string? Description { get; set; }
+        public string? Phone { get; set; }
+
+        public List<EntityProp980> ToMemerList()
+        {
+            var result = new List<EntityProp980>();
+
+            result.Add(new EntityProp980 { Key = "Phone", Value = Phone });
+            result.Add(new() { Key = "Address", Value = Address });
+            result.Add(new() { Key = "Description", Value = Description });
+
+            return result;
+        }
+    }
+
+    public static class ListExtensions980
+    {
+        // utility method as expression bodies are not allowed to have null propagating operator
+        public static string? Get(this List<EntityProp980> list, string key)
+          => list.FirstOrDefault(e => e.Key == key)?.Value;
     }
 }

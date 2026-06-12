@@ -50,7 +50,7 @@ namespace Mapster.Adapters
 
                     s.Visit(getter);
 
-                    if (arg.Settings.ProjectToTypeResolvers.TryGetValue(s.MemeberName, out var match))
+                    if (s.MemberName != null && arg.Settings.ProjectToTypeResolvers.TryGetValue(s.MemberName, out var match))
                     {
                         arg.Settings.Resolvers.Add(new InvokerModel
                         {
@@ -111,9 +111,10 @@ namespace Mapster.Adapters
                     NextIgnore = nextIgnore,
                     Source = (ParameterExpression)source,
                     Destination = (ParameterExpression?)destination,
-                    UseDestinationValue = arg.MapType != MapType.Projection && destinationMember.UseDestinationValue(arg),
+                    UseDestinationValue = IsCanUsingDestinationValue(arg, destinationMember),
                 };
-                if(getter == null && !arg.DestinationType.IsRecordType()  
+                if(arg.MapType == MapType.ApplyNullPropagation &&
+                    getter == null && !arg.DestinationType.IsRecordType()  
                     && destinationMember.Info is PropertyInfo propinfo)
                 {
                     if (propinfo.GetCustomAttributes()
@@ -131,7 +132,7 @@ namespace Mapster.Adapters
                 {
                     propertyModel.Getter = arg.MapType == MapType.Projection 
                         ? getter 
-                        : getter.ApplyNullPropagation();
+                        : getter.ApplyPropertyNullPropagation();
                     properties.Add(propertyModel);
                 }
                 else
@@ -189,6 +190,16 @@ namespace Mapster.Adapters
             };
         }
 
+        protected static bool IsCanUsingDestinationValue(CompileArgument arg, IMemberModelEx destinationMember)
+        {
+            if (arg.MapType == MapType.Projection)
+                return false;
+            if (destinationMember.UseDestinationValue(arg) || arg.Settings.UseDestinationMembers.Contains(destinationMember.Name))
+                return true;
+
+            return false;
+        }
+
         protected static bool ProcessIgnores(
             CompileArgument arg,
             IMemberModel destinationMember,
@@ -209,12 +220,29 @@ namespace Mapster.Adapters
             var arguments = new List<Expression>();
             foreach (var member in members)
             {
+                arg.Context.NullChecks.UnionWith(members.Where(x=>x.Getter != null).Select(x=>(x.Getter,arg)));
                 var parameterInfo = (ParameterInfo)member.DestinationMember.Info!;
-                var defaultConst = parameterInfo.IsOptional
+                Expression defaultConst;
+                Expression getter;
+
+#if NETSTANDARD2_0
+                try
+                {
+                    defaultConst = parameterInfo.IsOptional && parameterInfo.DefaultValue != null
                     ? Expression.Constant(parameterInfo.DefaultValue, member.DestinationMember.Type)
                     : parameterInfo.ParameterType.CreateDefault();
+                }
+                catch (FormatException)
+                {
+                    defaultConst = parameterInfo.ParameterType.CreateDefault();
+                }
 
-                Expression getter;
+#else
+                defaultConst = parameterInfo.IsOptional && parameterInfo.DefaultValue != null
+                    ? Expression.Constant(parameterInfo.DefaultValue, member.DestinationMember.Type)
+                    : parameterInfo.ParameterType.CreateDefault();
+#endif
+                
                 if (member.Getter == null)
                 {
                     getter = defaultConst;
@@ -234,7 +262,9 @@ namespace Mapster.Adapters
                            defaultConst);
                     }
                     else
-                        getter = CreateAdaptExpression(member.Getter, member.DestinationMember.Type, arg, member);
+                       getter = member.Getter
+                            .ApplyNullPropagationFromCtor(CreateAdaptExpressionCore(member.Getter, member.DestinationMember.Type, arg, member), arg);
+                    
 
                     if (member.Ignore.Condition != null)
                     {
@@ -286,6 +316,9 @@ namespace Mapster.Adapters
 
             foreach (var item in notMappingToIgnore)
             {
+                if (!item.ShouldMapMember(arg, MemberSide.Destination))
+                    continue;
+
                 arg.Settings.Ignore.TryAdd(item.Name, new IgnoreDictionary.IgnoreItem());
             }
         }
@@ -335,6 +368,6 @@ namespace Mapster.Adapters
                 new[] { member.Destination, memberAsObject });
         }
 
-        #endregion
+#endregion
     }
 }

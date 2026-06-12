@@ -16,7 +16,7 @@ namespace Mapster.Adapters
     /// </remarks>
     internal class ClassAdapter : BaseClassAdapter
     {
-        protected override int Score => -150;
+        protected override int Score => -200;
 
         protected override bool CanMap(PreCompileArgument arg)
         {
@@ -53,9 +53,10 @@ namespace Mapster.Adapters
         protected override Expression CreateInstantiationExpression(Expression source, Expression? destination, CompileArgument arg)
         {
             //new TDestination(src.Prop1, src.Prop2)
-                        
-            if (arg.DestinationType.isDefaultCtor() || arg.GetConstructUsing() != null && arg.Settings.MapToConstructor == null)
-                return base.CreateInstantiationExpression(source, destination, arg);
+
+            if (arg.DestinationType.isDefaultCtor() || arg.GetConstructUsing() != null)
+                if (arg.Settings.MapToConstructor == null)
+                    return base.CreateInstantiationExpression(source, destination, arg);
 
             ClassMapping? classConverter;
             var ctor = arg.Settings.MapToConstructor as ConstructorInfo;
@@ -66,11 +67,16 @@ namespace Mapster.Adapters
                     : arg.DestinationType;
                 if (destType == null)
                     return base.CreateInstantiationExpression(source, destination, arg);
-                classConverter = destType.GetConstructors()
+                
+                var constructors = destType.GetConstructors();
+                classConverter = constructors
                     .OrderByDescending(it => it.GetParameters().Length)
                     .Select(it => GetConstructorModel(it, true))
-                    .Select(it => CreateClassConverter(source, it, arg, ctorMapping:true))
+                    .Select(it => CreateClassConverter(source, it, arg, ctorMapping: true))
                     .FirstOrDefault(it => it != null);
+
+                if (classConverter == null && constructors.Length > 0)
+                    classConverter = CreateClassConverter(source, GetConstructorModel(constructors[0], false), arg, ctorMapping: true);
             }
             else
             {
@@ -110,9 +116,11 @@ namespace Mapster.Adapters
 
                 var adapt = CreateAdaptExpression(member.Getter, member.DestinationMember.Type, arg, member, destMember);
 
-                if (!member.UseDestinationValue && member.DestinationMember.SetterModifier == AccessModifier.None)
+                if (member.UseDestinationValue
+                    && member.DestinationMember.Type.IsMapsterImmutable()
+                    && member.DestinationMember.SetterModifier == AccessModifier.None)
                 {
-                    if (member.DestinationMember is PropertyModel && arg.MapType == MapType.MapToTarget)
+                    if (member.DestinationMember is PropertyModel && arg.MapType != MapType.Projection)
                         adapt = SetValueTypeAutoPropertyByReflection(member, adapt, classModel);
                     else
                         continue;
@@ -122,7 +130,8 @@ namespace Mapster.Adapters
               
                 if (!member.UseDestinationValue)
                 {
-                    if (arg.Settings.IgnoreNullValues == true && member.Getter.CanBeNull())
+                    if (arg.Settings.IgnoreNullValues == true && member.Getter.CanBeNull() 
+                        && member.DestinationMember.SetterModifier != AccessModifier.None)
                     {
                         if (adapt is ConditionalExpression condEx)
                         {
@@ -261,6 +270,19 @@ namespace Mapster.Adapters
             }
 
             return Expression.MemberInit(newInstance, lines);
+        }
+
+        protected override Expression CreateExpressionBody(Expression source, Expression? destination, CompileArgument arg)
+        {
+            TypeAdapterRule? rule;
+            var tuple = new TypeTuple(source.Type, arg.DestinationType);
+            arg.Context.Config.RuleMap.TryGetValue(tuple, out rule);
+
+            if (source.Type == arg.DestinationType && !arg.UseDestinationValue
+                && arg.Settings.DirectAssignmentForSameType.GetValueOrDefault() && arg.IsNotCustomConverterFactory(rule))
+                return source;
+
+            return base.CreateExpressionBody(source, destination, arg);
         }
     }
 }
