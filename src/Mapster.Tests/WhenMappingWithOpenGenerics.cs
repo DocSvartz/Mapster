@@ -24,13 +24,28 @@ namespace Mapster.Tests
             config
                 .NewConfig(typeof(A<>), typeof(B<>))
                 .Map("BProperty", "AProperty");
-
-            config.Compile(); // is not throw exception
-
+                
             var a = new A<C> { AProperty = "A" };
             var c = new C { BProperty = "C" };
             var b = a.Adapt<B<C>>(config); // successful mapping
             var cCopy = c.Adapt<C>(config);
+        }
+
+        /// <summary>
+        /// https://github.com/MapsterMapper/Mapster/issues/925
+        /// </summary>
+        [TestMethod]
+        public void Compile_With_Open_Generic_Mapping_Does_Not_Throw()
+        {
+            var config = new TypeAdapterConfig();
+            config.ForType(typeof(ClassA<>), typeof(ClassB<>));
+
+            Should.NotThrow(() => config.Compile());
+
+            var classA = new ClassA<int> { Variable = 15 };
+            var classB = classA.Adapt<ClassB<int>>(config);
+
+            classB.Variable.ShouldBe(15);
         }
 
         [TestMethod]
@@ -102,5 +117,15 @@ namespace Mapster.Tests
         class B<T> { public string BProperty { get; set; } }
 
         class C { public string BProperty { get; set; } }
+
+        class ClassA<T>
+        {
+            public T? Variable { get; set; }
+        }
+
+        class ClassB<T>
+        {
+            public T? Variable { get; set; }
+        }
     }
 }
