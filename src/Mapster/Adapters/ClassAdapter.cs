@@ -219,9 +219,17 @@ namespace Mapster.Adapters
             //  Prop2 = convert(src.Prop2),
             //}
 
+            if (arg.MapType == MapType.Projection && arg.DestinationType.IsAbstract && arg.Settings.Includes.Count > 0)
+                return CreateIncludeProjectionExpression(source, arg);
+
             var exp = CreateInstantiationExpression(source, arg);
+            if (exp.NodeType == ExpressionType.Throw)
+                return null;
+
             var memberInit = exp as MemberInitExpression;
-            var newInstance = memberInit?.NewExpression ?? (NewExpression)exp;
+            var newInstance = memberInit?.NewExpression ?? exp as NewExpression;
+            if (newInstance == null)
+                return null;
             var contructorMembers = newInstance.GetAllMemberExpressionsMemberInfo().ToArray();
             ClassModel? classModel;
             ClassMapping? classConverter;
@@ -270,6 +278,36 @@ namespace Mapster.Adapters
             }
 
             return Expression.MemberInit(newInstance, lines);
+        }
+
+        static Expression CreateIncludeProjectionExpression(Expression source, CompileArgument arg)
+        {
+            Expression body = Expression.Default(arg.DestinationType);
+            foreach (var tuple in arg.Settings.Includes)
+            {
+                var itemTuple = tuple;
+                if (tuple.Source.IsOpenGenericType() && tuple.Destination.IsOpenGenericType())
+                {
+                    var genericArg = source.Type.GetGenericArguments();
+                    itemTuple = new TypeTuple(tuple.Source.MakeGenericType(genericArg), tuple.Destination.MakeGenericType(genericArg));
+                }
+
+                if (itemTuple.Source == arg.SourceType)
+                    continue;
+
+                if (!arg.SourceType.GetTypeInfo().IsAssignableFrom(itemTuple.Source.GetTypeInfo()))
+                    continue;
+
+                if (!arg.DestinationType.GetTypeInfo().IsAssignableFrom(itemTuple.Destination.GetTypeInfo()))
+                    continue;
+
+                var test = Expression.TypeIs(source, itemTuple.Source);
+                var cast = Expression.TypeAs(source, itemTuple.Source);
+                var mapped = CreateAdaptExpressionCore(cast!, itemTuple.Destination, arg);
+                body = Expression.Condition(test, mapped.To(arg.DestinationType, true), body);
+            }
+
+            return body;
         }
 
         protected override Expression CreateExpressionBody(Expression source, Expression? destination, CompileArgument arg)
