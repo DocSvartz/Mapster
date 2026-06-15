@@ -1,5 +1,5 @@
-﻿using Mapster.Tests.Classes;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Shouldly;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -15,14 +15,25 @@ namespace Mapster.Tests
         [TestMethod]
         public void NullablePropagationFromCtorWorking()
         {
-            var source = new List<OrderEntity898>();
+            var source = new List<OrderEntity898>
+            {
+                new() { Id = 1, Cod = new OrderCodEntity898 { Value = 42L } },
+                new() { Id = 2, Cod = null },
+            };
 
-            source.Add(new OrderEntity898() { Id = 1, Cod = new OrderCodEntity898 { Value = 42L } });
-            source.Add(new OrderEntity898() { Id = 2, Cod = null });
-
-            var str = new OrderEntity898() { Id = 1, Cod = new OrderCodEntity898 { Value = 42L } }.BuildAdapter().CreateProjectionExpression<OrderDto898>();
+            Should.NotThrow(() =>
+            {
+                source.AsQueryable().BuildAdapter().CreateProjectionExpression<OrderDto898>();
+            });
 
             var result = source.AsQueryable().ProjectToType<OrderDto898>().ToList();
+
+            result.Count.ShouldBe(2);
+            result[0].Id.ShouldBe(1);
+            result[0].Cod.ShouldNotBeNull();
+            result[0].Cod!.Value.ShouldBe(42L);
+            result[1].Id.ShouldBe(2);
+            result[1].Cod.ShouldBeNull();
         }
 
     }
