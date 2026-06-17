@@ -1,13 +1,14 @@
-﻿using System;
+﻿using Mapster.Adapters;
+using Mapster.Models;
+using Mapster.Utils;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Data.SqlTypes;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using Mapster.Adapters;
-using Mapster.Models;
-using Mapster.Utils;
 
 namespace Mapster
 {
@@ -266,6 +267,10 @@ namespace Mapster
 
         private static int? GetSubclassDistance(Type type1, Type type2, bool allowInheritance)
         {
+            //Support for using ValueType mapping configurations of types, for mapping cases on Nulllable ValueType values
+            if (type1.IsNullable() && !type1.ContainsGenericParameters)
+                type1 = type1.GetGenericArguments().FirstOrDefault();
+
             if (type1 == type2)
                 return 50;
 
@@ -443,15 +448,59 @@ namespace Mapster
         {
             var destinationType = arg.DestinationType;
             var returnType = lambda.ReturnType;
+            var lamdaBody = lambda.Body;
+
+            // Support for using ValueType mapping configurations of types, for mapping cases on Nulllable ValueType values
+            if (arg.DestinationType.IsNullable() && !returnType.IsNullable() && returnType.IsValueType)
+            {
+                lamdaBody = Expression.Convert(lambda.Body, typeof(Nullable<>).MakeGenericType(lambda.ReturnType));
+                lambda = Expression.Lambda(lamdaBody, lambda.Parameters);
+
+                returnType = lambda.ReturnType;
+            }
+
             if (returnType == destinationType)
                 return lambda;
 
+            //Support for using ValueType mapping configurations of types, for mapping cases on Nulllable ValueType values
+            if (destinationType.IsNullable() && lambda.ReturnType.IsInterface)
+            {
+                var realDestType = destinationType.GetGenericArguments().FirstOrDefault();
+
+                if (realDestType is null || !returnType.IsAssignableFrom(realDestType))
+                    return lambda;
+            }
             // MapWith configured on a base destination type returns the base type, but implicit
             // destination inheritance can compile the converter for a derived destination.
-            if (!returnType.IsAssignableFrom(destinationType))
+            else if (!returnType.IsAssignableFrom(destinationType))
                 return lambda;
 
-            var body = lambda.Body.To(destinationType, force: true);
+            Expression body;
+
+            if(destinationType.CanBeNull())
+               body = Expression.TypeAs(lamdaBody, destinationType);
+            else
+            {
+                var tempDest = Expression.Variable(returnType, "tempDest");
+
+                var variables = new[] {tempDest};
+
+                var blockbody = new List<Expression>() { Expression.Assign(tempDest, lamdaBody) };
+
+                var condition = Expression.TypeIs(tempDest, destinationType);
+                UnaryExpression ifTrue = Expression.Convert(tempDest, destinationType);
+                DefaultExpression ifFalse = Expression.Default(destinationType);
+
+                ConditionalExpression conditionalExpr = Expression.Condition(condition, ifTrue, ifFalse);
+                blockbody.Add(conditionalExpr);
+
+                BlockExpression body2 = Expression.Block(variables, blockbody);
+
+                return Expression.Lambda(body2,lambda.Parameters);
+
+            }
+
+
             return Expression.Lambda(body, lambda.Parameters);
         }
 
