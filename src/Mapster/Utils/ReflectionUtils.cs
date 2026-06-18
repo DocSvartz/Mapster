@@ -479,5 +479,13 @@ namespace Mapster
 
             return true;
         }
+
+        public static Type GetNotNullableTypeDefenition(this Type inputType)
+        {
+            if (inputType.IsNullable())
+                return inputType.GetGenericArguments()[0];
+
+            return inputType;
+        }
     }
 }

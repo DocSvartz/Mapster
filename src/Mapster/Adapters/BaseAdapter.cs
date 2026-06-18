@@ -485,12 +485,7 @@ namespace Mapster.Adapters
         }
         internal Expression CreateAdaptExpression(Expression source, Type destinationType, CompileArgument arg, MemberMapping? mapping, Expression? destination = null)
         {
-            Expression _source;
-
-            if (arg.MapType != MapType.Projection)
-                _source = source.NullableEnumExtractor(); // Extraction Nullable Enum
-            else
-                _source = source;
+            Expression _source = source;
 
             if (_source.Type == destinationType && arg.MapType == MapType.Projection)
                 return _source;
@@ -506,19 +501,13 @@ namespace Mapster.Adapters
             if (_source.Type == destinationType && arg.Settings.ShallowCopyForSameType == true
                 && notUsingDestinationValue && rule == null)
                 exp = _source;
-            else if (source is ConditionalExpression cond && mapping != null)
-            {
-                // convert ApplyNullable Propagation for NotPrimitive Nullable types
-                if (mapping.Getter.Type.IsNotPrimitiveNullableType() && !mapping.DestinationMember.Type.IsNullable())
-                {
-                    var adapt = CreateAdaptExpressionCore(cond.IfTrue.GetNotPrimitiveNullableValue(), mapping.DestinationMember.Type, arg, mapping);
-                    exp = Expression.Condition(cond.Test, adapt, mapping.DestinationMember.Type.CreateDefault());
-                }
-                else
-                    exp = CreateAdaptExpressionCore(_source, destinationType, arg, mapping, destination);
-            }
             else
                 exp = CreateAdaptExpressionCore(_source, destinationType, arg, mapping, destination);
+
+            // NullablePropagation when for member using Custom converter MapWith 
+            if (notUsingDestinationValue && arg.MapType != MapType.Projection
+               && mapping != null && mapping.Getter.CanBeNull())
+                exp = mapping.Getter.NotNullReturn(exp);
 
             //transform(adapt(_source));
             if (notUsingDestinationValue)

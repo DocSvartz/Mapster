@@ -537,22 +537,11 @@ namespace Mapster.Utils
             return Expression.Constant(converter);
         }
 
-        public static bool IsNotPrimitiveNullableType(this Type type)
+        public static Expression ToNullableExp(this Expression adapt, CompileArgument arg)
         {
-            return Nullable.GetUnderlyingType(type) != null && !type.IsMapsterPrimitive();
-        }
-
-        public static Expression GetNotPrimitiveNullableValue(this Expression exp)
-        {
-            if (exp.Type.IsNotPrimitiveNullableType())
-            {
-                var getValueOrDefaultMethod = exp.Type.GetMethod("GetValueOrDefault", Type.EmptyTypes);
-                var getValue = Expression.Call(exp, getValueOrDefaultMethod);
-
-                return getValue;
-            }
-
-            return exp;
+            if (arg.DestinationType.IsNullable())
+                return Expression.Convert(adapt, arg.DestinationType);
+            return adapt;
         }
 
     }

@@ -33,6 +33,7 @@ namespace Mapster
                 new ObjectAdapter().CreateRule(),       //-111
                 new StringAdapter().CreateRule(),       //-110
                 new EnumAdapter().CreateRule(),         //-109
+                new NullableAdapter().CreateRule(),     // 0
 
                 //fallback rules
                 new TypeAdapterRule
