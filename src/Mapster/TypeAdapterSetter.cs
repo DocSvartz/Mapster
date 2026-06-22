@@ -22,6 +22,16 @@ namespace Mapster
             Settings = settings;
             Config = config;
         }
+
+        internal static TypeAdapterSetter CreateMapTypeOverride()
+        {
+            return new TypeAdapterSetter(new TypeAdapterSettings(), null);
+        }
+
+        internal static TypeAdapterSetter<TSource, TDestination> CreateMapTypeOverride<TSource, TDestination>()
+        {
+            return new TypeAdapterSetter<TSource, TDestination>(new TypeAdapterSettings(), null);
+        }
     }
     public static class TypeAdapterSetterExtensions
     {
@@ -628,6 +638,42 @@ namespace Mapster
         }
 
         #endregion
+                
+        public TypeAdapterSetter<TSource, TDestination> MapUsing<TDestinationMember, TSourceMember>(
+            Expression<Func<TDestination, TDestinationMember>> member,
+            Expression<Func<TSource, TSourceMember>> source,
+            Action<OverrideTypesSetter<TSourceMember, TDestinationMember>>? configAction = null)
+        {
+            this.CheckCompiled();
+
+            var invoker = Expression.Lambda(source.Body, Expression.Parameter(typeof(object)));
+            if (member.IsIdentity())
+            {
+                Settings.ExtraSources.Add(invoker);
+                return this;
+            }
+
+            TypeAdapterSettings? overrideSettings = null;
+
+            if (configAction != null)
+            {
+                var Tempsetter = new OverrideTypesSetter<TSourceMember, TDestinationMember>();
+                configAction(Tempsetter);
+
+                overrideSettings = Tempsetter.Settings;
+            }
+
+            Settings.Resolvers.Add(new InvokerModel
+            {
+                DestinationMemberName = member.GetMemberPath()!,
+                Invoker = invoker,
+                Condition = null,
+                OvverideSettings = overrideSettings
+            });
+            return this;
+        }
+
+
 
         public TypeAdapterSetter<TSource, TDestination> IgnoreIf(
             Expression<Func<TSource, TDestination, bool>> condition,
