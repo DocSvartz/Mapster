@@ -6,7 +6,7 @@ using System.Collections.Generic;
 namespace Mapster.Tests
 {
     [TestClass]
-    public class WhenUsingMapWithOverrideTypesSettings
+    public class WhenMapUsingOverrideTypesSettings
     {
         [TestMethod]
         public void OverrideDestinationTramsformIsWorked()
@@ -16,12 +16,12 @@ namespace Mapster.Tests
 
             config
                 .NewConfig<CollectionPocoOverride, CollectionDtoOverride>()
-                .MapWithTypeSettingsOverride(src => src.Children, dest => dest.Children,
+                .MapUsing(src => src.Children, dest => dest.Children,
                 cfg =>
                 {
                     cfg.SkipSettings(x => x.DestinationTransforms);
                 })
-                .MapWithTypeSettingsOverride(src => src.Array, dest => dest.Array,
+                .MapUsing(src => src.Array, dest => dest.Array,
                 cfg =>
                 {
                     cfg

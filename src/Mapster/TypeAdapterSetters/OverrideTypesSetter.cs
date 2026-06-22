@@ -15,11 +15,17 @@ namespace Mapster
 
     public class OverrideTypesSetter<TSource, TDestination> : OverrideTypesSetter
     {
+        public OverrideTypesSetter<TSource, TDestination> SkipAllSettings(bool value)
+        {
+            _Settings.SkipAllSettings = value;
+            return this;
+        }
+
         public OverrideTypesSetter<TSource, TDestination> SkipSettings(params Expression<Func<TypeAdapterSettings, object>>[] settings)
         {
             foreach (var member in settings)
             {
-                _Settings.DropSettings.Add(member.GetMemberPath()!);
+                _Settings.SkipSettings.Add(member.GetMemberPath()!);
             }
 
             return this;

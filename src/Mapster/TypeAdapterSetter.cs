@@ -638,8 +638,8 @@ namespace Mapster
         }
 
         #endregion
-
-        public TypeAdapterSetter<TSource, TDestination> MapWithTypeSettingsOverride<TDestinationMember, TSourceMember>(
+                
+        public TypeAdapterSetter<TSource, TDestination> MapUsing<TDestinationMember, TSourceMember>(
             Expression<Func<TDestination, TDestinationMember>> member,
             Expression<Func<TSource, TSourceMember>> source,
             Action<OverrideTypesSetter<TSourceMember, TDestinationMember>>? configAction = null)
