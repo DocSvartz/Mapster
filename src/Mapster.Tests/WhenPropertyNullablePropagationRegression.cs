@@ -134,9 +134,55 @@ public class WhenPropertyNullablePropagationRegression
     }
 
 
+    /// <summary>
+    /// https://github.com/MapsterMapper/Mapster/issues/987
+    /// </summary>
+    [TestMethod]
+    public void CustomMapUsingNullableValueTypesWorkCorrect()
+    {
+        var config = new TypeAdapterConfig();
+        config.ForType<SourceClass987, DestinationClass987>()
+            .Map(dest => dest.Value, src => src.UseSecondaryValue
+                ? src.SecondaryValue1 + src.SecondaryValue2
+                : src.PrimaryValue);
+
+
+        var source1 = new SourceClass987
+        {
+            UseSecondaryValue = false,
+            PrimaryValue = 100
+        };
+        var source2 = new SourceClass987
+        {
+            UseSecondaryValue = true,
+            SecondaryValue1 = 10,
+            SecondaryValue2 = 20
+        };
+
+        var result1 = source1.Adapt<DestinationClass987>(config);
+        var result2 = source2.Adapt<DestinationClass987>(config);
+
+        result1.Value.ShouldBe(100);
+        result2.Value.ShouldBe(30);
+    }
+
 }
 
 #region TestClasses
+
+public class SourceClass987
+{
+    public bool UseSecondaryValue { get; set; }
+    public int? PrimaryValue { get; set; }
+    public int? SecondaryValue1 { get; set; }
+    public int? SecondaryValue2 { get; set; }
+}
+
+public class DestinationClass987
+{
+    public int Value { get; set; }
+}
+
 public enum Currency858
 {
     Eur,
