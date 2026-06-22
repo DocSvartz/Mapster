@@ -5,9 +5,15 @@ namespace Mapster
     [AdaptWith(AdaptDirectives.DestinationAsRecord)]
     public class OverrideTypesSettings : TypeAdapterSettings
     {
-        public List<string> DropSettings
+        public List<string> SkipSettings
         {
-            get => Get(nameof(DropSettings), () => new List<string>());
+            get => Get(nameof(SkipSettings), () => new List<string>());
+        }
+
+        public bool? SkipAllSettings
+        {
+            get => Get(nameof(SkipAllSettings));
+            set => Set(nameof(SkipAllSettings), value);
         }
 
         public override void Apply(object other)
@@ -18,7 +24,8 @@ namespace Mapster
 
         public override void Apply(SettingStore other)
         {
-            base.ApplyWithSkipSettings(other, DropSettings);
+            if(!SkipAllSettings.GetValueOrDefault())
+                base.ApplyWithSkipSettings(other, SkipSettings);
         }
     }
 }
