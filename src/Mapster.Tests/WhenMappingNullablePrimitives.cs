@@ -158,8 +158,48 @@ namespace Mapster.Tests
             result.Application.ShouldBeNull();
         }
 
+        [TestMethod]
+        public void CustomConverterWorkWithNullablePrimitiveTypes()
+        {
+            TypeAdapterConfig config = new TypeAdapterConfig();
+            config.NewConfig<string?, bool?>().MapWith(src => Helper992.ParseToNullableBool(src));
+            config.Compile();
+
+            var src = new Source992 { Prop1 = "yes" };
+            var result = src.Adapt<Destination992>(config);
+
+            result.Prop1.ShouldBe(true);
+
+        }
+
+
         #region TestClasses
 
+        static class Helper992
+        {
+            public static bool? ParseToNullableBool(string? value)
+            {
+                if (string.IsNullOrWhiteSpace(value))
+                    return null;
+
+                return value.Trim().ToLower() switch
+                {
+                    "true" or "t" or "yes" or "1" => true,
+                    "false" or "f" or "no" or "0" => false,
+                    _ => null
+                };
+            }
+        }
+
+        public class Source992
+        {
+            public string? Prop1 { get; set; }
+        }
+
+        public class Destination992
+        {
+            public bool? Prop1 { get; set; }
+        }
 
         public class Output414
         {
