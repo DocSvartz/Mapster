@@ -269,7 +269,7 @@ namespace Mapster
         private static int? GetSubclassDistance(Type type1, Type type2, bool allowInheritance)
         {
             //Support for using ValueType mapping configurations of types, for mapping cases on Nulllable ValueType values
-            if (type1.IsNullable() && !type1.ContainsGenericParameters)
+            if (type2.IsInterface && type1.IsNullable() && !type1.ContainsGenericParameters)
                 type1 = type1.GetGenericArguments().FirstOrDefault();
 
             if (type1 == type2)

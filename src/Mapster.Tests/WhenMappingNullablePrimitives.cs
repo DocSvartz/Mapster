@@ -172,6 +172,17 @@ namespace Mapster.Tests
 
         }
 
+        [TestMethod]
+        public void NullablePrimitiveTypesCorrectUsageNonNullableSettings()
+        {
+            TypeAdapterConfig config = new TypeAdapterConfig();
+            config.NewConfig<long, int>().MapWith(src => Convert.ToInt32(src));
+
+           long? value = null;
+
+           Should.NotThrow(() => value.Adapt<long?,int?>(config) );
+        }
+
 
         #region TestClasses
 
