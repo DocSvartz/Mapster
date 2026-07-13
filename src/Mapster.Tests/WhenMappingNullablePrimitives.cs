@@ -178,13 +178,46 @@ namespace Mapster.Tests
             TypeAdapterConfig config = new TypeAdapterConfig();
             config.NewConfig<long, int>().MapWith(src => Convert.ToInt32(src));
 
-           long? value = null;
+            long? value = null;
 
-           Should.NotThrow(() => value.Adapt<long?,int?>(config) );
+            Should.NotThrow(() => value.Adapt<long?,int?>(config) );
+
+        }
+
+        [TestMethod]
+        public void MapNullableValueTypePropertryToNonNullableCorrect()
+        {
+            TypeAdapterConfig config = new TypeAdapterConfig();
+            config.NewConfig<long, int>().MapWith(src => Convert.ToInt32(src));
+            config.NewConfig<PropSrc996, PropDest996>()
+                .Map(dest => dest.IntNonNullable, src => src.LongNullable);
+
+                var src = new PropSrc996 { LongNullable = 42 };
+                var result = src.Adapt<PropDest996>(config);
+
+                var srcnull = new PropSrc996 { LongNullable = null };
+                var resultnull = srcnull.Adapt<PropDest996>(config);
+
+                result.IntNonNullable.ShouldBe(42);
+                resultnull.IntNonNullable.ShouldBe(0);
+
+                Should.Throw<OverflowException>(() => new PropSrc996 { LongNullable = long.MaxValue }.Adapt<PropDest996>(config));
+
         }
 
 
         #region TestClasses
+
+        public class PropSrc996
+        {
+            public long? LongNullable { get; set; }
+        }
+
+        public class PropDest996
+        {
+            public int IntNonNullable { get; set; }
+        }
+
 
         static class Helper992
         {
