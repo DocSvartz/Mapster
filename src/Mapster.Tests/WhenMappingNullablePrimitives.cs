@@ -205,6 +205,27 @@ namespace Mapster.Tests
 
         }
 
+        [TestMethod]
+        public void CustomNullConverterisWorked()
+        {
+            TypeAdapterConfig config = new TypeAdapterConfig();
+            config.NewConfig<long?, int>().MapWith(src => src == null ? 996 : Convert.ToInt32(src.Value));
+            config.NewConfig<PropSrc996, PropDest996>()
+                .Map(dest => dest.IntNonNullable, src => src.LongNullable);
+
+                var src = new PropSrc996 { LongNullable = 42 };
+                var result = src.Adapt<PropDest996>(config);
+
+                var srcnull = new PropSrc996 { LongNullable = null };
+                var resultnull = srcnull.Adapt<PropDest996>(config);
+
+                result.IntNonNullable.ShouldBe(42);
+                resultnull.IntNonNullable.ShouldBe(996);
+
+                Should.Throw<OverflowException>(() => new PropSrc996 { LongNullable = long.MaxValue }.Adapt<PropDest996>(config));
+
+        }
+
 
         #region TestClasses
 
