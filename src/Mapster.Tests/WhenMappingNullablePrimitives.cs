@@ -226,6 +226,27 @@ namespace Mapster.Tests
 
         }
 
+        [TestMethod]
+        public void ParamNullableProtectionisWork()
+        {
+            TypeAdapterConfig config = new TypeAdapterConfig();
+            config.ForType<DateTime?, long>().MapWith(src => (long)Helper992.ToSecondsTimestamp(src)); // work only ParseToNullableBool() return not null
+            
+            var src = new NullableDateTimeInsaider(){ CreatedAt = null};
+            Should.NotThrow(()=> src.Adapt<LongInsaider>(config));
+        }
+
+        public class NullableDateTimeInsaider
+        {
+            public DateTime? CreatedAt { get; set; }
+        }
+
+         public class LongInsaider
+        {
+            public long CreatedAt { get; set; }
+        }
+
+
 
         #region TestClasses
 
@@ -254,13 +275,26 @@ namespace Mapster.Tests
                     _ => null
                 };
             }
+
+            public static long? ToSecondsTimestamp(  DateTime? dateTime)
+            {
+                if (dateTime is null)
+                    return null;
+
+                return 42;
+            } 
+
         }
 
         public class Source992
         {
             public string? Prop1 { get; set; }
         }
-
+       public class Destination992NotNull
+        {
+            public bool Prop1 { get; set; }
+        }
+       
         public class Destination992
         {
             public bool? Prop1 { get; set; }

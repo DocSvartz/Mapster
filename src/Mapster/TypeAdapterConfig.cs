@@ -447,6 +447,14 @@ namespace Mapster
 
         private static LambdaExpression AdjustInheritedConverterReturnType(LambdaExpression lambda, CompileArgument arg)
         {
+            if(arg.ExplicitMapping && lambda.Parameters[0].Type.CanBeNull())
+            {
+               if(arg.Settings.CustomConverterFactory.GetValueOrDefault() || arg.Settings.CustomToTargetFactory.GetValueOrDefault())
+                {
+                    lambda = Expression.Lambda(lambda.Parameters[0].NotNullReturn(lambda.Body),lambda.Parameters);
+                }
+            }
+
             var destinationType = arg.DestinationType;
             var returnType = lambda.ReturnType;
             var lamdaBody = lambda.Body;
@@ -500,7 +508,6 @@ namespace Mapster
                 return Expression.Lambda(body2,lambda.Parameters);
 
             }
-
 
             return Expression.Lambda(body, lambda.Parameters);
         }

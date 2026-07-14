@@ -733,6 +733,7 @@ namespace Mapster
                     Settings.ConverterToTargetFactory = arg => Expression.Lambda(converterFactory.Body, converterFactory.Parameters[0], dest);
                 }
             }
+            Settings.CustomConverterFactory = true;
 
             return this;
         }
@@ -753,6 +754,8 @@ namespace Mapster
             }
             else
                 Settings.ConverterToTargetFactory = arg => converterFactory;
+
+            Settings.CustomToTargetFactory = true;
             return this;
         }
 
