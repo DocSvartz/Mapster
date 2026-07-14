@@ -451,7 +451,11 @@ namespace Mapster
             {
                if(arg.Settings.CustomConverterFactory.GetValueOrDefault() || arg.Settings.CustomToTargetFactory.GetValueOrDefault())
                 {
-                    lambda = Expression.Lambda(lambda.Parameters[0].NotNullReturn(lambda.Body),lambda.Parameters);
+                    var check = new NullCheckFinder(lambda.Parameters[0]);
+                    check.Visit(lambda.Body);
+
+                    if(!check.FoundNullCheck)
+                        lambda = Expression.Lambda(lambda.Parameters[0].NotNullReturn(lambda.Body),lambda.Parameters);
                 }
             }
 
