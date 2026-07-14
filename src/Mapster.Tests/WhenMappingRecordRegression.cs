@@ -2,6 +2,7 @@
 using Shouldly;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text.Json;
 using static Mapster.Tests.WhenExplicitMappingRequired;
 using static Mapster.Tests.WhenMappingDerived;
@@ -561,6 +562,23 @@ namespace Mapster.Tests
             jsonDest.Json.RootElement.GetProperty("key").GetString().ShouldBe("value");
             uriDest.Uri.ToString().ShouldBe("https://www.google.com/");
         }
+
+        /// <summary>
+        /// https://github.com/MapsterMapper/Mapster/issues/995
+        /// </summary>
+        [TestMethod]
+        public void TypeWithOutPublicCtorDetectAsNotSelfCreationType()
+        {
+            var src = new CultureInfo("fr-FR");
+
+            Should.NotThrow(()=>
+            {
+                //src.Adapt<CultureInfo>();
+                src.TextInfo.Adapt<TextInfo>();
+            });
+
+        }
+
 
         class SourceClassWithJsonDocument911
         {
