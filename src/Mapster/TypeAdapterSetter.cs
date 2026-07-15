@@ -714,7 +714,8 @@ namespace Mapster
             return this;
         }
 
-        public TypeAdapterSetter<TSource, TDestination> MapWith(Expression<Func<TSource, TDestination>> converterFactory, bool applySettings = false)
+        public TypeAdapterSetter<TSource, TDestination> MapWith(Expression<Func<TSource, TDestination>> converterFactory, bool applySettings = false,  
+            bool disableCustomConvertersSrcNullPropagation = false)
         {
             this.CheckCompiled();
 
@@ -734,10 +735,22 @@ namespace Mapster
                 }
             }
 
+            if(converterFactory.Parameters[0].Type.CanBeNull() 
+                && Config.ActivateCustomConvertersSrcNullPropagation 
+                && !disableCustomConvertersSrcNullPropagation)
+            {
+                var check = new NullCheckFinder(converterFactory.Parameters[0]);
+                check.Visit(converterFactory.Body);
+                
+                if (!check.FoundNullCheck)
+                    Settings.ApplyCustomConverterFactoryNullPropagation = true;
+            }
+
             return this;
         }
 
-        public TypeAdapterSetter<TSource, TDestination> MapToTargetWith(Expression<Func<TSource, TDestination, TDestination>> converterFactory, bool applySettings = false)
+        public TypeAdapterSetter<TSource, TDestination> MapToTargetWith(Expression<Func<TSource, TDestination, TDestination>> converterFactory, bool applySettings = false,
+            bool disableCustomConvertersSrcNullPropagation = false)
         {
             this.CheckCompiled();
 
@@ -753,6 +766,18 @@ namespace Mapster
             }
             else
                 Settings.ConverterToTargetFactory = arg => converterFactory;
+
+            if (converterFactory.Parameters[0].Type.CanBeNull()
+                && Config.ActivateCustomConvertersSrcNullPropagation
+                && !disableCustomConvertersSrcNullPropagation)
+            {
+                var check = new NullCheckFinder(converterFactory.Parameters[0]);
+                check.Visit(converterFactory.Body);
+
+                if (!check.FoundNullCheck)
+                    Settings.ApplyCustomConverterFactoryNullPropagation = true;
+            }
+
             return this;
         }
 

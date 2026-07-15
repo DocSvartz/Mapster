@@ -89,6 +89,7 @@ namespace Mapster
         public bool AllowImplicitDestinationInheritance { get; set; }
         public bool AllowImplicitSourceInheritance { get; set; } = true;
         public bool SelfContainedCodeGeneration { get; set; }
+        public bool ActivateCustomConvertersSrcNullPropagation { get; set; } = false;
 
         public Func<LambdaExpression, Delegate> Compiler { get; set; } = lambda => lambda.Compile();
 
@@ -269,7 +270,7 @@ namespace Mapster
         private static int? GetSubclassDistance(Type type1, Type type2, bool allowInheritance)
         {
             //Support for using ValueType mapping configurations of types, for mapping cases on Nulllable ValueType values
-            if (type1.IsNullable() && !type1.ContainsGenericParameters)
+            if (type2.IsInterface && type1.IsNullable() && !type1.ContainsGenericParameters)
                 type1 = type1.GetGenericArguments().FirstOrDefault();
 
             if (type1 == type2)
@@ -447,6 +448,10 @@ namespace Mapster
 
         private static LambdaExpression AdjustInheritedConverterReturnType(LambdaExpression lambda, CompileArgument arg)
         {
+            
+            if(arg.Settings.ApplyCustomConverterFactoryNullPropagation.GetValueOrDefault())
+                lambda = Expression.Lambda(lambda.Parameters[0].NotNullReturn(lambda.Body),lambda.Parameters);
+         
             var destinationType = arg.DestinationType;
             var returnType = lambda.ReturnType;
             var lamdaBody = lambda.Body;
@@ -500,7 +505,6 @@ namespace Mapster
                 return Expression.Lambda(body2,lambda.Parameters);
 
             }
-
 
             return Expression.Lambda(body, lambda.Parameters);
         }

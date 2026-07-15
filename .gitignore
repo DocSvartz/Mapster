@@ -188,3 +188,4 @@ src/.idea
 # VS Code settings
 .vscode/launch.json
 .vscode/tasks.json
+.DS_Store
