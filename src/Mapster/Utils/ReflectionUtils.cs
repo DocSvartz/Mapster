@@ -460,9 +460,11 @@ namespace Mapster
                 return false;
             if(type.IsCollectionCompatible())
                 return false;
-
+            if (type.GetConstructors().Length == 0)
+                return true;
             if (type == typeof(Type) || type.BaseType == typeof(MulticastDelegate))
                 return true;
+            
 
             return type.GetFieldsAndProperties().All(it => (it.SetterModifier & (AccessModifier.Public | AccessModifier.NonPublic)) == 0);
         }
