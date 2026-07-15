@@ -89,6 +89,7 @@ namespace Mapster
         public bool AllowImplicitDestinationInheritance { get; set; }
         public bool AllowImplicitSourceInheritance { get; set; } = true;
         public bool SelfContainedCodeGeneration { get; set; }
+        public bool ActivateCustomConvertersSrcNullPropagation { get; set; } = false;
 
         public Func<LambdaExpression, Delegate> Compiler { get; set; } = lambda => lambda.Compile();
 
@@ -447,18 +448,10 @@ namespace Mapster
 
         private static LambdaExpression AdjustInheritedConverterReturnType(LambdaExpression lambda, CompileArgument arg)
         {
-            if(arg.ExplicitMapping && lambda.Parameters[0].Type.CanBeNull())
-            {
-               if(arg.Settings.CustomConverterFactory.GetValueOrDefault() || arg.Settings.CustomToTargetFactory.GetValueOrDefault())
-                {
-                    var check = new NullCheckFinder(lambda.Parameters[0]);
-                    check.Visit(lambda.Body);
-
-                    if(!check.FoundNullCheck)
-                        lambda = Expression.Lambda(lambda.Parameters[0].NotNullReturn(lambda.Body),lambda.Parameters);
-                }
-            }
-
+            
+            if(arg.Settings.ApplyCustomConverterFactoryNullPropagation.GetValueOrDefault())
+                lambda = Expression.Lambda(lambda.Parameters[0].NotNullReturn(lambda.Body),lambda.Parameters);
+         
             var destinationType = arg.DestinationType;
             var returnType = lambda.ReturnType;
             var lamdaBody = lambda.Body;
