@@ -237,19 +237,18 @@ namespace Mapster.Tests
             Should.NotThrow(()=> src.Adapt<LongInsaider>(config));
         }
 
+
+        #region TestClasses
+
         public class NullableDateTimeInsaider
         {
             public DateTime? CreatedAt { get; set; }
         }
 
-         public class LongInsaider
+        public class LongInsaider
         {
             public long CreatedAt { get; set; }
         }
-
-
-
-        #region TestClasses
 
         public class PropSrc996
         {
