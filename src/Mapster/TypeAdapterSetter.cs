@@ -5,7 +5,6 @@ using System;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 
 namespace Mapster
 {
@@ -746,8 +745,6 @@ namespace Mapster
                 if (!check.FoundNullCheck)
                     Settings.ApplyCustomConverterFactoryNullPropagation = true;
             }
-
-                
 
             return this;
         }

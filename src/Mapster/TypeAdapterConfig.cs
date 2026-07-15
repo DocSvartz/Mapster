@@ -451,8 +451,7 @@ namespace Mapster
             
             if(arg.Settings.ApplyCustomConverterFactoryNullPropagation.GetValueOrDefault())
                 lambda = Expression.Lambda(lambda.Parameters[0].NotNullReturn(lambda.Body),lambda.Parameters);
-          
-
+         
             var destinationType = arg.DestinationType;
             var returnType = lambda.ReturnType;
             var lamdaBody = lambda.Body;
