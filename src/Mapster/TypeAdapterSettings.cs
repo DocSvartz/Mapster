@@ -181,15 +181,10 @@ namespace Mapster
             get => Get<Func<CompileArgument, LambdaExpression>>(nameof(ConverterToTargetFactory));
             set => Set(nameof(ConverterToTargetFactory), value);
         }
-        public bool? CustomConverterFactory
+        public bool? ApplyCustomConverterFactoryNullPropagation
         {
-            get => Get(nameof(CustomConverterFactory));
-            set => Set(nameof(CustomConverterFactory), value);
-        }
-        public bool? CustomToTargetFactory
-        {
-            get => Get(nameof(CustomToTargetFactory));
-            set => Set(nameof(CustomToTargetFactory), value);
+            get => Get(nameof(ApplyCustomConverterFactoryNullPropagation));
+            set => Set(nameof(ApplyCustomConverterFactoryNullPropagation), value);
         }
         public object? MapToConstructor
         {

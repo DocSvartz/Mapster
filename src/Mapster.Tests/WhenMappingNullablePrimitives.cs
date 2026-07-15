@@ -227,9 +227,10 @@ namespace Mapster.Tests
         }
 
         [TestMethod]
-        public void ParamNullableProtectionisWork()
+        public void ApplyNullPropagationToCustomConverterWorked()
         {
             TypeAdapterConfig config = new TypeAdapterConfig();
+            config.ActivateCustomConvertersSrcNullPropagation = true;
             config.ForType<DateTime?, long>().MapWith(src => (long)Helper992.ToSecondsTimestamp(src)); // work only ParseToNullableBool() return not null
             
             var src = new NullableDateTimeInsaider(){ CreatedAt = null};
