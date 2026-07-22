@@ -657,7 +657,7 @@ namespace Mapster
 
             if (configAction != null)
             {
-                var Tempsetter = new OverrideTypesSetter<TSourceMember, TDestinationMember>();
+                var Tempsetter = new OverrideTypesSetter<TSourceMember, TDestinationMember>(this.Config);
                 configAction(Tempsetter);
 
                 overrideSettings = Tempsetter.Settings;
