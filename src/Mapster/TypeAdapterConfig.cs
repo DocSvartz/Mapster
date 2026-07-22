@@ -544,6 +544,26 @@ namespace Mapster
                     arg.Settings.Resolvers.AddRange(mapping.NextResolvers);
                     arg.Settings.Ignore.Apply(mapping.NextIgnore);
                     arg.UseDestinationValue = mapping.UseDestinationValue;
+
+                    if (mapping.OverrideSettings != null)
+                    {
+                        mapping.OverrideSettings.Apply(arg.Settings);
+
+                        if(mapping.OverrideSettings.ConverterFactory == null  || mapping.OverrideSettings.ConverterToTargetFactory == null)
+                        {
+                            var defaultfactory = GetOvverideDefaultSettings(tuple, mapType);
+
+                            if (mapping.OverrideSettings.ConverterFactory == null)
+                                mapping.OverrideSettings.ConverterFactory = defaultfactory.ConverterFactory;
+                            if (mapping.OverrideSettings.ConverterToTargetFactory == null)
+                                mapping.OverrideSettings.ConverterToTargetFactory = defaultfactory.ConverterToTargetFactory;
+
+                        }
+
+                       
+                        arg.Settings = mapping.OverrideSettings;
+                    }
+                        
                 }
 
                 return CreateMapExpression(arg);
@@ -694,6 +714,32 @@ namespace Mapster
                 result.Includes.Remove(tuple);
             else
                 result.Includes.RemoveAll(t => t.Source == tuple.Source);
+            return result;
+        }
+
+        internal TypeAdapterSettings GetOvverideDefaultSettings(TypeTuple tuple, MapType mapType)
+        {
+            var arg = new PreCompileArgument
+            {
+                SourceType = tuple.Source,
+                DestinationType = tuple.Destination,
+                MapType = mapType,
+                ExplicitMapping = true,
+            };
+
+            var result = new TypeAdapterSettings();
+
+            var rules = RulesTemplate.Reverse<TypeAdapterRule>();
+            var settings = from rule in rules
+                           let priority = rule.Priority(arg)
+                           where priority != null
+                           orderby priority.Value descending
+                           select rule.Settings;
+            foreach (var setting in settings)
+            {
+                result.Apply(setting);
+            }
+
             return result;
         }
 

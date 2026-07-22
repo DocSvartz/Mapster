@@ -150,7 +150,7 @@ namespace Mapster.Utils
         public static Expression Apply(this LambdaExpression lambda, MapType mapType, params Expression[] exps)
         {
             return lambda.Apply(mapType != MapType.Projection, exps);
-        }
+            }
 
         public static Expression Apply(this LambdaExpression lambda, ParameterExpression p1, ParameterExpression? p2 = null)
         {

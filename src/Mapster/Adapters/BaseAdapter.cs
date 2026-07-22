@@ -512,7 +512,9 @@ namespace Mapster.Adapters
             //transform(adapt(_source));
             if (notUsingDestinationValue)
             {
-                var transform = arg.Settings.DestinationTransforms.Find(it => it.Condition(exp.Type));
+                var settings = mapping?.OverrideSettings ?? arg.Settings;
+
+                var transform = settings.DestinationTransforms.Find(it => it.Condition(exp.Type));
                 if (transform != null)
                     exp = transform.TransformFunc(exp.Type).Apply(arg.MapType, exp);
             }
