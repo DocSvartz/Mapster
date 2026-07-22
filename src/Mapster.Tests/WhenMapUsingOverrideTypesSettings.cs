@@ -48,6 +48,20 @@ namespace Mapster.Tests
             destWithNotTypesSettingOverride.Array.Length.ShouldBe(0);
         }
 
+        [TestMethod]
+        public void UsingDefaultValueIsWorked()
+        {
+            var config = new TypeAdapterConfig();
+
+            config.NewConfig<int?, int>()
+                .DefaultValue(x=>42);
+
+            int? src = null;
+
+            var result = src.Adapt<int>(config);
+
+            result.ShouldBe(42);
+        }
 
         #region TestClasses
 
