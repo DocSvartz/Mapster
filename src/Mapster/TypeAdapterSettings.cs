@@ -202,6 +202,12 @@ namespace Mapster
             get => Get(nameof(UseDestinationMembers), () => new List<string>());
         }
 
+        public Expression? CustomDefaultValue 
+        {
+            get => Get<Expression>(nameof(CustomDefaultValue));
+            set => Set(nameof(CustomDefaultValue), value);
+        }
+
         internal bool Compiled { get; set; }
 
         public TypeAdapterSettings Clone()

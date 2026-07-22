@@ -413,6 +413,15 @@ namespace Mapster
             return this;
         }
 
+        public TypeAdapterSetter<TDestination> DefaultValue(Expression<Func<TDestination, TDestination>> defaultValue)
+        {
+            this.CheckCompiled();
+
+            Settings.CustomDefaultValue = defaultValue.Body;
+            
+            return this;
+        }
+
         public TypeAdapterSetter<TDestination> Map<TDestinationMember, TSourceMember>(
             Expression<Func<TDestination, TDestinationMember>> member,
             Expression<Func<TSourceMember>> source)

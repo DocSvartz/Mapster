@@ -53,7 +53,7 @@ namespace Mapster.Tests
         {
             var config = new TypeAdapterConfig();
 
-            config.NewConfig<int?, int>()
+            config.ForDestinationType<int>()
                 .DefaultValue(x=>42);
 
             int? src = null;
