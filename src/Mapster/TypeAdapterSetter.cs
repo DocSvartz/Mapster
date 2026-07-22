@@ -22,16 +22,6 @@ namespace Mapster
             Settings = settings;
             Config = config;
         }
-
-        internal static TypeAdapterSetter CreateMapTypeOverride()
-        {
-            return new TypeAdapterSetter(new TypeAdapterSettings(), null);
-        }
-
-        internal static TypeAdapterSetter<TSource, TDestination> CreateMapTypeOverride<TSource, TDestination>()
-        {
-            return new TypeAdapterSetter<TSource, TDestination>(new TypeAdapterSettings(), null);
-        }
     }
     public static class TypeAdapterSetterExtensions
     {
