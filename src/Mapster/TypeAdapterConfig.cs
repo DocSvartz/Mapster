@@ -743,6 +743,10 @@ namespace Mapster
             return result;
         }
 
+        internal CompileArgument GetCompileArgument(Type sourcetype, Type destintaiontype, MapType mapType, CompileContext context)
+        {
+            return GetCompileArgument(new TypeTuple(sourcetype, destintaiontype), mapType, context);
+        }
         private CompileArgument GetCompileArgument(TypeTuple tuple, MapType mapType, CompileContext context)
         {
             var setting = GetMergedSettings(tuple, mapType);
