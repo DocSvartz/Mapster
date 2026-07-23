@@ -131,19 +131,19 @@ namespace Mapster.Adapters
                     if (propinfo.GetCustomAttributes()
                         .Any(y => y.GetType().FullName == "System.Runtime.CompilerServices.RequiredMemberAttribute"))
                     {
-                        getter = destinationMember.Type.CreateDefault();
+                        getter = destinationMember.Type.CreateDefault(arg);
                     }
                 }
 
                 if (arg.MapType == MapType.MapToTarget && getter == null && arg.DestinationType.IsRecordType())
                 {
-                    getter = TryRestoreRecordMember(destinationMember, recordRestorMemberModel, destination) ?? getter;
+                    getter = TryRestoreRecordMember(destinationMember, recordRestorMemberModel, destination, arg) ?? getter;
                 }
                 if (getter != null)
                 {
                     propertyModel.Getter = arg.MapType == MapType.Projection 
                         ? getter 
-                        : getter.ApplyPropertyNullPropagation();
+                        : getter.ApplyPropertyNullPropagation(arg);
                     properties.Add(propertyModel);
                 }
                 else
@@ -241,17 +241,17 @@ namespace Mapster.Adapters
                 {
                     defaultConst = parameterInfo.IsOptional && parameterInfo.DefaultValue != null
                     ? Expression.Constant(parameterInfo.DefaultValue, member.DestinationMember.Type)
-                    : parameterInfo.ParameterType.CreateDefault();
+                    : parameterInfo.ParameterType.CreateDefault(arg);
                 }
                 catch (FormatException)
                 {
-                    defaultConst = parameterInfo.ParameterType.CreateDefault();
+                    defaultConst = parameterInfo.ParameterType.CreateDefault(arg);
                 }
 
 #else
                 defaultConst = parameterInfo.IsOptional && parameterInfo.DefaultValue != null
                     ? Expression.Constant(parameterInfo.DefaultValue, member.DestinationMember.Type)
-                    : parameterInfo.ParameterType.CreateDefault();
+                    : parameterInfo.ParameterType.CreateDefault(arg);
 #endif
                 
                 if (member.Getter == null)
@@ -259,7 +259,7 @@ namespace Mapster.Adapters
                     getter = defaultConst;
 
                     if (arg.MapType == MapType.MapToTarget && arg.DestinationType.IsRecordType())
-                        getter = TryRestoreRecordMember(member.DestinationMember,recordRestorParamModel,destination) ?? getter;
+                        getter = TryRestoreRecordMember(member.DestinationMember,recordRestorParamModel,destination, arg) ?? getter;
                 }
                 else
                 {
@@ -283,7 +283,7 @@ namespace Mapster.Adapters
                     {
                         var body = member.Ignore.IsChildPath
                             ? member.Ignore.Condition.Body
-                            : member.Ignore.Condition.Apply(arg.MapType, source, arg.DestinationType.CreateDefault());
+                            : member.Ignore.Condition.Apply(arg.MapType, source, arg.DestinationType.CreateDefault(arg));
                         var condition = ExpressionEx.Not(body);
                         getter = Expression.Condition(condition, getter, defaultConst);
                     }
@@ -293,7 +293,7 @@ namespace Mapster.Adapters
                         getter = defaultConst;
 
                         if (arg.MapType == MapType.MapToTarget && arg.DestinationType.IsRecordType())
-                           getter = TryRestoreRecordMember(member.DestinationMember, recordRestorParamModel, destination) ?? getter;
+                           getter = TryRestoreRecordMember(member.DestinationMember, recordRestorParamModel, destination, arg) ?? getter;
                     }
 
                 }
@@ -348,7 +348,7 @@ namespace Mapster.Adapters
             };
         }
 
-        protected Expression? TryRestoreRecordMember(IMemberModelEx member, ClassModel? restorRecordModel, Expression? destination)
+        protected Expression? TryRestoreRecordMember(IMemberModelEx member, ClassModel? restorRecordModel, Expression? destination, CompileArgument arg)
         {
             if (restorRecordModel != null && destination != null)
             {
@@ -358,7 +358,7 @@ namespace Mapster.Adapters
                 if (find != null)
                 {
                     var compareNull = Expression.Equal(destination, Expression.Constant(null, destination.Type));
-                    return Expression.Condition(compareNull, member.Type.CreateDefault(), Expression.MakeMemberAccess(destination, (MemberInfo)find.Info));
+                    return Expression.Condition(compareNull, member.Type.CreateDefault(arg), Expression.MakeMemberAccess(destination, (MemberInfo)find.Info));
                 }
 
             }

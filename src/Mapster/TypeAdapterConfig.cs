@@ -450,7 +450,7 @@ namespace Mapster
         {
             
             if(arg.Settings.ApplyCustomConverterFactoryNullPropagation.GetValueOrDefault())
-                lambda = Expression.Lambda(lambda.Parameters[0].NotNullReturn(lambda.Body),lambda.Parameters);
+                lambda = Expression.Lambda(lambda.Parameters[0].NotNullReturn(lambda.Body,arg),lambda.Parameters);
          
             var destinationType = arg.DestinationType;
             var returnType = lambda.ReturnType;
@@ -743,6 +743,10 @@ namespace Mapster
             return result;
         }
 
+        internal CompileArgument GetCompileArgument(Type sourcetype, Type destintaiontype, MapType mapType, CompileContext context)
+        {
+            return GetCompileArgument(new TypeTuple(sourcetype, destintaiontype), mapType, context);
+        }
         private CompileArgument GetCompileArgument(TypeTuple tuple, MapType mapType, CompileContext context)
         {
             var setting = GetMergedSettings(tuple, mapType);

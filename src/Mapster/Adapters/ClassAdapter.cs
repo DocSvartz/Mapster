@@ -271,7 +271,7 @@ namespace Mapster.Adapters
                     && !member.DestinationMember.Type.IsCollection()
                     && member.Getter.Type.GetTypeInfo().GetCustomAttributesData().All(attr => attr.GetAttributeType().Name != "ComplexTypeAttribute"))
                 {
-                    value = member.Getter.NotNullReturn(value);
+                    value = member.Getter.NotNullReturn(value,arg);
                 }
                 var bind = Expression.Bind((MemberInfo)member.DestinationMember.Info!, value);
                 lines.Add(bind);

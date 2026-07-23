@@ -9,12 +9,20 @@ namespace Mapster
     {
         protected OverrideTypesSettings _Settings { get => (OverrideTypesSettings)Settings; }
 
-        public OverrideTypesSetter() : this (new OverrideTypesSettings (), null) { }
+        public OverrideTypesSetter(TypeAdapterConfig config) : this (new OverrideTypesSettings (), config) { }
         public OverrideTypesSetter(TypeAdapterSettings settings, TypeAdapterConfig config) : base(settings, config) { }
     }
 
     public class OverrideTypesSetter<TSource, TDestination> : OverrideTypesSetter
     {
+        public OverrideTypesSetter(TypeAdapterConfig config) : base(config)
+        {
+        }
+
+        public OverrideTypesSetter(TypeAdapterSettings settings, TypeAdapterConfig config) : base(settings, config)
+        {
+        }
+
         public OverrideTypesSetter<TSource, TDestination> SkipAllSettings(bool value)
         {
             _Settings.SkipAllSettings = value;

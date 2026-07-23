@@ -48,9 +48,51 @@ namespace Mapster.Tests
             destWithNotTypesSettingOverride.Array.Length.ShouldBe(0);
         }
 
+        [TestMethod]
+        public void UsingDefaultValueIsWorked()
+        {
+            var config = new TypeAdapterConfig();
+
+            config.ForDestinationType<int>()
+                .DefaultValue(x => 32);
+
+            config.ForDestinationType<int?>()
+                .DefaultValue(x=>42);
+
+            int? src = null;
+            var srcInsaider = new NullableIntInsaider() { Data = null };
+            
+
+            var resultCD = src.Adapt<int>(config);
+            var resultCDInsaider = srcInsaider.Adapt<NullableIntInsaider>(config);
+
+            resultCD.ShouldBe(32);
+            resultCDInsaider.Data.ShouldBe(42);
+
+            config.
+                NewConfig<NullableIntInsaider, NullableIntInsaiderReconfig>()
+                .MapUsing(dest => dest.Data, src => src.Data, cfg =>
+                {
+                    cfg.ReConfigurate()
+                    .DefaultValue(x => 35);
+                });
+
+            var resultCDInsaiderReconfig = srcInsaider.Adapt<NullableIntInsaiderReconfig>(config);
+
+            resultCDInsaiderReconfig.Data.ShouldBe(35);
+        }
 
         #region TestClasses
 
+        public class NullableIntInsaider
+        {
+            public int? Data { get; set; }
+        }
+
+        public class NullableIntInsaiderReconfig
+        {
+            public int? Data { get; set; }
+        }
         class CollectionPocoWithArray
         {
             public int[] Array { get; set; }

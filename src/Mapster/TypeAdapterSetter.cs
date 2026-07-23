@@ -22,16 +22,6 @@ namespace Mapster
             Settings = settings;
             Config = config;
         }
-
-        internal static TypeAdapterSetter CreateMapTypeOverride()
-        {
-            return new TypeAdapterSetter(new TypeAdapterSettings(), null);
-        }
-
-        internal static TypeAdapterSetter<TSource, TDestination> CreateMapTypeOverride<TSource, TDestination>()
-        {
-            return new TypeAdapterSetter<TSource, TDestination>(new TypeAdapterSettings(), null);
-        }
     }
     public static class TypeAdapterSetterExtensions
     {
@@ -423,6 +413,15 @@ namespace Mapster
             return this;
         }
 
+        public TypeAdapterSetter<TDestination> DefaultValue(Expression<Func<TDestination, TDestination>> defaultValue)
+        {
+            this.CheckCompiled();
+
+            Settings.CustomDefaultValue = defaultValue.Body;
+            
+            return this;
+        }
+
         public TypeAdapterSetter<TDestination> Map<TDestinationMember, TSourceMember>(
             Expression<Func<TDestination, TDestinationMember>> member,
             Expression<Func<TSourceMember>> source)
@@ -657,7 +656,7 @@ namespace Mapster
 
             if (configAction != null)
             {
-                var Tempsetter = new OverrideTypesSetter<TSourceMember, TDestinationMember>();
+                var Tempsetter = new OverrideTypesSetter<TSourceMember, TDestinationMember>(this.Config);
                 configAction(Tempsetter);
 
                 overrideSettings = Tempsetter.Settings;

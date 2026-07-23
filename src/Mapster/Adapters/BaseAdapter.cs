@@ -97,7 +97,7 @@ namespace Mapster.Adapters
                 if (arg.Context.MaxDepth.HasValue)
                 {
                     if (ObjectType != ObjectType.Primitive && arg.Context.Depth >= arg.Context.MaxDepth.Value)
-                        return arg.DestinationType.CreateDefault();
+                        return arg.DestinationType.CreateDefault(arg);
                     if (ObjectType == ObjectType.Class)
                         arg.Context.Depth++;
                 }
@@ -259,7 +259,7 @@ namespace Mapster.Adapters
                     var compareNull = Expression.Equal(source, Expression.Constant(null, source.Type));
                     blocks.Add(
                         Expression.IfThen(compareNull,
-                            Expression.Return(label, arg.DestinationType.CreateDefault()))
+                            Expression.Return(label, arg.DestinationType.CreateDefault(arg)))
                     );
                 }
 
@@ -351,7 +351,7 @@ namespace Mapster.Adapters
                 }
             }
 
-            blocks.Add(Expression.Label(label, arg.DestinationType.CreateDefault()));
+            blocks.Add(Expression.Label(label, arg.DestinationType.CreateDefault(arg)));
             return Expression.Block(vars, blocks);
         }
 
@@ -390,7 +390,7 @@ namespace Mapster.Adapters
 
             //projection null is handled by EF
             if (arg.MapType != MapType.Projection)
-                exp = source.NotNullReturn(exp);
+                exp = source.NotNullReturn(exp,arg);
 
             return exp;
         }
