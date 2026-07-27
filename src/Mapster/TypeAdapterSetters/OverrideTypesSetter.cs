@@ -29,6 +29,8 @@ namespace Mapster
             return this;
         }
 
+        [Obsolete("This method will be removed in the release version." +
+            "It is used for debugging and finding settings that cannot be overridden by existing settings setters.")]
         public OverrideTypesSetter<TSource, TDestination> SkipSettings(params Expression<Func<TypeAdapterSettings, object>>[] settings)
         {
             foreach (var member in settings)
