@@ -45,6 +45,12 @@ namespace Mapster
         {
             return new TypeAdapterSetter<TSource, TDestination>(this.Settings,this.Config);
         }
+
+        public OverrideTypesSetter<TSource, TDestination> SkipDestinationTransforms()
+        {
+            this.SkipSettings(x => x.DestinationTransforms);
+            return this;
+        }
     }
 
     

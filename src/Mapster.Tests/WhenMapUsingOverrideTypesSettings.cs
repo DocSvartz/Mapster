@@ -19,7 +19,7 @@ namespace Mapster.Tests
                 .MapUsing(src => src.Children, dest => dest.Children,
                 cfg =>
                 {
-                    cfg.SkipAllSettings(true);
+                    cfg.SkipDestinationTransforms();
                 })
                 .MapUsing(src => src.Array, dest => dest.Array,
                 cfg =>
