@@ -486,9 +486,9 @@ namespace Mapster.Utils
             // add supporting DestinationTransforms
             var transform = arg.Settings.DestinationTransforms.Find(it => it.Condition(adapt.Type));
             if (transform != null)
-                return transform.TransformFunc(adapt.Type).Apply(arg.MapType, Expression.Condition(condition, adapt, Expression.Default(adapt.Type)));
+                return transform.TransformFunc(adapt.Type).Apply(arg.MapType, Expression.Condition(condition, adapt, adapt.Type.CreateDefault(arg)));
 
-            return Expression.Condition(condition, adapt, Expression.Default(adapt.Type));
+            return Expression.Condition(condition, adapt, adapt.Type.CreateDefault(arg));
         }
 
         public static string? GetMemberPath(this LambdaExpression lambda, bool firstLevelOnly = false, bool noError = false)

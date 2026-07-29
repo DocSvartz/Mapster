@@ -282,7 +282,7 @@ namespace Mapster.Adapters
 
         static Expression CreateIncludeProjectionExpression(Expression source, CompileArgument arg)
         {
-            Expression body = Expression.Default(arg.DestinationType);
+            Expression body = arg.DestinationType.CreateDefault(arg);
             foreach (var tuple in arg.Settings.Includes)
             {
                 var itemTuple = tuple;
