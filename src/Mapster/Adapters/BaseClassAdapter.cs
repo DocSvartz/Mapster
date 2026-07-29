@@ -275,7 +275,7 @@ namespace Mapster.Adapters
                     }
                     else
                        getter = member.Getter
-                            .ApplyNullPropagationFromCtor(CreateAdaptExpressionCore(member.Getter, member.DestinationMember.Type, arg, member), arg);
+                            .ApplyNullPropagationFromCtor(CreateAdaptExpressionCore(member.Getter, member.DestinationMember.Type, arg, member), arg, member);
 
                     
 

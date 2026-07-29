@@ -445,7 +445,7 @@ namespace Mapster.Utils
             return getter;
         }
 
-        public static Expression ApplyNullPropagationFromCtor(this Expression getter, Expression adapt, CompileArgument arg)
+        public static Expression ApplyNullPropagationFromCtor(this Expression getter, Expression adapt, CompileArgument arg, MemberMapping mapping)
         {
             if (getter == null)
                 return adapt;
@@ -488,7 +488,7 @@ namespace Mapster.Utils
             if (transform != null)
                 return transform.TransformFunc(adapt.Type).Apply(arg.MapType, Expression.Condition(condition, adapt, adapt.Type.CreateDefault(arg)));
 
-            return Expression.Condition(condition, adapt, adapt.Type.CreateDefault(arg));
+            return Expression.Condition(condition, adapt, adapt.Type.CreateDefault(member:mapping));
         }
 
         public static string? GetMemberPath(this LambdaExpression lambda, bool firstLevelOnly = false, bool noError = false)
