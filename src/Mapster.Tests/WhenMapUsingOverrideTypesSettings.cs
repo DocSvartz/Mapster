@@ -82,7 +82,40 @@ namespace Mapster.Tests
             resultCDInsaiderReconfig.Data.ShouldBe(35);
         }
 
+        [TestMethod]
+        public void CustomDefaultValueIsWorkedWhenUsingAsCtorParam()
+        {
+            var config = new TypeAdapterConfig();
+
+            config.ForDestinationType<int?>()
+                .DefaultValue(x => 42);
+
+            config.
+               NewConfig<NullableIntInsaider, NullableIntCtorParam>()
+               .MapUsing(dest => dest.Data, src => src.Data, cfg =>
+               {
+                   cfg.ReConfigurate()
+                   .DefaultValue(x => 35);
+               });
+
+            var src = new NullableIntInsaider() { Data = null };
+
+            var result = src.Adapt<NullableIntCtorParam>(config);
+
+            result.Data.ShouldBe(35);
+        }
+
         #region TestClasses
+
+        public class NullableIntCtorParam
+        {
+            public NullableIntCtorParam(int? data)
+            {
+                Data = data;
+            }
+            public int? Data { get; }
+        }
+
 
         public class NullableIntInsaider
         {
