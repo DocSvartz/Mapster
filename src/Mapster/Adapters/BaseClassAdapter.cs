@@ -25,12 +25,9 @@ namespace Mapster.Adapters
             if (arg.Settings.IgnoreNonMapped == true)
                 IgnoreNonMapped(classModel,arg);
           
-            var sources = new List<Expression> {source};
+            var sources = new List<ResolverSourceInput> {new ResolverSourceInput(source)};
             sources.AddRange(
-                arg.Settings.ExtraSources.Select(src =>
-                    src is LambdaExpression lambda 
-                        ? lambda.Apply(arg.MapType, source) 
-                        : ExpressionEx.PropertyOrFieldPath(source, (string)src)));
+                arg.Settings.ExtraSources.Select(src => ResolverSourceInput.ConvertFrom(src,source,arg)));
             foreach (var destinationMember in destinationMembers)
             {
                 if (ProcessIgnores(arg, destinationMember, out var ignore) && !ctorMapping)

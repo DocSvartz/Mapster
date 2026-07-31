@@ -431,7 +431,7 @@ namespace Mapster
             var invoker = Expression.Lambda(source.Body, Expression.Parameter(typeof (object)));
             if (member.IsIdentity())
             {
-                Settings.ExtraSources.Add(invoker);
+                Settings.ExtraSources.Add((ExtraSourceModel)invoker);
                 return this;
             }
 
@@ -452,7 +452,7 @@ namespace Mapster
 
             if (destinationMember.IsIdentity())
             {
-                Settings.ExtraSources.Add(sourceMemberName);
+                Settings.ExtraSources.Add((ExtraSourceModel)sourceMemberName);
                 return this;
             }
 
@@ -648,7 +648,7 @@ namespace Mapster
             var invoker = Expression.Lambda(source.Body, Expression.Parameter(typeof(object)));
             if (member.IsIdentity())
             {
-                Settings.ExtraSources.Add(invoker);
+                Settings.ExtraSources.Add((ExtraSourceModel)invoker);
                 return this;
             }
 
@@ -710,7 +710,7 @@ namespace Mapster
             var sourceName = source.GetMemberPath(noError: true);
             if (member.IsIdentity())
             {
-                Settings.ExtraSources.Add((object?)sourceName ?? source);
+                Settings.ExtraSources.Add(new ExtraSourceModel((object?)sourceName ?? source));
                 return this;
             }
 
