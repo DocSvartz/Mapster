@@ -63,7 +63,7 @@ namespace Mapster
                                     .Select(s => s(src, model, arg))
                                     .FirstOrDefault(exp => exp != null))
                                 .Where(exp => exp != null)
-                                .Select(exp => Expression.Convert(exp, typeof(object)))
+                                .Select(exp => Expression.Convert(exp.Exp, typeof(object)))
                                 .ToArray();
                             if (getters.Length != keys.Length)
                                 throw new InvalidOperationException($"Cannot get key for sourceType={arg.SourceType.Name}, destinationType={arg.DestinationType.Name}");

@@ -39,16 +39,17 @@ namespace Mapster.Adapters
                 var resolvers = arg.Settings.ValueAccessingStrategies.AsEnumerable();
                 if (arg.Settings.IgnoreNonMapped == true)
                     resolvers = resolvers.Where(ValueAccessingStrategy.CustomResolvers.Contains);
-                var getter = (from fn in resolvers
+                var resolver = (from fn in resolvers
                         from src in sources
                         select fn(src, destinationMember, arg))
                     .FirstOrDefault(result => result != null);
-                if(getter is MemberExpression mem && mem?.Expression?.Type == source.Type)
+                var getter = resolver?.Exp;
+                var overideSettings = resolver?.Settings;
+
+                if (getter is MemberExpression mem && mem?.Expression?.Type == source.Type)
                 {
                     getter = Expression.PropertyOrField(source, mem.Member.Name);
                 }
-
-              var   test = resolvers.Where(ValueAccessingStrategy.CustomResolvers.Contains);
 
                 if (arg.MapType == MapType.Projection && getter != null)
                 {
@@ -72,7 +73,7 @@ namespace Mapster.Adapters
                     getter = (from fn in resolvers
                               from src in sources
                               select fn(src, destinationMember, arg))
-                    .FirstOrDefault(result => result != null);
+                    .FirstOrDefault(result => result != null)?.Exp;
                 }
 
 
@@ -104,14 +105,9 @@ namespace Mapster.Adapters
 
                 }
 
-
                 var nextIgnore = arg.Settings.Ignore.Next((ParameterExpression)source, (ParameterExpression?)destination, destinationMember.Name);
                 var nextResolvers = arg.Settings.Resolvers.Next(arg.Settings.Ignore, (ParameterExpression)source, destinationMember.Name)
                     .ToList();
-
-                var overideSettings = arg.Settings.Resolvers
-                    .Where(x => x.DestinationMemberName == destinationMember.Name && x.OvverideSettings != null)
-                    .Select(x=>x.OvverideSettings).FirstOrDefault();
 
                 var propertyModel = new MemberMapping
                 {
