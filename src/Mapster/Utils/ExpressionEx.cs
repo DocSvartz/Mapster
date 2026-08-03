@@ -452,9 +452,10 @@ namespace Mapster.Utils
 
             Expression? condition = null;
             var current = getter;
-            var checks = arg.Context.NullChecks
-                .Where(x => !object.ReferenceEquals(x.arg, arg))
-                .Select(x => x.param);
+            // ReadyToCleanUp
+            //var checks = arg.Context.NullChecks
+            //    .Where(x => !object.ReferenceEquals(x.arg, arg))
+            //    .Select(x => x.param);
 
             while (current != null) 
             {
@@ -462,8 +463,12 @@ namespace Mapster.Utils
 
                 if (current.CanBeNull() && current is not ParameterExpression)
                     compareNull = Expression.NotEqual(current, Expression.Constant(null, current.Type));
+                // ReadyToCleanUp
+                //else if (current.CanBeNull() && current is ParameterExpression param
+                //    && !checks.Contains(param))
                 else if (current.CanBeNull() && current is ParameterExpression param
-                    && !checks.Contains(param))
+                    && arg.MapType == MapType.Projection)
+
                     compareNull = Expression.NotEqual(param, Expression.Constant(null, param.Type));
 
                 if (compareNull != null)

@@ -222,7 +222,8 @@ namespace Mapster.Adapters
             var members = classConverter.Members;
 
             var arguments = new List<Expression>();
-            arg.Context.NullChecks.UnionWith(members.Where(x => x.Getter != null).Select(x => (x.Getter, arg)));
+            // ReadyToCleanUp
+            // arg.Context.NullChecks.UnionWith(members.Where(x => x.Getter != null).Select(x => (x.Getter, arg)));
             foreach (var member in members)
             {
                 var parameterInfo = (ParameterInfo)member.DestinationMember.Info!;
@@ -268,7 +269,7 @@ namespace Mapster.Adapters
                     }
                     else
                        getter = member.Getter
-                            .ApplyNullPropagationFromCtor(CreateAdaptExpressionCore(member.Getter, member.DestinationMember.Type, arg, member), arg, member);
+                            .ApplyNullPropagationFromCtor(CreateAdaptExpressionCore(member.Getter, member.DestinationMember.Type, arg, member,mapTypeCtor:MapType.CtorParam), arg, member);
 
                     
 
