@@ -271,7 +271,7 @@ namespace Mapster
         public static ResolverSourceInput ConvertFrom(ExtraSourceModel extraSource,Expression source, CompileArgument arg)
         {
             if (extraSource.Src is LambdaExpression lambda)
-                return new ResolverSourceInput(lambda.Apply(arg.MapType, source), extraSource.Settings);
+                return new ResolverSourceInput(lambda.ApplyExtraSources(arg.MapType, source), extraSource.Settings);
             else
                 return new ResolverSourceInput(ExpressionEx.PropertyOrFieldPath(source, (string)extraSource.Src), extraSource.Settings);
         }

@@ -152,6 +152,11 @@ namespace Mapster.Utils
             return lambda.Apply(mapType != MapType.Projection, exps);
         }
 
+        public static Expression ApplyExtraSources(this LambdaExpression lambda, MapType mapType, params Expression[] exps)
+        {
+            return lambda.ApplyExtraSources(mapType != MapType.Projection, exps);
+        }
+
         public static Expression Apply(this LambdaExpression lambda, ParameterExpression p1, ParameterExpression? p2 = null)
         {
             if (p2 == null)
@@ -163,6 +168,15 @@ namespace Mapster.Utils
         private static Expression Apply(this LambdaExpression lambda, bool allowInvoke, params Expression[] exps)
         {
             var replacer = new ParameterExpressionReplacer(lambda.Parameters, exps);
+            var result = replacer.Visit(lambda.Body);
+            if (!allowInvoke || !replacer.ReplaceCounts.Where((n, i) => n > 1 && exps[i].IsComplex()).Any())
+                return result!;
+            return Expression.Invoke(lambda, exps);
+        }
+
+        private static Expression ApplyExtraSources(this LambdaExpression lambda, bool allowInvoke, params Expression[] exps)
+        {
+            var replacer = new ParameterExpressionReplacer(lambda.Parameters,true, exps);
             var result = replacer.Visit(lambda.Body);
             if (!allowInvoke || !replacer.ReplaceCounts.Where((n, i) => n > 1 && exps[i].IsComplex()).Any())
                 return result!;

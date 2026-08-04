@@ -645,13 +645,7 @@ namespace Mapster
         {
             this.CheckCompiled();
 
-            var invoker = Expression.Lambda(source.Body, Expression.Parameter(typeof(object)));
-            if (member.IsIdentity())
-            {
-                Settings.ExtraSources.Add((ExtraSourceModel)invoker);
-                return this;
-            }
-
+            var invoker = Expression.Lambda(source.Body, Expression.Parameter(typeof(TSource)));
             TypeAdapterSettings? overrideSettings = null;
 
             if (configAction != null)
@@ -660,6 +654,12 @@ namespace Mapster
                 configAction(Tempsetter);
 
                 overrideSettings = Tempsetter.Settings;
+            }
+
+            if (member.IsIdentity())
+            {
+                Settings.ExtraSources.Add(new ExtraSourceModel(invoker, (OverrideTypesSettings?)overrideSettings));
+                return this;
             }
 
             Settings.Resolvers.Add(new InvokerModel

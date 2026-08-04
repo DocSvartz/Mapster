@@ -105,7 +105,44 @@ namespace Mapster.Tests
             result.Data.ShouldBe(35);
         }
 
+        [TestMethod]
+        public void ExtraSourceUsingCustomConfig()
+        {
+            var config = new TypeAdapterConfig();
+            config.Default.AddDestinationTransform(DestinationTransform.EmptyCollectionIfNull);
+            config.NewConfig<SourceFlattentInsaider, DestinationFlattentData>()
+                .MapUsing(dest=> dest, src => src.SrcData, cfg =>
+                {
+                    cfg.SkipDestinationTransforms();
+                });
+
+            var src = new SourceFlattentInsaider() { SrcData = new() { Value = "Hello" } };
+
+            var result = src.Adapt<DestinationFlattentData>(config);
+
+        }
+
+
         #region TestClasses
+
+        public class DestinationFlattentData
+        {
+            public int Data { get; set; }
+            public string Value { get; set; }
+            public List<string> Collection { get; set; }
+        }
+
+        public class SourceFlattentData
+        {
+            public int Data { get; set; }
+            public string Value { get; set; }
+            public List<string> Collection { get; set; }
+        }
+
+        public class SourceFlattentInsaider
+        {
+            public SourceFlattentData SrcData { get; set; }
+        }
 
         public class NullableIntCtorParam
         {
