@@ -28,7 +28,7 @@ namespace Mapster
         {
             var source = srcInput.Src;
             var config = source.Type == arg.SourceType ? arg.Settings : arg.Context.Config.GetMergedSettings(new TypeTuple(source.Type, arg.DestinationType),arg.MapType);
-            var resolvers = config.Resolvers;
+            var resolvers = srcInput.Settings != null ? srcInput.Settings.ApplyResolversOnly(config) : config.Resolvers;
             if (resolvers.Count == 0)
                 return null;
             TypeAdapterSettings? customSettings = null;

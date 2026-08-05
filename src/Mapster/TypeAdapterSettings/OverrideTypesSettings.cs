@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using Mapster.Models;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Mapster
 {
@@ -26,6 +28,21 @@ namespace Mapster
         {
             if(!SkipAllSettings.GetValueOrDefault())
                 base.ApplyWithSkipSettings(other, SkipSettings);
+        }
+
+        public List<InvokerModel> ApplyResolversOnly(TypeAdapterSettings other)
+        {
+            var result = new List<InvokerModel>(this.Resolvers);
+            var seen = new HashSet<InvokerModel>(result,new InvokerModelApplyComparer());
+
+            foreach (var item in other.Resolvers)
+            {
+                if (seen.Add(item))
+                {
+                    result.Add(item);
+                }
+            }
+            return result;
         }
     }
 }

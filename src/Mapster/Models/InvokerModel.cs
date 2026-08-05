@@ -1,5 +1,6 @@
-﻿using System.Linq.Expressions;
-using Mapster.Utils;
+﻿using Mapster.Utils;
+using System.Collections.Generic;
+using System.Linq.Expressions;
 
 namespace Mapster.Models
 {
@@ -45,6 +46,20 @@ namespace Mapster.Models
             return IsChildPath
                 ? Condition?.Body
                 : Condition?.Apply(mapType, exp);
+        }
+    }
+
+    public class InvokerModelApplyComparer : IEqualityComparer<InvokerModel>
+    {
+        public bool Equals(InvokerModel? x, InvokerModel? y)
+        {
+            if (x is null || y is null) return false;
+            return string.Equals(x.DestinationMemberName, y.DestinationMemberName, System.StringComparison.InvariantCulture);
+        }
+
+        public int GetHashCode(InvokerModel obj)
+        {
+            return obj?.DestinationMemberName?.GetHashCode() ?? 0;
         }
     }
 }
