@@ -12,6 +12,11 @@ namespace Mapster
             get => Get(nameof(SkipSettings), () => new List<string>());
         }
 
+        public IEnumerable<string> ReMapDestination
+        {
+            get => this.Resolvers.Select(x=>x.DestinationMemberName);
+        }
+
         public bool? SkipAllSettings
         {
             get => Get(nameof(SkipAllSettings));

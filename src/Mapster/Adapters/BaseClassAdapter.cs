@@ -43,9 +43,10 @@ namespace Mapster.Adapters
                 var getter = resolver?.Exp;
                 var overideSettings = resolver?.Settings;
 
+                // ReadyToCleanUp
                 // source in overideSettings is not source in this context 
-                if (overideSettings != null && getter != null)
-                    getter = ReplaceOvverideExpressionParam.Replace(getter, source);
+                //  if (overideSettings != null && getter != null)
+                //  getter = ReplaceOvverideExpressionParam.Replace(getter, source);
 
                 if (arg.MapType == MapType.Projection && getter != null)
                 {

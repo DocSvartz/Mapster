@@ -113,13 +113,23 @@ namespace Mapster.Tests
             config.NewConfig<SourceFlattentInsaider, DestinationFlattentData>()
                 .MapUsing(dest=> dest, src => src.SrcData, cfg =>
                 {
-                    cfg.SkipDestinationTransforms();
+                    cfg.SkipDestinationTransforms()
+                    .ReConfigurate()
+                    .Map(dest=>dest.Data, src => 42)
+                    .MapUsing(dest => dest.Collection, src => src.Collection, cfg =>
+                    {
+                        cfg
+                        .SkipDestinationTransforms();
+                    })
+                    ;
                 });
 
             var src = new SourceFlattentInsaider() { SrcData = new() { Value = "Hello" } };
 
             var result = src.Adapt<DestinationFlattentData>(config);
 
+            result.Collection.ShouldBeNull();
+            result.Data.ShouldBe(42);
         }
 
 

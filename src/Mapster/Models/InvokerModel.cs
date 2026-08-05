@@ -32,20 +32,20 @@ namespace Mapster.Models
             };
         }
 
-        public Expression GetInvokingExpression(Expression exp, MapType mapType = MapType.Map)
+        public Expression GetInvokingExpression(Expression exp, MapType mapType = MapType.Map, bool isExtraParam = false)
         {
             if (IsChildPath)
                 return Invoker!.Body;
             return SourceMemberName != null
                 ? ExpressionEx.PropertyOrFieldPath(exp, SourceMemberName)
-                : Invoker!.Apply(mapType, exp);
+                : isExtraParam ? Invoker!.ApplyExtraSources(mapType, exp) : Invoker!.Apply(mapType, exp);
         }
 
-        public Expression? GetConditionExpression(Expression exp, MapType mapType = MapType.Map)
+        public Expression? GetConditionExpression(Expression exp, MapType mapType = MapType.Map, bool isExtraParam = false)
         {
             return IsChildPath
                 ? Condition?.Body
-                : Condition?.Apply(mapType, exp);
+                : isExtraParam ? Condition?.ApplyExtraSources(mapType, exp) : Condition?.Apply(mapType, exp);
         }
     }
 
