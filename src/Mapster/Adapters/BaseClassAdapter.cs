@@ -43,10 +43,9 @@ namespace Mapster.Adapters
                 var getter = resolver?.Exp;
                 var overideSettings = resolver?.Settings;
 
-                if (getter is MemberExpression mem && mem?.Expression?.Type == source.Type)
-                {
-                    getter = Expression.PropertyOrField(source, mem.Member.Name);
-                }
+                // source in overideSettings is not source in this context 
+                if (overideSettings != null && getter != null)
+                    getter = ReplaceOvverideExpressionParam.Replace(getter, source);
 
                 if (arg.MapType == MapType.Projection && getter != null)
                 {
