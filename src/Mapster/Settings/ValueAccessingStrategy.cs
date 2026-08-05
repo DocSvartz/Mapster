@@ -91,7 +91,7 @@ namespace Mapster
             if (resolver == null)
                 return null;
             else
-                return new ResolverResult(resolver, null);
+                return new ResolverResult(resolver, srcInput.Settings != null ? srcInput.Settings.CloneOnlySkipSettings() : null);
 
         }
 

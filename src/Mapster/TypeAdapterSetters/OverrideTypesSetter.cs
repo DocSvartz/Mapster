@@ -7,7 +7,7 @@ namespace Mapster
     [AdaptWith(AdaptDirectives.DestinationAsRecord)]
     public class OverrideTypesSetter : TypeAdapterSetter
     {
-        protected OverrideTypesSettings _Settings { get => (OverrideTypesSettings)Settings; }
+        internal protected OverrideTypesSettings _Settings { get => (OverrideTypesSettings)Settings; }
 
         public OverrideTypesSetter(TypeAdapterConfig config) : this (new OverrideTypesSettings (), config) { }
         public OverrideTypesSetter(TypeAdapterSettings settings, TypeAdapterConfig config) : base(settings, config) { }

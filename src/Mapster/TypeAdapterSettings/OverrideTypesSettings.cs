@@ -1,4 +1,5 @@
 ﻿using Mapster.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -15,6 +16,12 @@ namespace Mapster
         public IEnumerable<string> ReMapDestination
         {
             get => this.Resolvers.Select(x=>x.DestinationMemberName);
+        }
+
+        public bool? RemapExtraSource
+        {
+            get => Get(nameof(RemapExtraSource));
+            set => Set(nameof(RemapExtraSource), value);
         }
 
         public bool? SkipAllSettings
@@ -47,6 +54,17 @@ namespace Mapster
                     result.Add(item);
                 }
             }
+            return result;
+        }
+
+        public OverrideTypesSettings CloneOnlySkipSettings()
+        {
+            var result = new OverrideTypesSettings();
+
+            result.SkipAllSettings = this.SkipAllSettings;
+            result.SkipSettings.AddRange(this.SkipSettings);
+            result.RemapExtraSource = this.RemapExtraSource;
+
             return result;
         }
     }

@@ -672,6 +672,45 @@ namespace Mapster
             return this;
         }
 
+        public TypeAdapterSetter<TSource, TDestination> ReMap<TDestinationMember, TSourceMember>(
+            Expression<Func<TDestination, TDestinationMember>> member,
+            Expression<Func<TSource, TSourceMember>> source,
+            bool SkipDestinationTransforms = false)
+        {
+            this.CheckCompiled();
+
+            
+
+            var invoker = Expression.Lambda(source.Body, Expression.Parameter(typeof(TSource)));
+            TypeAdapterSettings? overrideSettings = null;
+                        
+            var Tempsetter = new OverrideTypesSetter<TSourceMember, TDestinationMember>(this.Config);
+            overrideSettings = Tempsetter.Settings;
+                            
+
+            if (SkipDestinationTransforms)
+                Tempsetter.SkipDestinationTransforms();
+
+            if (member.IsIdentity())
+            {
+                Tempsetter._Settings.RemapExtraSource = true;
+
+                Settings.ExtraSources.Add(new ExtraSourceModel(invoker, (OverrideTypesSettings?)overrideSettings));
+                return this;
+            }
+
+            this.IgnoredRemove(member.GetMemberPath()!);
+
+            Settings.Resolvers.Add(new InvokerModel
+            {
+                DestinationMemberName = member.GetMemberPath()!,
+                Invoker = invoker,
+                Condition = null,
+                OvverideSettings = overrideSettings
+            });
+            return this;
+        }
+
 
 
         public TypeAdapterSetter<TSource, TDestination> IgnoreIf(

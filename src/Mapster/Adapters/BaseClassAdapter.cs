@@ -30,7 +30,7 @@ namespace Mapster.Adapters
                 arg.Settings.ExtraSources.Select(src => ResolverSourceInput.ConvertFrom(src,source,arg)));
             foreach (var destinationMember in destinationMembers)
             {
-                if (ProcessIgnores(arg, destinationMember, out var ignore) && !ctorMapping)
+                if (!destinationMember.ShouldMapMember(arg, MemberSide.Destination))
                     continue;
 
                 var resolvers = arg.Settings.ValueAccessingStrategies.AsEnumerable();
@@ -42,6 +42,9 @@ namespace Mapster.Adapters
                     .FirstOrDefault(result => result != null);
                 var getter = resolver?.Exp;
                 var overideSettings = resolver?.Settings;
+
+                if (ProcessIgnores(arg, destinationMember,out var ignore, resolver) && !ctorMapping)
+                    continue;
 
                 // ReadyToCleanUp
                 // source in overideSettings is not source in this context 
@@ -206,10 +209,19 @@ namespace Mapster.Adapters
 
         protected static bool ProcessIgnores(
             CompileArgument arg,
-            IMemberModel destinationMember,
-            out IgnoreDictionary.IgnoreItem ignore)
+            IMemberModel destinationMember, 
+            out IgnoreDictionary.IgnoreItem ignore,
+            ResolverResult? resolver = null)
         {
             ignore = new IgnoreDictionary.IgnoreItem();
+
+            if (resolver?.Settings != null)
+            {
+               if(resolver.Settings.RemapExtraSource.GetValueOrDefault() 
+                    || resolver.Settings.ReMapDestination.Contains(destinationMember.Name))
+                    return false;
+            }
+                
             if (!destinationMember.ShouldMapMember(arg, MemberSide.Destination))
                 return true;
 

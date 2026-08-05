@@ -133,6 +133,28 @@ namespace Mapster.Tests
         }
 
 
+        [TestMethod]
+        public void ReMapSettersIsWorked()
+        {
+            var config = new TypeAdapterConfig();
+            config.Default.AddDestinationTransform(DestinationTransform.EmptyCollectionIfNull);
+            config.ForDestinationType<DestinationFlattentData>()
+                .Ignore(x => x.Value);
+            config.NewConfig<SourceFlattentInsaider, DestinationFlattentData>()
+                .ReMap(dest => dest, src => src.SrcData, true);
+
+
+            var src = new SourceFlattentInsaider() { SrcData = new() { Value = "Hello" } };
+
+            //var str = src.BuildAdapter(config).CreateMapExpression<DestinationFlattentData>();
+
+            var result = src.Adapt<DestinationFlattentData>(config);
+
+            result.Collection.ShouldBeNull();
+            result.Value.ShouldBe("Hello");
+            
+        }
+
         #region TestClasses
 
         public class DestinationFlattentData
