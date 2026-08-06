@@ -693,13 +693,13 @@ namespace Mapster
 
             if (member.IsIdentity())
             {
-                Tempsetter._Settings.RemapExtraSource = true;
+                Tempsetter._Settings.ReMapExtraSource = true;
 
                 Settings.ExtraSources.Add(new ExtraSourceModel(invoker, (OverrideTypesSettings?)overrideSettings));
                 return this;
             }
 
-            this.IgnoredRemove(member.GetMemberPath()!);
+            this.Settings.ReMapDestinationMembers.Add(member.GetMemberPath()!);
 
             Settings.Resolvers.Add(new InvokerModel
             {

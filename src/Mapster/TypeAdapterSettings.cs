@@ -208,6 +208,11 @@ namespace Mapster
             set => Set(nameof(CustomDefaultValue), value);
         }
 
+        public List<string> ReMapDestinationMembers
+        {
+            get => Get(nameof(ReMapDestinationMembers), () => new List<string>());
+        }
+
         internal bool Compiled { get; set; }
 
         public TypeAdapterSettings Clone()

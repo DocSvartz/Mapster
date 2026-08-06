@@ -15,13 +15,13 @@ namespace Mapster
 
         public IEnumerable<string> ReMapDestination
         {
-            get => this.Resolvers.Select(x=>x.DestinationMemberName);
+            get => this.Resolvers.Select(x=>x.DestinationMemberName).Union(ReMapDestinationMembers);
         }
 
-        public bool? RemapExtraSource
+        public bool? ReMapExtraSource
         {
-            get => Get(nameof(RemapExtraSource));
-            set => Set(nameof(RemapExtraSource), value);
+            get => Get(nameof(ReMapExtraSource));
+            set => Set(nameof(ReMapExtraSource), value);
         }
 
         public bool? SkipAllSettings
@@ -63,7 +63,7 @@ namespace Mapster
 
             result.SkipAllSettings = this.SkipAllSettings;
             result.SkipSettings.AddRange(this.SkipSettings);
-            result.RemapExtraSource = this.RemapExtraSource;
+            result.ReMapExtraSource = this.ReMapExtraSource;
 
             return result;
         }

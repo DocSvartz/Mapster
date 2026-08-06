@@ -217,8 +217,9 @@ namespace Mapster.Adapters
 
             if (resolver?.Settings != null)
             {
-               if(resolver.Settings.RemapExtraSource.GetValueOrDefault() 
-                    || resolver.Settings.ReMapDestination.Contains(destinationMember.Name))
+               if(resolver.Settings.ReMapExtraSource.GetValueOrDefault() 
+                    || resolver.Settings.ReMapDestination.Contains(destinationMember.Name)
+                    || arg.Settings.ReMapDestinationMembers.Contains(destinationMember.Name))
                     return false;
             }
                 

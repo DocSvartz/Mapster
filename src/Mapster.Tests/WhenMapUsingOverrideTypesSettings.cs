@@ -139,23 +139,37 @@ namespace Mapster.Tests
             var config = new TypeAdapterConfig();
             config.Default.AddDestinationTransform(DestinationTransform.EmptyCollectionIfNull);
             config.ForDestinationType<DestinationFlattentData>()
-                .Ignore(x => x.Value);
+                .Ignore(x => x.Value)
+                .Ignore(x => x.Data);
             config.NewConfig<SourceFlattentInsaider, DestinationFlattentData>()
                 .ReMap(dest => dest, src => src.SrcData, true);
+            config.NewConfig<RemapMemberMappings, DestinationFlattentData>()
+                .ReMap(dest => dest.Data, src => src.Data);
+
+            var src = new SourceFlattentInsaider() { SrcData = new() { Value = "Hello", Data = 42 } };
+            var reMapSrc = new RemapMemberMappings { Data = 21, Value = "World" };
 
 
-            var src = new SourceFlattentInsaider() { SrcData = new() { Value = "Hello" } };
-
-            //var str = src.BuildAdapter(config).CreateMapExpression<DestinationFlattentData>();
 
             var result = src.Adapt<DestinationFlattentData>(config);
 
             result.Collection.ShouldBeNull();
             result.Value.ShouldBe("Hello");
-            
+            result.Data.ShouldBe(42);
+
+            var reMapResut = reMapSrc.Adapt<DestinationFlattentData>(config);
+
+            reMapResut.Data.ShouldBe(21);
+            reMapResut.Value.ShouldBe(default);
         }
 
         #region TestClasses
+
+        public class RemapMemberMappings
+        {
+            public int Data { get; set; }
+            public string Value { get; set; }
+        }
 
         public class DestinationFlattentData
         {
