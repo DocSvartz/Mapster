@@ -438,10 +438,10 @@ namespace Mapster.Utils
                     if (!getter.CanBeNull())
                     {
                         var transform = Expression.Convert(getter, typeof(Nullable<>).MakeGenericType(getter.Type));
-                        return Expression.Condition(condition, transform, transform.Type.CreateDefault(arg));
+                        return Expression.Condition(condition, transform, transform.Type.CreateDefault());
                     }
                     else
-                        return Expression.Condition(condition, getter, getter.Type.CreateDefault(arg));
+                        return Expression.Condition(condition, getter, getter.Type.CreateDefault());
                 }
 
                 if (expr.CanBeNull())
