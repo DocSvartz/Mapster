@@ -253,8 +253,8 @@ namespace Mapster.Adapters
                 if (member.UseDestinationValue)
                     return null;
 
-                if (!arg.Settings.Resolvers.Any(r => r.DestinationMemberName == member.DestinationMember.Name) 
-                    && member.Getter is MemberExpression memberExp && contructorMembers.Contains(memberExp.Member))
+                if (!arg.Settings.Resolvers.Any(r => r.DestinationMemberName == member.DestinationMember.Name)
+                    && contructorMembers.Select(x => x.Name).Contains(member.DestinationMember.Name, new MapsterStringComparer()))
                     continue;
 
                 if (member.DestinationMember.SetterModifier == AccessModifier.None)

@@ -2,6 +2,7 @@
 using Shouldly;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Mapster.Tests
 {
@@ -163,7 +164,86 @@ namespace Mapster.Tests
             reMapResut.Value.ShouldBe(default);
         }
 
+        [TestMethod]
+        public void ApplyPropagantionUsingDeepSrcAnalize()
+        {
+            var config = new TypeAdapterConfig();
+
+            config.NewConfig<Source1004, Destination1004>()
+                .Map(dest => dest.ProductNames, src => src.Products.Select(x => x.Name).ToArray());
+
+            config.NewConfig<Source1004, DestinationCtor1004>()
+                .Map(dest => dest.ProductNames, src => src.Products.Select(x => x.Name).ToArray());
+
+            config.NewConfig<NullableStrings, NullableStringsDest>()
+                .Map(dest => dest.Result, src => $"{src.Value1.ToString()}");
+
+            config.NewConfig<NullableStrings, NullableStringsDestCtor>()
+                .Map(dest => dest.Result, src => $"{src.Value1.ToString()}");
+
+            var src = new Source1004();
+            var srcStrings = new NullableStrings();
+
+            //var str = src.BuildAdapter(config).CreateMapExpression<DestinationCtor1004>();
+            //var str2 = src.BuildAdapter(config).CreateMapExpression<NullableStringsDestCtor>();
+
+            Should.NotThrow(() =>
+            {
+                src.Adapt<Destination1004>(config);
+                src.Adapt<DestinationCtor1004>(config);
+
+                srcStrings.Adapt<NullableStringsDest>(config);
+                srcStrings.Adapt<NullableStringsDestCtor>(config);
+            });
+        }
+
         #region TestClasses
+
+        class Source1004
+        {
+            public Product1004[]? Products { get; set; }
+        }
+
+        class Product1004
+        {
+            public required string Name { get; set; }
+        }
+
+        class Destination1004
+        {
+            public string[]? ProductNames { get; set; }
+        }
+
+        class DestinationCtor1004
+        {
+            public DestinationCtor1004(string[]? productNames)
+            {
+                ProductNames = productNames;
+            }
+
+            public string[]? ProductNames { get; }
+        }
+
+        public class NullableStrings
+        {
+            public string Value1 { get; set; }
+
+            public string Value2 { get; set; }
+        }
+
+        public class NullableStringsDest
+        {
+            public string Result { get; set; }
+        }
+        public class NullableStringsDestCtor
+        {
+            public NullableStringsDestCtor(string result)
+            {
+                Result = result;
+            }
+
+            public string Result { get;}
+        }
 
         public class RemapMemberMappings
         {

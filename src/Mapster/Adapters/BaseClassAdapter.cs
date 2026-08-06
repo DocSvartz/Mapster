@@ -137,9 +137,9 @@ namespace Mapster.Adapters
                 }
                 if (getter != null)
                 {
-                    propertyModel.Getter = arg.MapType == MapType.Projection 
-                        ? getter 
-                        : getter.ApplyPropertyNullPropagation(arg);
+                    propertyModel.Getter = arg.MapType == MapType.Projection || ctorMapping
+                        ? getter
+                        : getter.ApplyPropertyNullPropagation(arg, source);
                     properties.Add(propertyModel);
                 }
                 else
