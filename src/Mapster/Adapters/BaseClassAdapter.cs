@@ -25,30 +25,31 @@ namespace Mapster.Adapters
             if (arg.Settings.IgnoreNonMapped == true)
                 IgnoreNonMapped(classModel,arg);
           
-            var sources = new List<Expression> {source};
+            var sources = new List<ResolverSourceInput> {new ResolverSourceInput(source)};
             sources.AddRange(
-                arg.Settings.ExtraSources.Select(src =>
-                    src is LambdaExpression lambda 
-                        ? lambda.Apply(arg.MapType, source) 
-                        : ExpressionEx.PropertyOrFieldPath(source, (string)src)));
+                arg.Settings.ExtraSources.Select(src => ResolverSourceInput.ConvertFrom(src,source,arg)));
             foreach (var destinationMember in destinationMembers)
             {
-                if (ProcessIgnores(arg, destinationMember, out var ignore) && !ctorMapping)
+                if (!destinationMember.ShouldMapMember(arg, MemberSide.Destination))
                     continue;
 
                 var resolvers = arg.Settings.ValueAccessingStrategies.AsEnumerable();
                 if (arg.Settings.IgnoreNonMapped == true)
                     resolvers = resolvers.Where(ValueAccessingStrategy.CustomResolvers.Contains);
-                var getter = (from fn in resolvers
+                var resolver = (from fn in resolvers
                         from src in sources
                         select fn(src, destinationMember, arg))
                     .FirstOrDefault(result => result != null);
-                if(getter is MemberExpression mem && mem?.Expression?.Type == source.Type)
-                {
-                    getter = Expression.PropertyOrField(source, mem.Member.Name);
-                }
+                var getter = resolver?.Exp;
+                var overideSettings = resolver?.Settings;
 
-              var   test = resolvers.Where(ValueAccessingStrategy.CustomResolvers.Contains);
+                if (ProcessIgnores(arg, destinationMember,out var ignore, resolver) && !ctorMapping)
+                    continue;
+
+                // ReadyToCleanUp
+                // source in overideSettings is not source in this context 
+                //  if (overideSettings != null && getter != null)
+                //  getter = ReplaceOvverideExpressionParam.Replace(getter, source);
 
                 if (arg.MapType == MapType.Projection && getter != null)
                 {
@@ -72,7 +73,7 @@ namespace Mapster.Adapters
                     getter = (from fn in resolvers
                               from src in sources
                               select fn(src, destinationMember, arg))
-                    .FirstOrDefault(result => result != null);
+                    .FirstOrDefault(result => result != null)?.Exp;
                 }
 
 
@@ -104,14 +105,9 @@ namespace Mapster.Adapters
 
                 }
 
-
                 var nextIgnore = arg.Settings.Ignore.Next((ParameterExpression)source, (ParameterExpression?)destination, destinationMember.Name);
                 var nextResolvers = arg.Settings.Resolvers.Next(arg.Settings.Ignore, (ParameterExpression)source, destinationMember.Name)
                     .ToList();
-
-                var overideSettings = arg.Settings.Resolvers
-                    .Where(x => x.DestinationMemberName == destinationMember.Name && x.OvverideSettings != null)
-                    .Select(x=>x.OvverideSettings).FirstOrDefault();
 
                 var propertyModel = new MemberMapping
                 {
@@ -141,9 +137,9 @@ namespace Mapster.Adapters
                 }
                 if (getter != null)
                 {
-                    propertyModel.Getter = arg.MapType == MapType.Projection 
-                        ? getter 
-                        : getter.ApplyPropertyNullPropagation(arg);
+                    propertyModel.Getter = arg.MapType == MapType.Projection || ctorMapping
+                        ? getter
+                        : getter.ApplyPropertyNullPropagation(arg, source);
                     properties.Add(propertyModel);
                 }
                 else
@@ -213,10 +209,20 @@ namespace Mapster.Adapters
 
         protected static bool ProcessIgnores(
             CompileArgument arg,
-            IMemberModel destinationMember,
-            out IgnoreDictionary.IgnoreItem ignore)
+            IMemberModel destinationMember, 
+            out IgnoreDictionary.IgnoreItem ignore,
+            ResolverResult? resolver = null)
         {
             ignore = new IgnoreDictionary.IgnoreItem();
+
+            if (resolver?.Settings != null)
+            {
+               if(resolver.Settings.ReMapExtraSource.GetValueOrDefault() 
+                    || resolver.Settings.ReMapDestination.Contains(destinationMember.Name)
+                    || arg.Settings.ReMapDestinationMembers.Contains(destinationMember.Name))
+                    return false;
+            }
+                
             if (!destinationMember.ShouldMapMember(arg, MemberSide.Destination))
                 return true;
 
@@ -229,7 +235,8 @@ namespace Mapster.Adapters
             var members = classConverter.Members;
 
             var arguments = new List<Expression>();
-            arg.Context.NullChecks.UnionWith(members.Where(x => x.Getter != null).Select(x => (x.Getter, arg)));
+            // ReadyToCleanUp
+            // arg.Context.NullChecks.UnionWith(members.Where(x => x.Getter != null).Select(x => (x.Getter, arg)));
             foreach (var member in members)
             {
                 var parameterInfo = (ParameterInfo)member.DestinationMember.Info!;
@@ -275,7 +282,7 @@ namespace Mapster.Adapters
                     }
                     else
                        getter = member.Getter
-                            .ApplyNullPropagationFromCtor(CreateAdaptExpressionCore(member.Getter, member.DestinationMember.Type, arg, member), arg);
+                            .ApplyNullPropagationFromCtor(CreateAdaptExpressionCore(member.Getter, member.DestinationMember.Type, arg, member,mapTypeCtor:MapType.CtorParam), arg, member);
 
                     
 

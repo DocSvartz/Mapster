@@ -208,7 +208,7 @@ namespace Mapster.Adapters
             /// Not create destination is abstract type if source is null
             if (arg.DestinationType.IsAbstract)
                 blocks.Add(Expression.IfThen(Expression.Equal(source, Expression.Constant(null, arg.SourceType)), 
-                    Expression.Return(label, Expression.Default(arg.DestinationType))));
+                    Expression.Return(label, arg.DestinationType.CreateDefault(arg))));
 
             //new TDest();
             Expression transformedSource = source;
@@ -388,6 +388,9 @@ namespace Mapster.Adapters
             if (exp == null)
                 return null;
 
+            if(arg.MapType == MapType.CtorParam)
+                return exp;
+
             //projection null is handled by EF
             if (arg.MapType != MapType.Projection)
                 exp = source.NotNullReturn(exp,arg);
@@ -448,9 +451,10 @@ namespace Mapster.Adapters
             }
         }
 
-        internal static Expression CreateAdaptExpressionCore(Expression source, Type destinationType, CompileArgument arg, MemberMapping? mapping = null, Expression? destination = null)
+        internal static Expression CreateAdaptExpressionCore(Expression source, Type destinationType, CompileArgument arg, MemberMapping? mapping = null, Expression? destination = null, MapType? mapTypeCtor = null)
         {
-            var mapType = arg.MapType == MapType.MapToTarget && destination == null ? MapType.Map :
+            var mapType = mapTypeCtor != null ? mapTypeCtor.Value:
+                arg.MapType == MapType.MapToTarget && destination == null ? MapType.Map :
                 mapping?.UseDestinationValue == true ? MapType.MapToTarget :
                 arg.MapType;
             var extraParams = new HashSet<ParameterExpression>();

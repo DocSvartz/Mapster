@@ -495,7 +495,7 @@ namespace Mapster
 
                 var condition = Expression.TypeIs(tempDest, destinationType);
                 UnaryExpression ifTrue = Expression.Convert(tempDest, destinationType);
-                DefaultExpression ifFalse = Expression.Default(destinationType);
+                Expression ifFalse = destinationType.CreateDefault(arg);
 
                 ConditionalExpression conditionalExpr = Expression.Condition(condition, ifTrue, ifFalse);
                 blockbody.Add(conditionalExpr);
