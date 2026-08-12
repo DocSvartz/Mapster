@@ -102,9 +102,10 @@ namespace Mapster.Adapters
             //if (src.Prop2 != null)
             //  dest.Prop2 = convert(src.Prop2);
 
-            var classModel = GetSetterModel(arg);
-            var classConverter = CreateClassConverter(source, classModel, arg, destination);
-            var members = classConverter.Members;
+           // var classModel = GetSetterModel(arg);
+           // var classConverter = CreateClassConverter(source, classModel, arg, destination);
+            
+            var members = arg.ClassConverter.Members;
 
             var lines = new List<Expression>();
             Dictionary<LambdaExpression, Tuple<List<Expression>, Expression>>? conditions = null;
@@ -121,7 +122,7 @@ namespace Mapster.Adapters
                     && member.DestinationMember.SetterModifier == AccessModifier.None)
                 {
                     if (member.DestinationMember is PropertyModel && arg.MapType != MapType.Projection)
-                        adapt = SetValueTypeAutoPropertyByReflection(member, adapt, classModel);
+                        adapt = SetValueTypeAutoPropertyByReflection(member, adapt, arg.ClassModel);
                     else
                         continue;
                     if (adapt == Expression.Empty())
@@ -240,8 +241,8 @@ namespace Mapster.Adapters
             }
             else
             {
-                classModel = GetSetterModel(arg);
-                classConverter = CreateClassConverter(source, classModel, arg);
+                classModel = arg.ClassModel;
+                classConverter = arg.ClassConverter;
             }
             var members = classConverter.Members;
 

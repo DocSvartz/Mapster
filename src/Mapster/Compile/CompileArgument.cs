@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using Mapster.Models;
 using Mapster.Utils;
 
 namespace Mapster
@@ -16,6 +17,8 @@ namespace Mapster
         public CompileContext Context { get; set; }
         public bool UseDestinationValue { get; set; }
         public bool? ConstructorMapping { get; set; }
+        internal ClassMapping? ClassConverter {  get; set; }
+        internal ClassModel? ClassModel { get; set; }
 
         private HashSet<string>? _srcNames;
         internal HashSet<string> GetSourceNames()

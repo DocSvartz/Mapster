@@ -389,6 +389,16 @@ namespace Mapster.Adapters
                 new[] { member.Destination, memberAsObject });
         }
 
-#endregion
+        protected override Expression CreateExpressionBody(Expression source, Expression? destination, CompileArgument arg)
+        {
+            var classModel = arg.ClassModel ?? GetSetterModel(arg);
+            var classConverter = arg.ClassConverter ?? CreateClassConverter(source, classModel, arg, destination);
+            arg.ClassConverter = classConverter;
+            arg.ClassModel = classModel;
+
+            return base.CreateExpressionBody(source, destination, arg);
+        }
+
+        #endregion
     }
 }
