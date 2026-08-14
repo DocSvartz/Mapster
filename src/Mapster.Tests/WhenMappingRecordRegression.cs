@@ -634,6 +634,28 @@ namespace Mapster.Tests
             });
         }
 
+        [TestMethod]
+        public void RecorsTypeSupporIgnoreIfIsCorrect()
+        {
+            var config = new TypeAdapterConfig();
+            config.NewConfig<PaymentDTO771, PaymentDTO771>()
+                .IgnoreIf((src, dest) => src.CVV == "442", dest => dest.CVV);
+
+            var source = new PaymentDTO771("Visa", "0000", "2026", "442", 1);
+            var dest = new PaymentDTO771("Visa", "0000", "2026", "556", 1);
+            
+            var result = source.Adapt<PaymentDTO771>(config);
+            var resiltUpdate = source.Adapt(dest,config);
+            
+            result.CVV.ShouldBeNullOrEmpty();
+            resiltUpdate.CVV.ShouldBe(dest.CVV);
+
+         
+
+
+        }
+
+
         #region NowNotWorking
 
         /// <summary>
