@@ -640,17 +640,27 @@ namespace Mapster.Tests
             var config = new TypeAdapterConfig();
             config.NewConfig<PaymentDTO771, PaymentDTO771>()
                 .IgnoreIf((src, dest) => src.CVV == "442", dest => dest.CVV);
+            config.NewConfig<TestRecordY, TestRecordY>()
+                .IgnoreIf((src, dest) => src.X == 42, dest => dest.Y);
 
             var source = new PaymentDTO771("Visa", "0000", "2026", "442", 1);
+            var srcNotCtorMem = new TestRecordY { X = 42, Y = 12 };
             var dest = new PaymentDTO771("Visa", "0000", "2026", "556", 1);
-            
-            var result = source.Adapt<PaymentDTO771>(config);
-            var resiltUpdate = source.Adapt(dest,config);
-            
-            result.CVV.ShouldBeNullOrEmpty();
-            resiltUpdate.CVV.ShouldBe(dest.CVV);
+            var destNotCtorMem = new TestRecordY { X = 51, Y = 23 };
 
-         
+            var str = source.BuildAdapter(config).CreateMapToTargetExpression<PaymentDTO771>();
+
+            var result = source.Adapt<PaymentDTO771>(config);
+            var resultUpdate = source.Adapt(dest,config);
+
+            result.CVV.ShouldBeNullOrEmpty();
+            resultUpdate.CVV.ShouldBe(dest.CVV);
+
+            var resultNotCtorM = srcNotCtorMem.Adapt<TestRecordY>(config);
+            var resultUpdateNotCtorM = srcNotCtorMem.Adapt(destNotCtorMem, config);
+
+            resultNotCtorM.Y.ShouldBe(default);
+            resultUpdateNotCtorM.Y.ShouldBe(destNotCtorMem.Y);
 
 
         }
