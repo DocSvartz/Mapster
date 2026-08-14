@@ -242,6 +242,11 @@ namespace Mapster.Adapters
                     ? Expression.Constant(parameterInfo.DefaultValue, member.DestinationMember.Type)
                     : parameterInfo.ParameterType.CreateDefault();
 #endif
+
+                if (arg.MapType == MapType.MapToTarget && arg.DestinationType.IsRecordType())
+                {
+                    defaultConst = TryRestoreRecordMember(member.DestinationMember, recordRestorParamModel, destination) ?? defaultConst;
+                }
                 
                 if (member.Getter == null)
                 {
@@ -340,7 +345,7 @@ namespace Mapster.Adapters
             if (restorRecordModel != null && destination != null)
             {
                 var find = restorRecordModel.Members
-                               .Where(x => x.Name == member.Name).FirstOrDefault();
+                               .Where(x => x.Name.ToPascalCase() == member.Name.ToPascalCase()).FirstOrDefault();
 
                 if (find != null)
                 {
