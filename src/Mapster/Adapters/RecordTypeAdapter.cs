@@ -79,8 +79,27 @@ namespace Mapster.Adapters
 
                 if (member.DestinationMember.SetterModifier == AccessModifier.None)
                     continue;
-
+                                
                 var adapt = CreateAdaptExpression(member.Getter, member.DestinationMember.Type, arg, member);
+
+                if (arg.MapType != MapType.Projection && member.Ignore.Condition != null )
+                {
+                    var body = member.Ignore.IsChildPath
+                            ? member.Ignore.Condition.Body
+                            : member.Ignore.Condition.Apply(arg.MapType, source, destination);
+                    var condition = ExpressionEx.Not(body);
+
+
+                    if (arg.MapType == MapType.MapToTarget)
+                        adapt = Expression.Condition(condition, adapt,
+                            TryRestoreRecordMember(member.DestinationMember, classModel, destination) ?? adapt);
+                    else
+                        adapt = Expression.Condition(condition, adapt, member.DestinationMember.Type.CreateDefault());
+
+                    lines.Add(Expression.Bind((MemberInfo)member.DestinationMember.Info!, adapt));
+
+                    continue;
+                }
 
                 if (arg.MapType != MapType.Projection && arg.Settings.IgnoreNullValues == true && member.Getter.CanBeNull()) // add IgnoreNullValues support
                 {
@@ -117,6 +136,7 @@ namespace Mapster.Adapters
                 var bind = Expression.Bind((MemberInfo)member.DestinationMember.Info!, adapt);
                 lines.Add(bind);
             }
+            
 
             if (arg.MapType == MapType.MapToTarget)
                 lines.AddRange(RecordIngnoredWithoutConditonRestore(destination, arg, contructorMembers, classModel));
@@ -280,6 +300,18 @@ namespace Mapster.Adapters
                         lines.Add(Expression.IfThen(sourceCondition, adapt));
                     }
                 }
+
+                //if(member.Ignore.Condition != null)
+                //{
+                //    if (arg.MapType != MapType.MapToTarget)
+                //        lines.Add(Expression.IfThen(Expression.Not(member.Ignore.Condition), CreateAdaptExpression(member.Getter, member.DestinationMember.Type, arg, member)));
+                //    else
+                //    {
+                //        var condExp = Expression.IfThenElse(Expression.Not(member.Ignore.Condition), CreateAdaptExpression(member.Getter, member.DestinationMember.Type, arg, member),
+                //            member.DestinationMember.SetExpression(destination, member.DestinationMember.GetExpression(destination)));
+                //        lines.Add(condExp);
+                //    }
+                //}
             }
 
             return lines.Count > 0 ? (Expression)Expression.Block(lines) : Expression.Empty();

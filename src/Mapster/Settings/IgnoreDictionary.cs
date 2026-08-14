@@ -1,5 +1,4 @@
 ﻿using Mapster.Utils;
-using System;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Linq.Expressions;
@@ -8,10 +7,6 @@ namespace Mapster
 {
     public class IgnoreDictionary : ConcurrentDictionary<string, IgnoreDictionary.IgnoreItem>, IApplyable<IgnoreDictionary>
     {
-        public IgnoreDictionary() : base(StringComparer.InvariantCultureIgnoreCase)
-        {
-        }
-
         public readonly struct IgnoreItem
         {
             public IgnoreItem(LambdaExpression? condition, bool isChildPath)

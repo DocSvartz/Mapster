@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Mapster.Utils;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Shouldly;
 using System;
 using System.Collections.Generic;
@@ -639,7 +640,7 @@ namespace Mapster.Tests
         {
             var config = new TypeAdapterConfig();
             config.NewConfig<PaymentDTO771, PaymentDTO771>()
-                .IgnoreIf((src, dest) => src.CVV == "442", dest => dest.CVV);
+                .IgnoreIf((src, dest) => src.CVV == "442", nameof(PaymentDTO771.CVV).ToPascalCase());
             config.NewConfig<TestRecordY, TestRecordY>()
                 .IgnoreIf((src, dest) => src.X == 42, dest => dest.Y);
 
