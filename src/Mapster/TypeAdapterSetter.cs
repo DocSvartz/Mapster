@@ -639,6 +639,7 @@ namespace Mapster
             {
                 var name = member.GetMemberPath()!;
                 Settings.Ignore.Merge(name, new IgnoreDictionary.IgnoreItem(condition, false));
+                Settings.Ignore.Merge(name.ToPascalCase(), new IgnoreDictionary.IgnoreItem(condition, false));
             }
             return this;
         }
@@ -652,6 +653,7 @@ namespace Mapster
             foreach (var member in members)
             {
                 Settings.Ignore.Merge(member, new IgnoreDictionary.IgnoreItem(condition, false));
+                Settings.Ignore.Merge(member.ToPascalCase(), new IgnoreDictionary.IgnoreItem(condition, false));
             }
             return this;
         }

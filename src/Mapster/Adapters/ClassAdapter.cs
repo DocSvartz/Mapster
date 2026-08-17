@@ -120,13 +120,31 @@ namespace Mapster.Adapters
                     && member.DestinationMember.Type.IsMapsterImmutable()
                     && member.DestinationMember.SetterModifier == AccessModifier.None)
                 {
-                    if (member.DestinationMember is PropertyModel && arg.MapType != MapType.Projection)
+
+                    if (arg.Settings.IgnoreNullValues == true)
+                    {
+                        if (adapt is ConditionalExpression condEx)
+                        {
+                            if (condEx.Test is BinaryExpression { NodeType: ExpressionType.Equal } binEx &&
+                                binEx.Left == member.Getter &&
+                                binEx.Right is ConstantExpression { Value: null })
+                                adapt = condEx.IfFalse;
+                        }
                         adapt = SetValueTypeAutoPropertyByReflection(member, adapt, classModel);
+                        var condition = Expression.NotEqual(member.Getter, Expression.Constant(null, member.Getter.Type));
+                    }
                     else
-                        continue;
+                    {
+                        if (member.DestinationMember is PropertyModel && arg.MapType != MapType.Projection)
+                            adapt = SetValueTypeAutoPropertyByReflection(member, adapt, classModel);
+                        else
+                            continue;
+                    }
+
                     if (adapt == Expression.Empty())
                         continue;
                 }
+
               
                 if (!member.UseDestinationValue)
                 {
@@ -199,7 +217,7 @@ namespace Mapster.Adapters
             return lines.Count > 0 ? (Expression)Expression.Block(lines) : Expression.Empty();
         }
 
-        private static Expression SetValueByReflection(MemberMapping member, MemberExpression adapt)
+        protected static Expression SetValueByReflection(MemberMapping member, MemberExpression adapt)
         {
             var typeofExpression = Expression.Constant(member.Destination!.Type);
             var getPropertyMethod = typeof(Type).GetMethod("GetProperty", new[] { typeof(string), typeof(Type) })!;
