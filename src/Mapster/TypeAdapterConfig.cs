@@ -24,7 +24,7 @@ namespace Mapster
                 new PrimitiveAdapter().CreateRule(),    //-210
                 new ClassAdapter().CreateRule(),        //-200
                 new NotSelfCreationAdapter().CreateRule(), //-150
-                new RecordTypeAdapter().CreateRule(),   //-149
+                new RecordTypeAdapter2().CreateRule(),   //-149
                 new ReadOnlyInterfaceAdapter().CreateRule(), // -148
                 new CollectionAdapter().CreateRule(),   //-125
                 new DictionaryAdapter().CreateRule(),   //-124
