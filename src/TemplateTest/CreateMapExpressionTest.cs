@@ -2,7 +2,9 @@ using ExpressionDebugger;
 using Mapster;
 using Mapster.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using System.Xml.Linq;
 
 namespace TemplateTest
@@ -84,17 +86,58 @@ namespace TemplateTest
                 translator.VisitLambdaInterface(
                     expr,
                     ExpressionTranslator.LambdaType.PublicMethod,
-                    typeof(IMyTypeMapper).FullName + "." + method.Name
+                    typeof(IMyTypeMapper),
+                    method.Name
                 );
             }
 
+            foreach (var prop in typeof(IMyTypeMapper).GetProperties())
+            {
+                if (!prop.PropertyType.IsGenericType)
+                    continue;
+                if (prop.PropertyType.GetGenericTypeDefinition() != typeof(Expression<>))
+                    continue;
+                var propArgs = prop.PropertyType.GetGenericArguments()[0];
+                if (!propArgs.IsGenericType)
+                    continue;
+                if (propArgs.GetGenericTypeDefinition() != typeof(Func<,>))
+                    continue;
+                var funcArgs = propArgs.GetGenericArguments();
+                var tuple = new TypeTuple(funcArgs[0], funcArgs[1]);
+                var expr = config.CreateMapExpression(tuple, MapType.Projection);
+                translator.VisitLambdaInterface(
+                    expr,
+                    ExpressionTranslator.LambdaType.PublicLambda,
+                    typeof(IMyTypeMapper),
+                    prop.Name
+                );
+            }
+
+
             var txt = translator.ToString();
+
+
+            IMyTypeMapper mapper = new CustomerMapper();
+
+            var src = new Address() { City = "City 17", Country = "Half", Street = "Life Road", Id = 42 };
+
+            var result = mapper.Map(src);
         }
     }
 
 
+
     internal partial class CustomerMapper : IMyTypeMapper
     {
+        internal AddressDTO Map(Address p1)
+        {
+            return p1 == null ? null : new AddressDTO()
+            {
+                Id = p1.Id,
+                City = p1.City,
+                Country = p1.Country
+            };
+        }
         AddressDTO TemplateTest.IMyTypeMapper.Map(Address p1)
         {
             return p1 == null ? null : new AddressDTO()
@@ -104,14 +147,26 @@ namespace TemplateTest
                 Country = p1.Country
             };
         }
+        internal Expression<Func<AddressDTO, Address>> Projection => p2 => new Address()
+        {
+            Id = p2.Id,
+            City = p2.City,
+            Country = p2.Country
+        };
+        Expression<Func<AddressDTO, Address>> TemplateTest.IMyTypeMapper.Projection => p2 => new Address()
+        {
+            Id = p2.Id,
+            City = p2.City,
+            Country = p2.Country
+        };
     }
-
 
 
 
     internal interface IMyTypeMapper
     {
         AddressDTO Map(Address p1);
+        Expression<Func<AddressDTO, Address>> Projection { get; }
     }
 
     public class Address

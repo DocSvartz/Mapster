@@ -1270,15 +1270,17 @@ namespace ExpressionDebugger
 
 
 
-        public Expression VisitLambdaInterface(LambdaExpression node, LambdaType type, string? methodName = null,
+        public Expression VisitLambdaInterface(LambdaExpression node, LambdaType type, Type InterfaceType, string? methodName = null,
            bool isInternal = false)
         {
+            VisitLambda(node,type,methodName,isInternal);
+
             if (type == LambdaType.PrivateLambda || type == LambdaType.PublicLambda)
             {
                 _inlineCount++;
                 if (type == LambdaType.PublicLambda)
                 {
-                    var name = methodName ?? "Main";
+                    var name = methodName != null ? $"{InterfaceType.FullName}.{methodName}" : "Main";
                     WriteLine();
                     var funcType = MakeDelegateType(node.ReturnType, node.Parameters.Select(it => it.Type).ToArray());
                     var exprType = typeof(Expression<>).MakeGenericType(funcType);
@@ -1307,7 +1309,7 @@ namespace ExpressionDebugger
             }
             else
             {
-                var name = methodName ?? "Main";
+                var name = methodName != null ? $"{InterfaceType.FullName}.{methodName}" : "Main";
                 if (type == LambdaType.PublicMethod || type == LambdaType.ExtensionMethod)
                 {
                     if (!isInternal)
