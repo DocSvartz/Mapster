@@ -173,6 +173,16 @@ namespace Mapster.Adapters
             Dictionary<LambdaExpression, Tuple<List<Expression>, Expression>>? conditions = null;
             foreach (var member in members)
             {
+               
+                if (arg.Settings.IgnoreNullValues == false)
+                {
+                    if (member.UseDestinationValue || member.Ignore.Condition != null) ;
+                    else
+                        continue;
+                }
+               
+               
+
                 var destMember = arg.MapType == MapType.MapToTarget || member.UseDestinationValue
                     ? member.DestinationMember.GetExpression(result)
                     : null;

@@ -640,6 +640,7 @@ namespace Mapster.Tests
         {
             var config = new TypeAdapterConfig();
             config.NewConfig<PaymentDTO771, PaymentDTO771>()
+                .IgnoreNullValues(true)
                 .IgnoreIf((src, dest) => src.CVV == "442", nameof(PaymentDTO771.CVV));
             config.NewConfig<TestRecordY, TestRecordY>()
                 .IgnoreIf((src, dest) => src.X == 42, dest => dest.Y);
