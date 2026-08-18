@@ -165,7 +165,7 @@ namespace Mapster.Tool
                         translator.VisitLambda(
                             expr,
                             ExpressionTranslator.LambdaType.PublicMethod,
-                            method.Name
+                            @interface.FullName +"."+ method.Name
                         );
                     }
                 }

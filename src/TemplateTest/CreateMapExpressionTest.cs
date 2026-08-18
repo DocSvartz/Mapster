@@ -1,7 +1,9 @@
 using ExpressionDebugger;
 using Mapster;
+using Mapster.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
+using System.Xml.Linq;
 
 namespace TemplateTest
 {
@@ -49,21 +51,67 @@ namespace TemplateTest
         [TestMethod]
         public void TestCreateProjectionExpression()
         {
-            TypeAdapterConfig.GlobalSettings.SelfContainedCodeGeneration = true;
-            var foo = default(Customer);
-            var def = new ExpressionDefinitions
-            {
-                IsStatic = true,
-                MethodName = "Map",
-                Namespace = "Benchmark",
-                TypeName = "CustomerMapper"
-            };
-            var code = foo.BuildAdapter()
-                .CreateProjectionExpression<CustomerDTO>()
-                .ToScript(def);
 
-            Assert.IsNotNull(code);
+            var config = new TypeAdapterConfig();
+
+            config.SelfContainedCodeGeneration = true;
+            var foo = default(Customer);
+
+            var definitions = new TypeDefinitions
+            {
+                Implements = new[] { typeof(IMyTypeMapper) },
+                Namespace = "Benchmark",
+                TypeName = "CustomerMapper",
+                IsInternal = true,
+            };
+
+            var translator = new ExpressionTranslator(definitions);
+
+            foreach (var method in typeof(IMyTypeMapper).GetMethods())
+            {
+                if (method.IsGenericMethod)
+                    continue;
+                if (method.ReturnType == typeof(void))
+                    continue;
+                var methodArgs = method.GetParameters();
+                if (methodArgs.Length < 1 || methodArgs.Length > 2)
+                    continue;
+                var tuple = new TypeTuple(methodArgs[0].ParameterType, method.ReturnType);
+                var expr = config.CreateMapExpression(
+                    tuple,
+                    methodArgs.Length == 1 ? MapType.Map : MapType.MapToTarget
+                );
+                translator.VisitLambdaInterface(
+                    expr,
+                    ExpressionTranslator.LambdaType.PublicMethod,
+                    typeof(IMyTypeMapper).FullName + "." + method.Name
+                );
+            }
+
+            var txt = translator.ToString();
         }
+    }
+
+
+    internal partial class CustomerMapper : IMyTypeMapper
+    {
+        AddressDTO TemplateTest.IMyTypeMapper.Map(Address p1)
+        {
+            return p1 == null ? null : new AddressDTO()
+            {
+                Id = p1.Id,
+                City = p1.City,
+                Country = p1.Country
+            };
+        }
+    }
+
+
+
+
+    internal interface IMyTypeMapper
+    {
+        AddressDTO Map(Address p1);
     }
 
     public class Address
@@ -74,7 +122,7 @@ namespace TemplateTest
         public string Country { get; set; }
     }
 
-    public class AddressDTO
+    internal class AddressDTO
     {
         public int Id { get; set; }
         public string City { get; set; }
@@ -92,7 +140,7 @@ namespace TemplateTest
         public ICollection<Address> WorkAddresses { get; set; }
     }
 
-    public class CustomerDTO
+    internal class CustomerDTO
     {
         public int Id { get; set; }
         public string Name { get; set; }
