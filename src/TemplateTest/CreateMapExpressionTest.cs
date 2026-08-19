@@ -75,6 +75,8 @@ namespace TemplateTest
         [TestMethod]
         public void TestRegressionMapperGenerationTranslation()
         {
+            var S = new MapsterToolGeneratedMapperAttribute(true);
+
             var config = new TypeAdapterConfig();
             config.SelfContainedCodeGeneration = true;
            
