@@ -138,9 +138,10 @@ namespace Mapster.Tool
                         var funcArgs = propArgs.GetGenericArguments();
                         var tuple = new TypeTuple(funcArgs[0], funcArgs[1]);
                         var expr = config.CreateMapExpression(tuple, MapType.Projection);
-                        translator.VisitLambda(
+                        translator.VisitLambdaForGenerateMappers(
                             expr,
                             ExpressionTranslator.LambdaType.PublicLambda,
+                            @interface,
                             prop.Name
                         );
                     }
@@ -162,9 +163,10 @@ namespace Mapster.Tool
                             tuple,
                             methodArgs.Length == 1 ? MapType.Map : MapType.MapToTarget
                         );
-                        translator.VisitLambda(
+                        translator.VisitLambdaForGenerateMappers(
                             expr,
                             ExpressionTranslator.LambdaType.PublicMethod,
+                            @interface,
                             method.Name
                         );
                     }
