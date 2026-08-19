@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Runtime.CompilerServices;
 using System.Xml.Linq;
 
 namespace TemplateTest
@@ -116,6 +117,7 @@ namespace TemplateTest
 
             var txt = translator.ToString();
 
+           
 
             IMyTypeMapper mapper = new CustomerMapper();
 
@@ -125,8 +127,7 @@ namespace TemplateTest
         }
     }
 
-
-
+    [MapsterToolMapperCreated]
     internal partial class CustomerMapper : IMyTypeMapper
     {
         internal AddressDTO Map(Address p1)
@@ -205,4 +206,4 @@ namespace TemplateTest
         public List<AddressDTO> WorkAddresses { get; set; }
         public string AddressCity { get; set; }
     }
-}
+} 

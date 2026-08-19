@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
 using System.Text;
 using CommandLine;
@@ -175,6 +176,9 @@ namespace Mapster.Tool
                     : translator.ToString();
                 WriteFile(code, path);
             }
+
+            WriteFile(GeneratedAttributeHelpers.CreateGenerateMapsterAttribute, 
+                GetOutput(opt.Output,null, "MapsterToolMapperCreatedAttribute"));
         }
 
         private static string GetImplName(string name)

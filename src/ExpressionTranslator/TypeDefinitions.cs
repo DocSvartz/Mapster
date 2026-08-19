@@ -12,6 +12,7 @@ namespace ExpressionDebugger
         public IEnumerable<Type>? Implements { get; set; }
         public bool PrintFullTypeName { get; set; }
         public bool IsRecordType { get; set; }
+        public IEnumerable<Attribute> Attributes { get; set; }
 
         /// <summary>
         /// Set to 2 to mark all properties as nullable

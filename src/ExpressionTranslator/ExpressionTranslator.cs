@@ -1943,6 +1943,8 @@ namespace ExpressionDebugger
                             WriteNextLine("using ", ns, ";");
                         }
 
+                        WriteNextLine("using ", GeneratedAttributeHelpers.NameSpace, ";");
+
                         WriteLine();
                     }
 
@@ -1968,6 +1970,8 @@ namespace ExpressionDebugger
                         WriteNextLine("namespace ", Definitions.Namespace);
                         Indent();
                     }
+
+                    WriteNextLine("[MapsterToolMapperCreated]");
 
                     var isInternal = Definitions.IsInternal;
                     if (!isInternal)
