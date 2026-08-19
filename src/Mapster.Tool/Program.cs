@@ -1,4 +1,9 @@
-﻿using System;
+﻿using CommandLine;
+using ExpressionDebugger;
+using ExpressionDebugger.Helpers.GeneratedAttributes;
+using Mapster.Models;
+using Mapster.Utils;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -6,10 +11,6 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.Loader;
 using System.Text;
-using CommandLine;
-using ExpressionDebugger;
-using Mapster.Models;
-using Mapster.Utils;
 
 namespace Mapster.Tool
 {
@@ -91,6 +92,8 @@ namespace Mapster.Tool
             config.SelfContainedCodeGeneration = true;
             config.Scan(assembly);
 
+            var generatedAtrr = new[] { new MapsterToolGeneratedMapperAttribute() };
+
             foreach (var type in assembly.GetLoadableTypes())
             {
                 if (!type.IsInterface)
@@ -109,6 +112,7 @@ namespace Mapster.Tool
                     TypeName = attr.Name ?? GetImplName(GetCodeFriendlyTypeName(type)),
                     IsInternal = attr.IsInternal,
                     PrintFullTypeName = opt.PrintFullTypeName,
+                    GeneratedAttributes = new(generatedAtrr)
                 };
 
                 var path = GetOutput(opt.Output, segments, definitions.TypeName);
@@ -176,6 +180,11 @@ namespace Mapster.Tool
                     ? $"#nullable enable{Environment.NewLine}{translator}"
                     : translator.ToString();
                 WriteFile(code, path);
+            }
+
+            foreach (var item in generatedAtrr)
+            {
+                WriteFile(item.Declaration, GetOutput(opt.Output, null, item.FileName));
             }
         }
 

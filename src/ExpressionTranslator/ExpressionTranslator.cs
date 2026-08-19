@@ -1940,8 +1940,15 @@ namespace ExpressionDebugger
                             WriteNextLine("using ", ns, ";");
                         }
 
-                        WriteLine();
                     }
+
+                    foreach (var ns in Definitions.GeneratedAttributes.Select(x => x.NameSpace).Distinct())
+                    {
+                        WriteNextLine("using ", ns, ";");
+                    }
+
+                    if(_usings != null || Definitions.GeneratedAttributes.Count != 0)
+                        WriteLine();
 
                     // NOTE: type alias cannot solve all name conflicted case, user should use PrintFullTypeName
                     // keep logic here for compatibility
@@ -1964,6 +1971,11 @@ namespace ExpressionDebugger
                     {
                         WriteNextLine("namespace ", Definitions.Namespace);
                         Indent();
+                    }
+
+                    foreach (var gAttr in Definitions.GeneratedAttributes)
+                    {
+                        WriteNextLine(gAttr.Implimentation);
                     }
 
                     var isInternal = Definitions.IsInternal;
