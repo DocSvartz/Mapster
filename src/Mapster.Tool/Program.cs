@@ -112,8 +112,11 @@ namespace Mapster.Tool
                     TypeName = attr.Name ?? GetImplName(GetCodeFriendlyTypeName(type)),
                     IsInternal = attr.IsInternal,
                     PrintFullTypeName = opt.PrintFullTypeName,
-                    GeneratedAttributes = new(generatedAtrr)
+                    
                 };
+
+                if (opt.CreateHelpers)
+                    definitions.GeneratedAttributes = new(generatedAtrr);
 
                 var path = GetOutput(opt.Output, segments, definitions.TypeName);
                 if (opt.SkipExistingFiles && File.Exists(path))
@@ -182,9 +185,12 @@ namespace Mapster.Tool
                 WriteFile(code, path);
             }
 
-            foreach (var item in generatedAtrr)
+            if (opt.CreateHelpers)
             {
-                WriteFile(item.Declaration, GetOutput(opt.Output, null, item.FileName));
+                foreach (var item in generatedAtrr)
+                {
+                    WriteFile(item.Declaration, GetOutput(opt.Output, null, item.FileName));
+                }
             }
         }
 
