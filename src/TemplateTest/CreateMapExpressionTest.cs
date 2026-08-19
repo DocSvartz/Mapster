@@ -114,6 +114,9 @@ namespace TemplateTest
                 );
             }
 
+            GeneratedAttributeHelpers.WriteFile(
+                GeneratedAttributeHelpers.CreateGenerateMapsterAttribute,
+                "D:\\1.txt");
 
             var txt = translator.ToString();
 
