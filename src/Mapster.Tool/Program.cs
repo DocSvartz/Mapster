@@ -1,5 +1,6 @@
 ﻿using CommandLine;
 using ExpressionDebugger;
+using ExpressionDebugger.Helpers;
 using ExpressionDebugger.Helpers.GeneratedAttributes;
 using Mapster.Models;
 using Mapster.Utils;
@@ -118,6 +119,8 @@ namespace Mapster.Tool
                 if (opt.CreateHelpers)
                     definitions.GeneratedAttributes = new(generatedAtrr);
 
+                bool? _isForceInternal = definitions.IsInternal ? true : null;
+
                 var path = GetOutput(opt.Output, segments, definitions.TypeName);
                 if (opt.SkipExistingFiles && File.Exists(path))
                 {
@@ -131,7 +134,9 @@ namespace Mapster.Tool
                 var interfaces = type.GetAllInterfaces();
                 foreach (var @interface in interfaces)
                 {
-                    foreach (var prop in @interface.GetProperties())
+                    foreach (var prop in @interface.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+                                .Where(x => x.IsGetterPublicOrInternal())
+                            )
                     {
                         if (!prop.PropertyType.IsGenericType)
                             continue;
@@ -149,14 +154,17 @@ namespace Mapster.Tool
                             expr,
                             ExpressionTranslator.LambdaType.PublicLambda,
                             @interface,
-                            prop.Name
+                            prop.Name,
+                            _isForceInternal ?? (!prop.GetMethod?.IsPublic ?? false)
                         );
                     }
                 }
 
                 foreach (var @interface in interfaces)
                 {
-                    foreach (var method in @interface.GetMethods())
+                    foreach (var method in @interface.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+                                .Where(x => x.IsPublicOrInternal())
+                            )
                     {
                         if (method.IsGenericMethod)
                             continue;
@@ -174,7 +182,8 @@ namespace Mapster.Tool
                             expr,
                             ExpressionTranslator.LambdaType.PublicMethod,
                             @interface,
-                            method.Name
+                            method.Name,
+                            _isForceInternal ?? !method.IsPublic
                         );
                     }
                 }
