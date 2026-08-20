@@ -1,11 +1,11 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 
 namespace ExpressionDebugger.Helpers.GeneratedAttributes
 {
     public class MapsterToolGeneratedMapperAttribute : GeneratedBase, IGeneratedAttribute
     {
         private readonly StringBuilder _Declaration;
-        private readonly bool _isRandomNameSpace;
         private readonly string _NameSpace;
 
         public string NameSpace => _NameSpace;
@@ -16,15 +16,13 @@ namespace ExpressionDebugger.Helpers.GeneratedAttributes
 
         public string FileName => "MapsterToolGeneratedMapperAttribute";
 
-       public MapsterToolGeneratedMapperAttribute(bool isRandomNameSpace = false)
+       public MapsterToolGeneratedMapperAttribute(string extendedNameSpace)
        {
-            _isRandomNameSpace = isRandomNameSpace;
+            if (String.IsNullOrEmpty(extendedNameSpace))
+                throw new ArgumentNullException("Extended namespace not specified or is null/empty string");
 
-            if (_isRandomNameSpace)
-                _NameSpace = $"Mapster.Generated.Attributes.{RandomNamespaceGenerator.Generate(1,1)}";
-            else
-                _NameSpace = "Mapster.Generated.Attributes";
-
+            _NameSpace = $"Mapster.Generated.Attributes.{extendedNameSpace}";
+            
             _Declaration = new StringBuilder();
 
             _Declaration.Append("using System;\r\n\r\n");

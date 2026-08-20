@@ -93,7 +93,11 @@ namespace Mapster.Tool
             config.SelfContainedCodeGeneration = true;
             config.Scan(assembly);
 
-            var generatedAtrr = new[] { new MapsterToolGeneratedMapperAttribute() };
+            var generatedAtrr = new List<IGeneratedAttribute>();
+
+            if (!String.IsNullOrEmpty(opt.CreateHelpers))
+                generatedAtrr.Add(new MapsterToolGeneratedMapperAttribute(opt.CreateHelpers));
+            
 
             foreach (var type in assembly.GetLoadableTypes())
             {
@@ -113,11 +117,8 @@ namespace Mapster.Tool
                     TypeName = attr.Name ?? GetImplName(GetCodeFriendlyTypeName(type)),
                     IsInternal = attr.IsInternal,
                     PrintFullTypeName = opt.PrintFullTypeName,
-                    
+                    GeneratedAttributes = new(generatedAtrr)
                 };
-
-                if (opt.CreateHelpers)
-                    definitions.GeneratedAttributes = new(generatedAtrr);
 
                 bool? _isForceInternal = definitions.IsInternal ? true : null;
 
@@ -194,12 +195,10 @@ namespace Mapster.Tool
                 WriteFile(code, path);
             }
 
-            if (opt.CreateHelpers)
+            
+            foreach (var item in generatedAtrr)
             {
-                foreach (var item in generatedAtrr)
-                {
-                    WriteFile(item.Declaration, GetOutput(opt.Output, null, item.FileName));
-                }
+                WriteFile(item.Declaration, GetOutput(opt.Output, null, item.FileName));
             }
         }
 
