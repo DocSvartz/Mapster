@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Net.Security;
 using System.Reflection;
 
 namespace TemplateTest
@@ -112,7 +113,8 @@ namespace TemplateTest
                     expr,
                     ExpressionTranslator.LambdaType.PublicMethod,
                     typeof(IMyTypeMapper),
-                    method.Name
+                    method.Name,
+                    !method.IsPublic
                 );
             }
 
@@ -136,7 +138,8 @@ namespace TemplateTest
                     expr,
                     ExpressionTranslator.LambdaType.PublicLambda,
                     typeof(IMyTypeMapper),
-                    prop.Name
+                    prop.Name,
+                    !prop.GetMethod?.IsPublic ?? false
                 );
             }
                       
@@ -156,6 +159,8 @@ namespace TemplateTest
         }
 
     }
+
+   
 
     public partial class CustomerMapper : IMyTypeMapper
     {
@@ -231,7 +236,7 @@ namespace TemplateTest
         internal Expression<Func<AddressDTO, Address>> Projection { get; }
     }
 
-    internal class Address
+    public class Address
     {
         public int Id { get; set; }
         public string Street { get; set; }
