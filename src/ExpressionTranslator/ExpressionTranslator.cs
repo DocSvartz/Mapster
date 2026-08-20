@@ -11,6 +11,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Xml.Linq;
 
 namespace ExpressionDebugger
 {
@@ -1272,6 +1273,13 @@ namespace ExpressionDebugger
            bool isInternal = false)
         {
             VisitLambda(node, type, methodName, isInternal);
+
+            if (!isInternal)
+                isInternal = node.ReturnType.GetTypeInfo().IsNotPublic ||
+                             node.Parameters.Any(it => it.Type.GetTypeInfo().IsNotPublic);
+
+            if(!isInternal)
+                return node; // skip create interface implimentation if public only
 
             if (type == LambdaType.PrivateLambda || type == LambdaType.PublicLambda)
             {

@@ -99,8 +99,6 @@ namespace TemplateTest
             var code = translator.ToString();
 
             Assert.IsTrue(code.Contains("public partial class CustomerMapper")); // mapper class is public
-
-            Assert.IsTrue(code.Contains("Expression<Func<AddressDTO, Address>> TemplateTest.IMyTypeMapper.Projection"));
             Assert.IsTrue(code.Contains("AddressDTO TemplateTest.IMyTypeMapper.Map"));
             Assert.IsTrue(code.Contains("[MapsterToolGeneratedMapper]"));
 
