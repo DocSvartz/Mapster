@@ -78,7 +78,7 @@ namespace TemplateTest
         [TestMethod]
         public void TestRegressionMapperGenerationTranslation()
         {
-            var S = new MapsterToolGeneratedMapperAttribute("Test");
+            var S = new MapsterToolGeneratedMapperAttribute();
 
             var config = new TypeAdapterConfig();
             config.SelfContainedCodeGeneration = true;
@@ -89,7 +89,7 @@ namespace TemplateTest
                 Namespace = "Benchmark",
                 TypeName = "CustomerMapper",
                 IsInternal = false, 
-                GeneratedAttributes = new(new[] {new MapsterToolGeneratedMapperAttribute("Test") })
+                GeneratedAttributes = new(new[] {new MapsterToolGeneratedMapperAttribute() })
             };
 
             var translator = new ExpressionTranslator(definitions);
@@ -127,7 +127,7 @@ namespace TemplateTest
                 Namespace = "Benchmark",
                 TypeName = "CustomerMapper",
                 IsInternal = true, // force create internal mapper
-                GeneratedAttributes = new(new[] { new MapsterToolGeneratedMapperAttribute("Test") })
+                GeneratedAttributes = new(new[] { new MapsterToolGeneratedMapperAttribute() })
             };
 
             var translator = new ExpressionTranslator(definitions);

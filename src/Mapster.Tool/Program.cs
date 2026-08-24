@@ -95,8 +95,8 @@ namespace Mapster.Tool
 
             var generatedAtrr = new List<IGeneratedAttribute>();
 
-            if (!String.IsNullOrEmpty(opt.CreateHelpers))
-                generatedAtrr.Add(new MapsterToolGeneratedMapperAttribute(opt.CreateHelpers));
+            if (opt.CreateHelpers)
+                generatedAtrr.Add(new MapsterToolGeneratedMapperAttribute());
             
 
             foreach (var type in assembly.GetLoadableTypes())
@@ -196,7 +196,7 @@ namespace Mapster.Tool
             }
 
             
-            foreach (var item in generatedAtrr)
+            foreach (var item in generatedAtrr.Where(x=>!x.IsImplimentationOnly))
             {
                 WriteFile(item.Declaration, GetOutput(opt.Output, null, item.FileName));
             }

@@ -1,11 +1,16 @@
 ﻿namespace ExpressionDebugger.Helpers.GeneratedAttributes
 {
-    public interface IGeneratedAttribute
+    public interface IGeneratedAttribute : IGeneratedImplimentationOnly
     {
-        public string NameSpace { get;}
-        public string Declaration { get;}
+        public string? Declaration { get;}
+        public string? FileName { get;}
+    }
+
+    public interface IGeneratedImplimentationOnly
+    {
+        public string NameSpace { get; }
         public string Implimentation { get; }
-        public string FileName { get;}
+        public bool IsImplimentationOnly { get; }
 
     }
 }
