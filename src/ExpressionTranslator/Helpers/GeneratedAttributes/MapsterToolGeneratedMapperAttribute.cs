@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using static ExpressionDebugger.Helpers.RandomNamespaceGenerator;
 
 namespace ExpressionDebugger.Helpers.GeneratedAttributes
 {
@@ -20,9 +21,12 @@ namespace ExpressionDebugger.Helpers.GeneratedAttributes
        {
             if (String.IsNullOrEmpty(extendedNameSpace))
                 throw new ArgumentNullException("Extended namespace not specified or is null/empty string");
-
-            _NameSpace = $"Mapster.Generated.Attributes.{extendedNameSpace}";
             
+            if(CheckNameSpace.IsMatch(extendedNameSpace))
+                _NameSpace = $"Mapster.Generated.Attributes.{extendedNameSpace}";
+            else
+                _NameSpace = $"Mapster.Generated.Attributes.{Generate(extendedNameSpace,1,1)}";
+
             _Declaration = new StringBuilder();
 
             _Declaration.Append("using System;\r\n\r\n");
