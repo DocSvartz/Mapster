@@ -95,8 +95,10 @@ namespace Mapster.Tool
 
             var generatedAtrr = new List<IGeneratedAttribute>();
 
-            if (!String.IsNullOrEmpty(opt.CreateHelpers))
-                generatedAtrr.Add(new MapsterToolGeneratedMapperAttribute(opt.CreateHelpers));
+            if (opt.CreateHelpers)
+                generatedAtrr.Add(new MapsterToolGeneratedMapperAttribute(
+                    opt.HelpersNamespace ?? Path.GetFileNameWithoutExtension(opt.Assembly)
+                    ));
             
 
             foreach (var type in assembly.GetLoadableTypes())
