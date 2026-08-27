@@ -276,7 +276,7 @@ namespace Mapster.Adapters
                 assignActions.AddRange(beforeMappings);
 
                 //result.prop = adapt(_source.prop);
-                var mapping = CreateBlockExpression(transformedSource, result, arg);
+                var mapping = CreateBlockExpression(transformedSource, result, destination, arg);
                 var settingActions = new List<Expression> {mapping};
 
                 //after(_source, result, destination);
@@ -398,6 +398,18 @@ namespace Mapster.Adapters
             return exp;
         }
 
+        /// <summary>
+        /// BlockExpression for MapToTarget cases
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="result"></param>
+        /// <param name="destination"></param>
+        /// <param name="arg"></param>
+        /// <returns></returns>
+        protected virtual Expression CreateBlockExpression(Expression source, Expression result, Expression? destination, CompileArgument arg)
+        {
+            return CreateBlockExpression(source,result,arg);
+        }
         protected abstract Expression CreateBlockExpression(Expression source, Expression destination, CompileArgument arg);
         protected abstract Expression? CreateInlineExpression(Expression source, CompileArgument arg, bool IsRequiredOnly = false);
 
