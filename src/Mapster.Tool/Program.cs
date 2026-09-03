@@ -10,12 +10,14 @@ using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
 using System.Text;
 
+[assembly:InternalsVisibleTo("Mapster.Tool.Tests, PublicKey=0024000004800000940000000602000000240000525341310004000001000100bd523e79e4decc052a3501363d71ecc123b9ce4bd5a8c949e81bc482d8b6822366ed6aead5ebace01aae3ade49e116fde094af03c34cdbc2ebcb89346ca510fac6246b240b71968ab7f9a24de44d680dc93307f9e8a2b00bec7c523db9696679b56725d622cfb01f4eb2604333a0a0e9f580cd6f5c3d5034b3e66f52d818e9a5")]
 namespace Mapster.Tool
 {
-    class Program
+    internal class Program
     {
         static void Main(string[] args)
         {
@@ -66,7 +68,7 @@ namespace Mapster.Tool
             File.WriteAllText(path, code);
         }
 
-        private static void GenerateMappers(MapperOptions opt)
+        internal static void GenerateMappers(MapperOptions opt)
         {
             // We want loaded assemblies that we're scanning to be isolated from our currently
             // running assembly load context in order to avoid type/framework collisions between Mapster assemblies
