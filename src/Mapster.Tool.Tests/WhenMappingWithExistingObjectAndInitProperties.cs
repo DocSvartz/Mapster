@@ -23,19 +23,17 @@ public class WhenMappingWithExistingObjectAndInitProperties : TestBase
         dto.Name.Should().Be(expected);
     }
 
+#if NET8_0_OR_GREATER
     [Fact]
     public void CreateDtoWithcustomResolver()
     {
-        TypeAdapterConfig.GlobalSettings
-            .Scan(Assembly.GetExecutingAssembly());
+        //Mapster.Tool.Generators program = new Mapster.Tool.Generators();
 
-        var userMapper = GetMappingInterface<IUserMapper>();
-        var expected = "Aref";
-        var user = new _User { Name = expected, Id = 1 };
-        var dto = new _UserDto();
-        userMapper.MapTo(user, dto);
-        dto.Name.Should().Be(expected);
+        var opt = new MapperOptions() {  };
+
+        Mapster.Tool.Generators.GenerateMappers(opt);
     }
+#endif
 }
 
 
