@@ -10,16 +10,22 @@ using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
 using System.Text;
 
-[assembly:InternalsVisibleTo("Mapster.Tool.Tests, PublicKey=0024000004800000940000000602000000240000525341310004000001000100bd523e79e4decc052a3501363d71ecc123b9ce4bd5a8c949e81bc482d8b6822366ed6aead5ebace01aae3ade49e116fde094af03c34cdbc2ebcb89346ca510fac6246b240b71968ab7f9a24de44d680dc93307f9e8a2b00bec7c523db9696679b56725d622cfb01f4eb2604333a0a0e9f580cd6f5c3d5034b3e66f52d818e9a5")]
 namespace Mapster.Tool
 {
-    internal static class Generators
+    class Program
     {
-        
+        static void Main(string[] args)
+        {
+            Parser.Default
+                .ParseArguments<MapperOptions, ModelOptions, ExtensionOptions>(args)
+                .WithParsed<MapperOptions>(GenerateMappers)
+                .WithParsed<ModelOptions>(GenerateModels)
+                .WithParsed<ExtensionOptions>(GenerateExtensions);
+        }
+
         private static string? GetSegments(string? ns, string? baseNs)
         {
             if (ns == null || string.IsNullOrEmpty(baseNs) || baseNs == ns)
@@ -60,7 +66,7 @@ namespace Mapster.Tool
             File.WriteAllText(path, code);
         }
 
-        internal static void GenerateMappers(MapperOptions opt, List<string>? DebugMappers = null)
+        private static void GenerateMappers(MapperOptions opt)
         {
             // We want loaded assemblies that we're scanning to be isolated from our currently
             // running assembly load context in order to avoid type/framework collisions between Mapster assemblies
@@ -188,11 +194,7 @@ namespace Mapster.Tool
                 var code = opt.GenerateNullableDirective
                     ? $"#nullable enable{Environment.NewLine}{translator}"
                     : translator.ToString();
-               
-                if(DebugMappers != null)
-                    DebugMappers.Add(code);
-                else
-                    WriteFile(code, path);
+                WriteFile(code, path);
             }
 
             
@@ -209,7 +211,7 @@ namespace Mapster.Tool
             return name + "Impl";
         }
 
-        internal static void GenerateModels(ModelOptions opt, List<string>? DebugModels = null)
+        private static void GenerateModels(ModelOptions opt)
         {
             var assembly = DeferredDependencyAssemblyLoadContext.LoadAssemblyFrom(
                 assemblyPath: Path.GetFullPath(opt.Assembly),
@@ -243,7 +245,7 @@ namespace Mapster.Tool
                 Console.WriteLine($"Processing: {type.FullName}");
                 foreach (var builder in builders)
                 {
-                    CreateModel(opt, type, builder, DebugModels);
+                    CreateModel(opt, type, builder);
                 }
             }
         }
@@ -259,7 +261,7 @@ namespace Mapster.Tool
                 : null;
         }
 
-        private static void CreateModel(ModelOptions opt, Type type, AdaptAttributeBuilder builder, List<string>? DebugModels)
+        private static void CreateModel(ModelOptions opt, Type type, AdaptAttributeBuilder builder)
         {
             var segments = GetSegments(type.Namespace, opt.BaseNamespace);
             var attr = builder.Attribute;
@@ -369,11 +371,7 @@ namespace Mapster.Tool
             var code = opt.GenerateNullableDirective
                 ? $"#nullable enable{Environment.NewLine}{translator}"
                 : translator.ToString();
-
-            if (DebugModels != null)
-                DebugModels.Add(code);
-            else
-                WriteFile(code, path);
+            WriteFile(code, path);
 
             static Type getPropType(MemberInfo mem)
             {
@@ -491,6 +489,7 @@ namespace Mapster.Tool
                         new InvokerModel
                         {
                             DestinationMemberName = setting.TargetPropertyName ?? name,
+                            SourceMemberName = name,
                             Invoker = setting.MapFunc,
                         }
                     );
@@ -502,7 +501,7 @@ namespace Mapster.Tool
             }
         }
 
-        internal static void GenerateExtensions(ExtensionOptions opt, List<string>? DebugExtentions = null)
+        private static void GenerateExtensions(ExtensionOptions opt)
         {
             var assembly = DeferredDependencyAssemblyLoadContext.LoadAssemblyFrom(
                 assemblyPath: Path.GetFullPath(opt.Assembly),
@@ -643,11 +642,7 @@ namespace Mapster.Tool
                 var code = opt.GenerateNullableDirective
                     ? $"#nullable enable{Environment.NewLine}{translator}"
                     : translator.ToString();
-                
-                if(DebugExtentions != null)
-                    DebugExtentions.Add(code);
-                else
-                    WriteFile(code, path);
+                WriteFile(code, path);
             }
         }
 
