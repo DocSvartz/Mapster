@@ -23,17 +23,21 @@ public class WhenMappingWithExistingObjectAndInitProperties : TestBase
         dto.Name.Should().Be(expected);
     }
 
-#if NET8_0_OR_GREATER
+    /// <summary>
+    /// https://github.com/MapsterMapper/Mapster/issues/1017
+    /// </summary>
     [Fact]
     public void CreateDtoWithcustomResolver()
     {
-        //Mapster.Tool.Generators program = new Mapster.Tool.Generators();
+        var mappers = new List<string>();
 
-        var opt = new MapperOptions() {  };
+        Generators.GenerateExtensions(ConfigHelpers.optExtentions, mappers);
 
-        Mapster.Tool.Generators.GenerateMappers(opt);
+        var result = mappers.Where(x => x.Contains("User1017Dto AdaptToDto(this User1017")).FirstOrDefault();
+
+        result.Should().NotBeNullOrEmpty();
+        result.Contains("FullName = string.Format(\"{0} {1}\", p1.FirstName, p1.LastName)").Should().BeTrue();
     }
-#endif
 }
 
 
@@ -45,6 +49,15 @@ public class User1017
     public string LastName { get; set; }
     public int Age { get; set; }
 }
+
+public partial class User1017Dto
+{
+    public int Id { get; set; }
+    public string Email { get; set; }
+    public string FullName { get; set; }
+    public int Age { get; set; }
+}
+
 
 public class UserCodeGenConfig : ICodeGenerationRegister
 {
