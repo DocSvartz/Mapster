@@ -232,7 +232,9 @@ namespace Mapster.Adapters
 
             if (destination != null && (UseTargetValue || arg.UseDestinationValue) && arg.GetConstructUsing()?.Parameters.Count != 2)
             {
-                if (destination.CanBeNull())
+                if (set.Type.IsRecordType())
+                    set = set;
+                else if (destination.CanBeNull())
                 {
                     //dest ?? new TDest();
                     set = Expression.Coalesce(destination, set);

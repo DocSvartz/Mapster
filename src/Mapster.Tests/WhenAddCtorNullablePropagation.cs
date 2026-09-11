@@ -15,6 +15,11 @@ namespace Mapster.Tests
         [TestMethod]
         public void NullablePropagationFromCtorWorking()
         {
+
+            TypeAdapterConfig<OrderCodEntity898, OrderCodEntity898>
+                .NewConfig()
+                .DirectAssignmentForSameType(true);
+
             var source = new List<OrderEntity898>
             {
                 new() { Id = 1, Cod = new OrderCodEntity898 { Value = 42L } },
