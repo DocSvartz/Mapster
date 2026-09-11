@@ -3,7 +3,7 @@ using System.Linq.Expressions;
 
 namespace Mapster.Models
 {
-    internal class MemberMapping
+    public class MemberMapping
     {
         public Expression Getter;
         public List<GetterLine> GetterLines { get; } = new List<GetterLine>();
@@ -22,9 +22,9 @@ namespace Mapster.Models
         }
     }
 
-    internal class GetterLine
+    public class GetterLine
     {
-        public Expression Source {  get; set; }
+        public Expression? Source {  get; set; }
         public Expression? Condition { get; set; }
         public Expression? NullPropagationChecker { get; set; }
         public TypeAdapterSettings? OverrideSettings;

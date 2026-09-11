@@ -33,12 +33,14 @@ namespace Mapster.Adapters
                 if (!destinationMember.ShouldMapMember(arg, MemberSide.Destination))
                     continue;
 
+                var mapping = new MemberMapping();
+
                 var resolvers = arg.Settings.ValueAccessingStrategies.AsEnumerable();
                 if (arg.Settings.IgnoreNonMapped == true)
                     resolvers = resolvers.Where(ValueAccessingStrategy.CustomResolvers.Contains);
                 var resolver = (from fn in resolvers
                         from src in sources
-                        select fn(src, destinationMember, arg))
+                        select fn(src, destinationMember, mapping, arg))
                     .FirstOrDefault(result => result != null);
                 var getter = resolver?.Exp;
                 var overideSettings = resolver?.Settings;
@@ -72,7 +74,7 @@ namespace Mapster.Adapters
 
                     getter = (from fn in resolvers
                               from src in sources
-                              select fn(src, destinationMember, arg))
+                              select fn(src, destinationMember, mapping, arg))
                     .FirstOrDefault(result => result != null)?.Exp;
                 }
 
@@ -82,7 +84,7 @@ namespace Mapster.Adapters
 
                     var checkgetter = (from fn in resolvers.Where(ValueAccessingStrategy.CustomResolvers.Contains)
                                        from src in sources
-                                       select fn(src, destinationMember, arg))
+                                       select fn(src, destinationMember, mapping, arg))
                                        .FirstOrDefault(result => result != null);
 
                     if (checkgetter == null)

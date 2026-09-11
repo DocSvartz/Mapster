@@ -5,11 +5,11 @@ using System.Linq.Expressions;
 using System.Reflection;
 using Mapster.Models;
 using Mapster.Utils;
-using ValueAccess = System.Func<Mapster.ResolverSourceInput, Mapster.Models.IMemberModel, Mapster.CompileArgument, Mapster.ResolverResult?>;
+using ValueAccess = System.Func<Mapster.ResolverSourceInput, Mapster.Models.IMemberModel, Mapster.Models.MemberMapping, Mapster.CompileArgument, Mapster.ResolverResult?>;
 
 namespace Mapster
 {
-    public static class ValueAccessingStrategy
+    internal static class ValueAccessingStrategy
     {
         public static readonly ValueAccess CustomResolver = CustomResolverFn;
         public static readonly ValueAccess PropertyOrField = PropertyOrFieldFn;
@@ -24,7 +24,7 @@ namespace Mapster
             CustomResolverForDictionary,
         };
 
-        private static ResolverResult? CustomResolverFn(ResolverSourceInput srcInput, IMemberModel destinationMember, CompileArgument arg)
+        private static ResolverResult? CustomResolverFn(ResolverSourceInput srcInput, IMemberModel destinationMember, MemberMapping memberMapping, CompileArgument arg)
         {
             var source = srcInput.Src;
             var config = source.Type == arg.SourceType ? arg.Settings : arg.Context.Config.GetMergedSettings(new TypeTuple(source.Type, arg.DestinationType),arg.MapType);
@@ -46,6 +46,9 @@ namespace Mapster
 
                 var invoke = resolver.GetInvokingExpression(source, arg.MapType, customSettings != null);
                 var condition = resolver.GetConditionExpression(source, arg.MapType);
+
+                memberMapping.GetterLines.Add(new() { Source = invoke, Condition = condition, OverrideSettings = customSettings });
+
                 if (condition == null)
                 {
                     getter = invoke;
@@ -76,7 +79,7 @@ namespace Mapster
             return new ResolverResult(getter,(OverrideTypesSettings?)customSettings);
         }
 
-        private static ResolverResult? PropertyOrFieldFn(ResolverSourceInput srcInput, IMemberModel destinationMember, CompileArgument arg)
+        private static ResolverResult? PropertyOrFieldFn(ResolverSourceInput srcInput, IMemberModel destinationMember, MemberMapping memberMapping, CompileArgument arg)
         {
             var source = srcInput.Src;
             var members = source.Type.GetFieldsAndProperties(true);
@@ -95,7 +98,7 @@ namespace Mapster
 
         }
 
-        private static ResolverResult? GetMethodFn(ResolverSourceInput srcInput, IMemberModel destinationMember, CompileArgument arg)
+        private static ResolverResult? GetMethodFn(ResolverSourceInput srcInput, IMemberModel destinationMember, MemberMapping memberMapping, CompileArgument arg)
         {
             var source = srcInput.Src;
             if (arg.MapType == MapType.Projection)
@@ -110,7 +113,7 @@ namespace Mapster
             return new ResolverResult( Expression.Call(source, getMethod),null);
         }
 
-        private static ResolverResult? FlattenMemberFn(ResolverSourceInput srcInput, IMemberModel destinationMember, CompileArgument arg)
+        private static ResolverResult? FlattenMemberFn(ResolverSourceInput srcInput, IMemberModel destinationMember, MemberMapping memberMapping, CompileArgument arg)
         {
             var source = srcInput.Src;
             var strategy = arg.Settings.NameMatchingStrategy;
@@ -196,7 +199,7 @@ namespace Mapster
             }
         }
 
-        private static ResolverResult? DictionaryFn(ResolverSourceInput srcInput, IMemberModel destinationMember, CompileArgument arg)
+        private static ResolverResult? DictionaryFn(ResolverSourceInput srcInput, IMemberModel destinationMember, MemberMapping memberMapping, CompileArgument arg)
         {
             var source = srcInput.Src;
             var dictType = source.Type.GetDictionaryType();
@@ -225,7 +228,7 @@ namespace Mapster
             }
         }
 
-        private static ResolverResult? CustomResolverForDictionaryFn(ResolverSourceInput srcInput, IMemberModel destinationMember, CompileArgument arg)
+        private static ResolverResult? CustomResolverForDictionaryFn(ResolverSourceInput srcInput, IMemberModel destinationMember, MemberMapping memberMapping, CompileArgument arg)
         {
             var source = srcInput.Src;
             var config = arg.Settings;
