@@ -6,6 +6,7 @@ namespace Mapster.Models
     internal class MemberMapping
     {
         public Expression Getter;
+        public List<GetterLine> GetterLines { get; } = new List<GetterLine>();
         public IMemberModelEx DestinationMember;
         public IgnoreDictionary.IgnoreItem Ignore;
         public List<InvokerModel> NextResolvers;
@@ -19,5 +20,13 @@ namespace Mapster.Models
         {
             return NextResolvers.Count > 0 || NextIgnore.Count > 0;
         }
+    }
+
+    internal class GetterLine
+    {
+        public Expression Source {  get; set; }
+        public Expression? Condition { get; set; }
+        public Expression? NullPropagationChecker { get; set; }
+        public TypeAdapterSettings? OverrideSettings;
     }
 }
