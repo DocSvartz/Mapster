@@ -8,6 +8,7 @@ namespace Mapster.Models
         public Expression Getter;
         public List<GetterLine> GetterLines { get; } = new List<GetterLine>();
         public IMemberModelEx DestinationMember;
+        public Expression? RestoreDestinationMemberExp;
         public IgnoreDictionary.IgnoreItem Ignore;
         public List<InvokerModel> NextResolvers;
         public IgnoreDictionary NextIgnore;
@@ -24,9 +25,19 @@ namespace Mapster.Models
 
     public class GetterLine
     {
-        public Expression? Source {  get; set; }
+        public GetterLine(Expression source, Expression? getter, TypeAdapterSettings? overrideSettings)
+        {
+            Source = source;
+            Getter = getter;
+            OverrideSettings = overrideSettings;
+        }
+
+        public Expression Source {  get; init; }
+        public Expression? Getter {  get; init; }
+        public TypeAdapterSettings? OverrideSettings { get; init; }
+        
         public Expression? Condition { get; set; }
         public Expression? NullPropagationChecker { get; set; }
-        public TypeAdapterSettings? OverrideSettings;
+        
     }
 }

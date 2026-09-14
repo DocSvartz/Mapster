@@ -33,25 +33,20 @@ namespace Mapster.Adapters
                 if (!destinationMember.ShouldMapMember(arg, MemberSide.Destination))
                     continue;
 
-                var mapping = new MemberMapping();
+                var propertyModel = new MemberMapping();
 
                 var resolvers = arg.Settings.ValueAccessingStrategies.AsEnumerable();
                 if (arg.Settings.IgnoreNonMapped == true)
                     resolvers = resolvers.Where(ValueAccessingStrategy.CustomResolvers.Contains);
                 var resolver = (from fn in resolvers
                         from src in sources
-                        select fn(src, destinationMember, mapping, arg))
+                        select fn(src, destinationMember, propertyModel, arg))
                     .FirstOrDefault(result => result != null);
                 var getter = resolver?.Exp;
                 var overideSettings = resolver?.Settings;
 
                 if (ProcessIgnores(arg, destinationMember,out var ignore, resolver) && !ctorMapping)
                     continue;
-
-                // ReadyToCleanUp
-                // source in overideSettings is not source in this context 
-                //  if (overideSettings != null && getter != null)
-                //  getter = ReplaceOvverideExpressionParam.Replace(getter, source);
 
                 if (arg.MapType == MapType.Projection && getter != null)
                 {
@@ -74,7 +69,7 @@ namespace Mapster.Adapters
 
                     getter = (from fn in resolvers
                               from src in sources
-                              select fn(src, destinationMember, mapping, arg))
+                              select fn(src, destinationMember, propertyModel, arg))
                     .FirstOrDefault(result => result != null)?.Exp;
                 }
 
@@ -84,7 +79,7 @@ namespace Mapster.Adapters
 
                     var checkgetter = (from fn in resolvers.Where(ValueAccessingStrategy.CustomResolvers.Contains)
                                        from src in sources
-                                       select fn(src, destinationMember, mapping, arg))
+                                       select fn(src, destinationMember, propertyModel, arg))
                                        .FirstOrDefault(result => result != null);
 
                     if (checkgetter == null)
@@ -111,17 +106,24 @@ namespace Mapster.Adapters
                 var nextResolvers = arg.Settings.Resolvers.Next(arg.Settings.Ignore, (ParameterExpression)source, destinationMember.Name)
                     .ToList();
 
-                var propertyModel = new MemberMapping
-                {
-                    DestinationMember = destinationMember,
-                    Ignore = ignore,
-                    NextResolvers = nextResolvers,
-                    NextIgnore = nextIgnore,
-                    Source = (ParameterExpression)source,
-                    Destination = (ParameterExpression?)destination,
-                    UseDestinationValue = IsCanUsingDestinationValue(arg, destinationMember),
-                    OverrideSettings = overideSettings
-                };
+                propertyModel
+                    .DestinationMember = destinationMember;
+                propertyModel
+                    .Ignore = ignore;
+                propertyModel
+                    .NextResolvers = nextResolvers;
+                propertyModel.
+                    NextResolvers = nextResolvers;
+                propertyModel.
+                    NextIgnore = nextIgnore;
+                propertyModel.
+                    Source = (ParameterExpression)source; //  must be determined for each GetterLine
+                propertyModel.
+                    Destination = (ParameterExpression?)destination;
+                propertyModel.
+                    UseDestinationValue = IsCanUsingDestinationValue(arg, destinationMember);
+
+
                 if(arg.MapType == MapType.ApplyNullPropagation &&
                     getter == null && !arg.DestinationType.IsRecordType()  
                     && destinationMember.Info is PropertyInfo propinfo)
@@ -133,15 +135,24 @@ namespace Mapster.Adapters
                     }
                 }
 
-                if (arg.MapType == MapType.MapToTarget && getter == null && arg.DestinationType.IsRecordType())
+                // if (arg.MapType == MapType.MapToTarget && getter == null && arg.DestinationType.IsRecordType())
+                if (arg.MapType == MapType.MapToTarget && arg.DestinationType.IsRecordType())
                 {
-                    getter = TryRestoreRecordMember(destinationMember, recordRestorMemberModel, destination, arg) ?? getter;
+                    propertyModel
+                        .RestoreDestinationMemberExp = TryRestoreRecordMember(destinationMember, recordRestorMemberModel, destination, arg);
                 }
-                if (getter != null)
+                if (propertyModel.GetterLines.Count != 0)
                 {
+                    foreach (var getterSrc in propertyModel.GetterLines)
+                    {
+
+                    }
+
+
                     propertyModel.Getter = arg.MapType == MapType.Projection || ctorMapping
                         ? getter
                         : getter.ApplyPropertyNullPropagation(arg, source);
+
                     properties.Add(propertyModel);
                 }
                 else
