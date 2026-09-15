@@ -58,21 +58,21 @@ namespace Mapster
                 invokes.Add(Tuple.Create(condition, invoke));
             }
 
-            if (invokes.Count > 0)
-            {
-                invokes.Reverse();
-                if (getter == null)
-                {
-                    var type = invokes[0].Item2.Type;
-                    if (destinationMember.Type.CanBeNull() && !type.CanBeNull())
-                        type = typeof(Nullable<>).MakeGenericType(type);
-                    getter = type.CreateDefault(arg);
-                }
-                foreach (var invoke in invokes)
-                {
-                    getter = Expression.Condition(invoke.Item1, invoke.Item2.To(getter.Type), getter);
-                }
-            }
+            //if (invokes.Count > 0)
+            //{
+            //    invokes.Reverse();
+            //    if (getter == null)
+            //    {
+            //        var type = invokes[0].Item2.Type;
+            //        if (destinationMember.Type.CanBeNull() && !type.CanBeNull())
+            //            type = typeof(Nullable<>).MakeGenericType(type);
+            //        getter = type.CreateDefault(arg);
+            //    }
+            //    foreach (var invoke in invokes)
+            //    {
+            //        getter = Expression.Condition(invoke.Item1, invoke.Item2.To(getter.Type), getter);
+            //    }
+            //}
 
             if (getter == null)
                 return null;
