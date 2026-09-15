@@ -143,16 +143,7 @@ namespace Mapster.Adapters
                 }
                 if (propertyModel.GetterLines.Count != 0)
                 {
-                    foreach (var getterSrc in propertyModel.GetterLines)
-                    {
-
-                    }
-
-
-                    propertyModel.Getter = arg.MapType == MapType.Projection || ctorMapping
-                        ? getter
-                        : getter.ApplyPropertyNullPropagation(arg, source);
-
+                    propertyModel.CreateNullPropagationChecker(arg);
                     properties.Add(propertyModel);
                 }
                 else
@@ -400,6 +391,33 @@ namespace Mapster.Adapters
             var memberAsObject = adapt.To(typeof(object));
             return Expression.Call(getPropertyExpression, setValueMethod,
                 new[] { member.Destination, memberAsObject });
+        }
+
+        protected Expression GetMemberAdapter(MemberMapping member, CompileArgument arg)
+        {
+            Expression? result = null;
+            Expression defaultcase = null;
+           
+
+            foreach (var item in member.GetterLines)
+            {
+                item.TransformFunc = CreateAdaptExpression(item.Getter, member.DestinationMember.Type, arg, member);
+            }
+
+          //  if (member.GetterLines.Any(x => x.Condition != null))
+            defaultcase = member.GetterLines.Where(x => x.Condition == null).FirstOrDefault()?.TransformFunc ?? member.DestinationMember.Type.CreateDefault();
+
+            foreach (var item in member.GetterLines.Where(x => x.Condition != null).Reverse())
+            {
+                if (result == null)
+                {
+                    result = Expression.Condition(item.Condition, item.TransformFunc, defaultcase);
+                }
+                else
+                    result = Expression.Condition(item.Condition, item.TransformFunc, result);
+            }
+
+            return result;
         }
 
 #endregion

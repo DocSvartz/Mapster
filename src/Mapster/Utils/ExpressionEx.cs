@@ -422,6 +422,37 @@ namespace Mapster.Utils
             return param;
         }
 
+        public static void CreateNullPropagationChecker(this MemberMapping mapping, CompileArgument arg)
+        {
+            var IsSingleSource = mapping.GetterLines.Select(x => x.Source).Distinct().SingleOrDefault();
+            
+            if(IsSingleSource != null)
+            {
+                var finder = new DirectParameterMemberFinder(false, IsSingleSource);
+
+                foreach (var item in mapping.GetterLines)
+                {
+                    item.NullPropagationChecker = finder.Find(item.Getter)
+                    .Select(x => x.GetNullPropagationChecks(arg))
+                    .Where(x => x != null)
+                    .ToArray().ConcatPropagationChecks();
+                }
+
+            }
+            else // multisource
+            {
+                foreach (var item in mapping.GetterLines)
+                {
+                    var finder = new DirectParameterMemberFinder(false, IsSingleSource);
+                    
+                    item.NullPropagationChecker = finder.Find(item.Getter)
+                    .Select(x => x.GetNullPropagationChecks(arg))
+                    .Where(x => x != null)
+                    .ToArray().ConcatPropagationChecks();
+                }
+            }
+        }
+
         public static Expression ApplyPropertyNullPropagation(this Expression getter, CompileArgument arg, Expression source)
         {
             var current = getter;

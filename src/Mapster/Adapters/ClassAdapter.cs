@@ -260,7 +260,9 @@ namespace Mapster.Adapters
                 if (member.DestinationMember.SetterModifier == AccessModifier.None)
                     continue;
 
-                var value = CreateAdaptExpression(member.Getter, member.DestinationMember.Type, arg, member);
+                //var value = CreateAdaptExpression(member.Getter, member.DestinationMember.Type, arg, member);
+
+                var value = GetMemberAdapter(member, arg);
 
                 //special null property check for projection
                 //if we don't set null to property, EF will create empty object
