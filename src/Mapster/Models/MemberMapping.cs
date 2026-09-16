@@ -1,11 +1,12 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 
 namespace Mapster.Models
 {
     public class MemberMapping
     {
-        public Expression Getter;
+        public Expression Getter => GetterLines.FirstOrDefault()?.Getter;
         public List<GetterLine> GetterLines { get; } = new List<GetterLine>();
         public IMemberModelEx DestinationMember;
         public Expression? RestoreDestinationMemberExp;
@@ -21,6 +22,8 @@ namespace Mapster.Models
         {
             return NextResolvers.Count > 0 || NextIgnore.Count > 0;
         }
+
+        public bool isNotFoundGetter => GetterLines.Count == 0;
     }
 
     public class GetterLine
