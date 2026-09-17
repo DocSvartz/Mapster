@@ -407,27 +407,30 @@ namespace Mapster.Adapters
         {
             Expression? result = null;
             Expression defaultcase = null;
-           
-            if(member.GetterLines.Count == 1)
-                return CreateAdaptExpression(member.GetterLines.First().Getter, member.DestinationMember.Type, arg, member);
+
+            var modGetterLine = member.GetterLines.Select(x => x.ApplyContextSettings(arg));
+            var single = modGetterLine.SingleOrDefault();
+
+            if (single.modCondition == null)
+                return CreateAdaptExpression(single.modgetter, member.DestinationMember.Type, arg, member);
 
 
-            foreach (var item in member.GetterLines)
+            foreach (var item in modGetterLine)
             {
-                item.TransformFunc = CreateAdaptExpression(item.Getter, member.DestinationMember.Type, arg, member);
+                item.getterLine.TransformFunc = CreateAdaptExpression(item.modgetter, member.DestinationMember.Type, arg, member);
             }
 
           //  if (member.GetterLines.Any(x => x.Condition != null))
             defaultcase = member.GetterLines.Where(x => x.Condition == null).FirstOrDefault()?.TransformFunc ?? member.DestinationMember.Type.CreateDefault();
 
-            foreach (var item in member.GetterLines.Where(x => x.Condition != null).Reverse())
+            foreach (var item in modGetterLine.Where(x => x.modCondition != null).Reverse())
             {
                 if (result == null)
                 {
-                    result = Expression.Condition(item.Condition, item.TransformFunc, defaultcase);
+                    result = Expression.Condition(item.modCondition, item.getterLine.TransformFunc, defaultcase);
                 }
                 else
-                    result = Expression.Condition(item.Condition, item.TransformFunc, result);
+                    result = Expression.Condition(item.modCondition, item.getterLine.TransformFunc, result);
             }
 
             return result;
@@ -442,17 +445,20 @@ namespace Mapster.Adapters
                     ? member.DestinationMember.GetExpression(destination)
                     : null;
 
-            if (member.GetterLines.Count == 1)
+            var modGetterLine = member.GetterLines.Select(x => x.ApplyContextSettings(arg));
+            var single = modGetterLine.SingleOrDefault();
+
+            if (single.modCondition == null)
                 resultLines.Add(
-                    member.DestinationMember.SetExpression(destination, CreateAdaptExpression(member.GetterLines.First().Getter, member.DestinationMember.Type, arg, member))
+                    member.DestinationMember.SetExpression(destination, CreateAdaptExpression(single.modgetter, member.DestinationMember.Type, arg, member))
                 );
 
 
-            foreach (var item in member.GetterLines.Where(x => x.Condition != null))
+            foreach (var item in modGetterLine.Where(x => x.modCondition != null))
             {
                 resultLines.Add(
-                    Expression.IfThen(item.Condition, member.DestinationMember.SetExpression(destination,
-                    CreateAdaptExpression(item.Getter, member.DestinationMember.Type, arg, member)
+                    Expression.IfThen(item.modCondition, member.DestinationMember.SetExpression(destination,
+                    CreateAdaptExpression(item.modgetter, member.DestinationMember.Type, arg, member)
                     ))
                 );
             }

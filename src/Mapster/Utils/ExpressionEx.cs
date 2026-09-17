@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace Mapster.Utils
 {
@@ -452,6 +453,46 @@ namespace Mapster.Utils
                 }
             }
         }
+
+        public static (Expression? modgetter, Expression? modCondition, GetterLine getterLine) ApplyContextSettings(this GetterLine getterLine, CompileArgument arg)
+        {
+            if (getterLine.Getter == null)
+                return (getterLine.Getter, getterLine.Condition, getterLine);
+
+            var modgetter = arg.MapType == MapType.Projection ? getterLine.Getter : getterLine.Getter.CreateNullPropagation(getterLine.NullPropagationChecker);
+
+            // create test expression -> modgetter != null && getterLine.Condition
+            var modCondition = arg.Settings.IgnoreNullValues.GetValueOrDefault() == false ? getterLine.Condition
+                : modgetter.CanBeNull() == false ? getterLine.Condition
+                : getterLine.Condition == null ? modgetter.NotNullTestCondition()
+                : Expression.AndAlso(modgetter.NotNullTestCondition(), getterLine.Condition);
+
+            return (modgetter, modCondition, getterLine);
+
+        }
+
+        public static Expression NotNullTestCondition(this Expression exp)
+        {
+            if (exp.Type.CanBeNull())
+                return Expression.NotEqual(exp, Expression.Constant(null, exp.Type));
+            else
+                throw new ArgumentException($"Expression: {exp} never return null!");
+        }
+
+        public static Expression CreateNullPropagation(this Expression getter, Expression? condition)
+        {
+            if (condition == null)
+                return getter;
+
+            if (!getter.Type.CanBeNull())
+            {
+                var transform = Expression.Convert(getter, typeof(Nullable<>).MakeGenericType(getter.Type));
+                return Expression.Condition(condition, transform, transform.Type.CreateDefault());
+            }
+            else
+                return Expression.Condition(condition, getter, getter.Type.CreateDefault());
+        }
+
 
         public static Expression ApplyPropertyNullPropagation(this Expression getter, CompileArgument arg, Expression source)
         {
