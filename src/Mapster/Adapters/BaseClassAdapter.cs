@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using Mapster.Utils;
 
 namespace Mapster.Adapters
 {
@@ -409,9 +410,9 @@ namespace Mapster.Adapters
             Expression defaultcase = null;
 
             var modGetterLine = member.GetterLines.Select(x => x.ApplyContextSettings(arg));
-            var single = modGetterLine.SingleOrDefault();
+            var single = modGetterLine.GetIfSingle();
 
-            if (single.modCondition == null)
+            if (single.getterLine != null && single.modCondition == null)
                 return CreateAdaptExpression(single.modgetter, member.DestinationMember.Type, arg, member);
 
 
@@ -446,9 +447,9 @@ namespace Mapster.Adapters
                     : null;
 
             var modGetterLine = member.GetterLines.Select(x => x.ApplyContextSettings(arg));
-            var single = modGetterLine.SingleOrDefault();
+            var single = modGetterLine.GetIfSingle();
 
-            if (single.modCondition == null)
+            if (single.getterLine != null && single.modCondition == null)
                 resultLines.Add(
                     member.DestinationMember.SetExpression(destination, CreateAdaptExpression(single.modgetter, member.DestinationMember.Type, arg, member))
                 );
