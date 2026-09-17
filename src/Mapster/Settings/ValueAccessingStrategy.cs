@@ -32,6 +32,7 @@ namespace Mapster
             if (resolvers.Count == 0)
                 return false;
             TypeAdapterSettings? customSettings = null;
+            var MatchingGetter = 0;
 
             foreach (var resolver in resolvers)
             {
@@ -49,9 +50,13 @@ namespace Mapster
                 var condition = resolver.GetConditionExpression(source, arg.MapType);
 
                 memberMapping.GetterLines.Add(new(srcInput.Src,invoke, customSettings) { Condition = condition});
+                MatchingGetter++;
             }
 
-            return true;
+            if(MatchingGetter > 0)
+                return true;
+            else
+                return false;
         }
 
         private static bool PropertyOrFieldFn(ResolverSourceInput srcInput, IMemberModel destinationMember, MemberMapping memberMapping, CompileArgument arg)
