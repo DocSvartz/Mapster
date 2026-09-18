@@ -45,7 +45,7 @@ namespace Mapster
                 var invoke = resolver.GetInvokingExpression(source, arg.MapType, customSettings != null);
 
                 if (invoke == null)
-                    return false;
+                   continue;
 
                 var condition = resolver.GetConditionExpression(source, arg.MapType);
 
