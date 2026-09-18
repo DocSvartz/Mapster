@@ -110,13 +110,11 @@ namespace Mapster.Adapters
             Dictionary<LambdaExpression, Tuple<List<Expression>, Expression>>? conditions = null;
             foreach (var member in members)
             {
-                if (!member.UseDestinationValue 
-                    && member.DestinationMember.SetterModifier != AccessModifier.None)
-                {
-                    lines.AddRange( 
-                        GetMemberMapToTargetAdapter(member, destination, destination, arg)
-                                  );
-                }
+               
+                lines.AddRange( 
+                    GetMemberMapToTargetAdapter(member, destination, destination, arg)
+                                );
+             
 
                 //var s = GetMemberMapToTargetAdapter(member, destination, destMember, arg);
 

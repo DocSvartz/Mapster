@@ -446,7 +446,7 @@ namespace Mapster.Adapters
 
             var destMember = arg.MapType == MapType.MapToTarget || member.UseDestinationValue
                     ? member.DestinationMember.GetExpression(destination)
-                    : null;
+                    : result;
 
             var modGetterLine = member.GetterLines.All(x => x.Condition == null)
                ? member.GetterLines.Take(1).Select(x => x.ApplyContextSettings(arg))
@@ -455,18 +455,31 @@ namespace Mapster.Adapters
             var single = modGetterLine.GetIfSingle();
 
             if (single.getterLine != null && single.modCondition == null)
-                resultLines.Add(
-                    member.DestinationMember.SetExpression(destination, CreateAdaptExpression(single.modgetter, member.DestinationMember.Type, arg, member))
-                );
+
+            {
+                var adapt = CreateAdaptExpression(single.modgetter, member.DestinationMember.Type, arg, member);
+                var transformAdapt = adapt.ApplyUseDesitationValueAndInitOnlyProps(member, arg);
+
+                if(adapt == transformAdapt)
+                    resultLines.Add(member.DestinationMember.SetExpression(result, adapt));
+                else
+                    resultLines.Add(transformAdapt);
+            }
 
 
             foreach (var item in modGetterLine.Where(x => x.modCondition != null))
             {
-                resultLines.Add(
-                    Expression.IfThen(item.modCondition, member.DestinationMember.SetExpression(destination,
-                    CreateAdaptExpression(item.modgetter, member.DestinationMember.Type, arg, member)
-                    ))
-                );
+                var adapt = CreateAdaptExpression(item.modgetter, member.DestinationMember.Type, arg, member);
+                var transformAdapt = adapt.ApplyUseDesitationValueAndInitOnlyProps(member, arg);
+
+                if (adapt == transformAdapt)
+                {
+                    resultLines.Add(
+                    Expression.IfThen(item.modCondition, member.DestinationMember.SetExpression(result, adapt)));
+                }
+                else
+                    resultLines.Add(
+                        Expression.IfThen(item.modCondition, member.DestinationMember.SetExpression(result, transformAdapt)));
             }
 
 
@@ -484,6 +497,8 @@ namespace Mapster.Adapters
 
             return resultLines;
         }
+
+
 
 
 #endregion

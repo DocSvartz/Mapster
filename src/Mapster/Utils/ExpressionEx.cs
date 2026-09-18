@@ -454,6 +454,39 @@ namespace Mapster.Utils
             }
         }
 
+        public static Expression ApplyUseDesitationValueAndInitOnlyProps(this Expression adapt, MemberMapping member, CompileArgument arg)
+        {
+
+            if(member.DestinationMember.Info is PropertyInfo propertyInfo)
+            {
+                if (propertyInfo.IsInitOnly() 
+                 || member.UseDestinationValue
+                 && member.DestinationMember.Type.IsMapsterImmutable()
+                 && member.DestinationMember.SetterModifier == AccessModifier.None)
+                    return SetValueTypeAutoPropertyByReflection(member, adapt, arg.DestinationType.GetFieldsAndProperties(true));
+            }
+
+            return adapt;
+        }
+
+        private static Expression SetValueTypeAutoPropertyByReflection(MemberMapping member, Expression adapt, IEnumerable<IMemberModelEx> destinationProperty)
+        {
+            var modDesinationMemeberName = $"<{member.DestinationMember.Name}>k__BackingField";
+            if (destinationProperty.Any(x => x.Name == modDesinationMemeberName) == false) // Property is not autoproperty
+                return Expression.Empty();
+            var typeofExpression = Expression.Constant(member.Destination!.Type);
+            var getPropertyMethod = typeof(Type).GetMethod("GetField", new[] { typeof(string), typeof(BindingFlags) })!;
+            var getPropertyExpression = Expression.Call(typeofExpression, getPropertyMethod,
+                Expression.Constant(modDesinationMemeberName), Expression.Constant(BindingFlags.Instance | BindingFlags.NonPublic));
+            var setValueMethod =
+                typeof(FieldInfo).GetMethod("SetValue", new[] { typeof(object), typeof(object) })!;
+            var memberAsObject = adapt.To(typeof(object));
+            return Expression.Call(getPropertyExpression, setValueMethod,
+                new[] { member.Destination, memberAsObject });
+        }
+
+
+
         public static (Expression? modgetter, Expression? modCondition, GetterLine getterLine) ApplyContextSettings(this GetterLine getterLine, CompileArgument arg)
         {
             if (getterLine.Getter == null)
