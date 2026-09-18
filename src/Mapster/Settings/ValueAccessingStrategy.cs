@@ -256,6 +256,9 @@ namespace Mapster
             if (lastCondition != null)
                 getter = Expression.Condition(lastCondition, getter!, getter!.Type.CreateDefault(arg));
 
+            if (getter == null)
+                return false;
+
             memberMapping.GetterLines.Add(new(srcInput.Src, getter, null));
 
             return true;
