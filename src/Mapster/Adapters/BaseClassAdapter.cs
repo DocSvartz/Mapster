@@ -460,7 +460,7 @@ namespace Mapster.Adapters
                 var adapt = CreateAdaptExpression(single.modgetter, member.DestinationMember.Type, arg, member);
                 var transformAdapt = adapt.ApplyUseDesitationValueAndInitOnlyProps(member, arg);
 
-                if(adapt == transformAdapt)
+                if(adapt == transformAdapt && member.DestinationMember.SetterModifier != AccessModifier.None)
                     resultLines.Add(member.DestinationMember.SetExpression(result, adapt));
                 else
                     resultLines.Add(transformAdapt);
@@ -472,7 +472,7 @@ namespace Mapster.Adapters
                 var adapt = CreateAdaptExpression(item.modgetter, member.DestinationMember.Type, arg, member);
                 var transformAdapt = adapt.ApplyUseDesitationValueAndInitOnlyProps(member, arg);
 
-                if (adapt == transformAdapt)
+                if (adapt == transformAdapt && member.DestinationMember.SetterModifier != AccessModifier.None)
                 {
                     resultLines.Add(
                     Expression.IfThen(item.modCondition, member.DestinationMember.SetExpression(result, adapt)));
