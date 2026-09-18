@@ -444,9 +444,9 @@ namespace Mapster.Adapters
         {
             var resultLines = new List<Expression>();
 
-            var destMember = arg.MapType == MapType.MapToTarget || member.UseDestinationValue
-                    ? member.DestinationMember.GetExpression(destination)
-                    : result;
+            var resultMember = arg.MapType == MapType.MapToTarget || member.UseDestinationValue
+                    ? member.DestinationMember.GetExpression(result)
+                    : null;
 
             var modGetterLine = member.GetterLines.All(x => x.Condition == null)
                ? member.GetterLines.Take(1).Select(x => x.ApplyContextSettings(arg))
@@ -457,7 +457,7 @@ namespace Mapster.Adapters
             if (single.getterLine != null && single.modCondition == null)
 
             {
-                var adapt = CreateAdaptExpression(single.modgetter, member.DestinationMember.Type, arg, member);
+                var adapt = CreateAdaptExpression(single.modgetter, member.DestinationMember.Type, arg, member, resultMember);
                 var transformAdapt = adapt.ApplyUseDesitationValueAndInitOnlyProps(member, arg);
 
                 if(adapt == transformAdapt && member.DestinationMember.SetterModifier != AccessModifier.None)
@@ -469,7 +469,7 @@ namespace Mapster.Adapters
 
             foreach (var item in modGetterLine.Where(x => x.modCondition != null))
             {
-                var adapt = CreateAdaptExpression(item.modgetter, member.DestinationMember.Type, arg, member);
+                var adapt = CreateAdaptExpression(item.modgetter, member.DestinationMember.Type, arg, member, resultMember);
                 var transformAdapt = adapt.ApplyUseDesitationValueAndInitOnlyProps(member, arg);
 
                 if (adapt == transformAdapt && member.DestinationMember.SetterModifier != AccessModifier.None)
