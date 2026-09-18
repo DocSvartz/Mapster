@@ -409,7 +409,9 @@ namespace Mapster.Adapters
             Expression? result = null;
             Expression defaultcase = null;
 
-            var modGetterLine = member.GetterLines.Select(x => x.ApplyContextSettings(arg));
+            var modGetterLine = member.GetterLines.All(x => x.Condition == null) 
+                ? member.GetterLines.Take(1).Select(x => x.ApplyContextSettings(arg))
+                : member.GetterLines.Select(x => x.ApplyContextSettings(arg));
             var single = modGetterLine.GetIfSingle();
 
             if (single.getterLine != null && single.modCondition == null)
@@ -446,7 +448,10 @@ namespace Mapster.Adapters
                     ? member.DestinationMember.GetExpression(destination)
                     : null;
 
-            var modGetterLine = member.GetterLines.Select(x => x.ApplyContextSettings(arg));
+            var modGetterLine = member.GetterLines.All(x => x.Condition == null)
+               ? member.GetterLines.Take(1).Select(x => x.ApplyContextSettings(arg))
+               : member.GetterLines.Select(x => x.ApplyContextSettings(arg));
+
             var single = modGetterLine.GetIfSingle();
 
             if (single.getterLine != null && single.modCondition == null)
@@ -462,6 +467,19 @@ namespace Mapster.Adapters
                     CreateAdaptExpression(item.modgetter, member.DestinationMember.Type, arg, member)
                     ))
                 );
+            }
+
+
+            if(member.Ignore.Condition != null)
+            {
+                var test = member.Ignore.IsChildPath
+                            ? member.Ignore.Condition.Body
+                            : member.Ignore.Condition.Apply(arg.MapType, member.Source, destination);
+
+                var ApplyIgnore = Expression.IfThen(Expression.Not(test), Expression.Block(resultLines));
+                resultLines.Clear();
+                resultLines.Add(ApplyIgnore);
+
             }
 
             return resultLines;

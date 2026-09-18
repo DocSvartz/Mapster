@@ -274,14 +274,14 @@ namespace Mapster.Adapters
                 //special null property check for projection
                 //if we don't set null to property, EF will create empty object
                 //except collection type & complex type which cannot be null
-                if (arg.MapType == MapType.Projection
-                    && member.Getter.Type != member.DestinationMember.Type
-                    && !member.Getter.Type.IsCollection()
-                    && !member.DestinationMember.Type.IsCollection()
-                    && member.Getter.Type.GetTypeInfo().GetCustomAttributesData().All(attr => attr.GetAttributeType().Name != "ComplexTypeAttribute"))
-                {
-                    value = member.Getter.NotNullReturn(value,arg);
-                }
+                //if (arg.MapType == MapType.Projection
+                //    && member.Getter.Type != member.DestinationMember.Type
+                //    && !member.Getter.Type.IsCollection()
+                //    && !member.DestinationMember.Type.IsCollection()
+                //    && member.Getter.Type.GetTypeInfo().GetCustomAttributesData().All(attr => attr.GetAttributeType().Name != "ComplexTypeAttribute"))
+                //{
+                //    value = member.Getter.NotNullReturn(value,arg);
+                //}
                 var bind = Expression.Bind((MemberInfo)member.DestinationMember.Info!, value);
                 lines.Add(bind);
             }
