@@ -415,11 +415,18 @@ namespace Mapster.Adapters
             var single = modGetterLine.GetIfSingle();
 
             if (single.getterLine != null && single.modCondition == null)
+            {
+                member.OverrideSettings = single.getterLine.OverrideSettings; // need refactoring
+
                 return CreateAdaptExpression(single.modgetter, member.DestinationMember.Type, arg, member);
+            }
+               
 
 
             foreach (var item in modGetterLine)
             {
+                member.OverrideSettings = item.getterLine.OverrideSettings; // need refactoring
+
                 item.getterLine.TransformFunc = CreateAdaptExpression(item.modgetter, member.DestinationMember.Type, arg, member);
             }
 
@@ -457,6 +464,8 @@ namespace Mapster.Adapters
             if (single.getterLine != null && single.modCondition == null)
 
             {
+                member.OverrideSettings = single.getterLine.OverrideSettings; // need refactoring
+
                 var adapt = CreateAdaptExpression(single.modgetter, member.DestinationMember.Type, arg, member, resultMember);
                 var transformAdapt = adapt.ApplyUseDesitationValueAndInitOnlyProps(member, arg);
 
@@ -469,6 +478,8 @@ namespace Mapster.Adapters
 
             foreach (var item in modGetterLine.Where(x => x.modCondition != null))
             {
+                member.OverrideSettings = item.getterLine.OverrideSettings; // need refactoring
+
                 var adapt = CreateAdaptExpression(item.modgetter, member.DestinationMember.Type, arg, member, resultMember);
                 var transformAdapt = adapt.ApplyUseDesitationValueAndInitOnlyProps(member, arg);
 
