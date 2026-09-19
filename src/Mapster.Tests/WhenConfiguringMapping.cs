@@ -70,6 +70,12 @@ namespace Mapster.Tests
     [TestClass]
     public class WhenConfiguringMapping
     {
+        [TestInitialize]
+        public void Setup()
+        {
+            TypeAdapterConfig.GlobalSettings.Default.ShallowCopyForSameType(false);
+        }
+        
         [TestMethod]
         public void IgnoreMemberTest()
         {
