@@ -418,6 +418,13 @@ namespace Mapster.Adapters
             {
                 member.OverrideSettings = single.getterLine.OverrideSettings; // need refactoring
 
+                if (arg.MapType == MapType.Projection)
+                    return Expression.Condition(single.getterLine.NullPropagationChecker.ApplyProjectionNullCheck(single.modgetter), 
+                        CreateAdaptExpression(single.modgetter, member.DestinationMember.Type, arg, member),
+                        member.DestinationMember.Type.CreateDefault()
+                        );
+
+
                 return CreateAdaptExpression(single.modgetter, member.DestinationMember.Type, arg, member);
             }
                

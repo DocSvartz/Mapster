@@ -454,6 +454,14 @@ namespace Mapster.Utils
             }
         }
 
+        public static Expression ApplyProjectionNullCheck(this Expression test, Expression getter)
+        {
+            if (getter.Type.CanBeNull())
+                return Expression.AndAlso(test, Expression.NotEqual(getter,getter.Type.CreateDefault()));
+           
+            return test;
+        }
+
         public static Expression ApplyUseDesitationValueAndInitOnlyProps(this Expression adapt, MemberMapping member, CompileArgument arg)
         {
 
