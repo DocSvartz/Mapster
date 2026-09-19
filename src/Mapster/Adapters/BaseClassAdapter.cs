@@ -431,7 +431,7 @@ namespace Mapster.Adapters
             }
 
           //  if (member.GetterLines.Any(x => x.Condition != null))
-            defaultcase = member.GetterLines.Where(x => x.Condition == null).FirstOrDefault()?.TransformFunc ?? member.DestinationMember.Type.CreateDefault();
+            defaultcase = modGetterLine.Where(x => x.modCondition == null).FirstOrDefault().getterLine?.TransformFunc ?? member.DestinationMember.Type.CreateDefault();
 
             foreach (var item in modGetterLine.Where(x => x.modCondition != null).Reverse())
             {
@@ -478,10 +478,17 @@ namespace Mapster.Adapters
 
             foreach (var item in modGetterLine.Where(x => x.modCondition != null))
             {
+                if (member.DestinationMember.SetterModifier == AccessModifier.None
+                    && !member.UseDestinationValue)
+                    continue;
+
                 member.OverrideSettings = item.getterLine.OverrideSettings; // need refactoring
 
                 var adapt = CreateAdaptExpression(item.modgetter, member.DestinationMember.Type, arg, member, resultMember);
                 var transformAdapt = adapt.ApplyUseDesitationValueAndInitOnlyProps(member, arg);
+
+                if (transformAdapt.Type == typeof(void))
+                    continue;
 
                 if (adapt == transformAdapt && member.DestinationMember.SetterModifier != AccessModifier.None)
                 {

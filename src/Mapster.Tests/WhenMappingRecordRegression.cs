@@ -611,10 +611,9 @@ namespace Mapster.Tests
                 .NewConfig<IDto927, IDomain934>()
                 .IgnoreNullValues(true);
 
-            Should.NotThrow(() => {
-
-                config.Compile();
-            });
+           
+            config.Compile();
+          
         }
 
         /// <summary>
