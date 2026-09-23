@@ -43,13 +43,8 @@ namespace Mapster.Adapters
                         from src in sources
                         select fn(src, destinationMember, propertyModel, arg))
                     .FirstOrDefault(result => result);
-                // var getter = resolver?.Exp;
-                // var overideSettings = resolver?.Settings;
-
+                
                 ProcessIgnores(arg, destinationMember, out var ignore);
-
-                //  if (ProcessIgnores(arg, destinationMember,out var ignore) && !ctorMapping)
-                //      continue;
 
                 if (arg.MapType == MapType.Projection && propertyModel.GetterLines.Count != 0)
                 {
@@ -69,35 +64,6 @@ namespace Mapster.Adapters
                     }
 
                 }
-
-
-                //if (arg.MapType == MapType.Projection)
-                //{
-
-                //    var checkgetter = (from fn in resolvers.Where(ValueAccessingStrategy.CustomResolvers.Contains)
-                //                       from src in sources
-                //                       select fn(src, destinationMember, propertyModel, arg))
-                //                       .FirstOrDefault(result => result != false);
-
-                //    if (checkgetter == null)
-                //    {
-                //        Type destinationType;
-
-                //        if (destinationMember.Type.IsNullable())
-                //            destinationType = destinationMember.Type.GetGenericArguments()[0];
-                //        else
-                //            destinationType = destinationMember.Type;
-
-                //        if (arg.Settings.ProjectToTypeMapConfig == Enums.ProjectToTypeAutoMapping.OnlyPrimitiveTypes
-                //            && destinationType.IsMapsterPrimitive() == false)
-                //            continue;
-
-                //        if (arg.Settings.ProjectToTypeMapConfig == Enums.ProjectToTypeAutoMapping.WithoutCollections
-                //            && destinationType.IsCollectionCompatible() == true)
-                //            continue;
-                //    }
-
-                //}
 
                 var nextIgnore = arg.Settings.Ignore.Next((ParameterExpression)source, (ParameterExpression?)destination, destinationMember.Name);
                 var nextResolvers = arg.Settings.Resolvers.Next(arg.Settings.Ignore, (ParameterExpression)source, destinationMember.Name)
@@ -131,12 +97,10 @@ namespace Mapster.Adapters
                     if (propinfo.GetCustomAttributes()
                         .Any(y => y.GetType().FullName == "System.Runtime.CompilerServices.RequiredMemberAttribute"))
                     {
-                        // getter = destinationMember.Type.CreateDefault(arg);
                         propertyModel.GetterLines.Add(new(source, destinationMember.Type.CreateDefault(arg), null));
                     }
                 }
 
-                // if (arg.MapType == MapType.MapToTarget && getter == null && arg.DestinationType.IsRecordType())
                 if (arg.MapType == MapType.MapToTarget && arg.DestinationType.IsRecordType())
                 {
                     
@@ -179,9 +143,7 @@ namespace Mapster.Adapters
                     }
                     else if (propertyModel.HasSettings())
                     {
-                        //propertyModel.Getter = Expression.New(typeof(Never));
                         propertyModel.GetterLines.Add(new(source, Expression.New(typeof(Never)), null));
-
                         properties.Add(propertyModel);
                     }
                     else if (destinationMember.UseDestinationValue(arg) || destinationMember.SetterModifier != AccessModifier.None)
@@ -235,8 +197,7 @@ namespace Mapster.Adapters
             var members = classConverter.Members;
 
             var arguments = new List<Expression>();
-            // ReadyToCleanUp
-            // arg.Context.NullChecks.UnionWith(members.Where(x => x.Getter != null).Select(x => (x.Getter, arg)));
+
             foreach (var member in members)
             {
                 var parameterInfo = (ParameterInfo)member.DestinationMember.Info!;
@@ -271,21 +232,7 @@ namespace Mapster.Adapters
                 else
                 {
                     getter = GetMemberInlineAdapter(member, arg);
-
-                    //if (member.Getter.CanBeNull() && member.Ignore.Condition == null
-                    //    && (member.DestinationMember.Type.IsAbstractOrNotPublicCtor()
-                    //        || member.DestinationMember.Type.UnwrapNullable().IsRecordType()))
-                    //{
-                    //    var compareNull = Expression.Equal(member.Getter, Expression.Constant(null, member.Getter.Type));
-                    //    getter = Expression.Condition(ExpressionEx.Not(compareNull),
-                    //        CreateAdaptExpressionCore(member.Getter, member.DestinationMember.Type, arg, member),
-                    //       defaultConst);
-                    //}
-                    //else
-                    //   getter = member.Getter
-                    //        .ApplyNullPropagationFromCtor(CreateAdaptExpressionCore(member.Getter, member.DestinationMember.Type, arg, member,mapTypeCtor:MapType.CtorParam), arg, member);
-
-                    
+                                                           
                     if (member.Ignore.Condition != null)
                     {
                         var body = member.Ignore.IsChildPath
@@ -417,12 +364,7 @@ namespace Mapster.Adapters
 
                     return Expression.Condition(test, adapt, def);
                 }    
-                    //return Expression.Condition(single.getterLine.NullPropagationChecker.ApplyProjectionNullCheck(single.modgetter), 
-                    //    CreateAdaptExpression(single.modgetter, member.DestinationMember.Type, arg, member),
-                    //    member.DestinationMember.Type.CreateDefault()
-                    //    );
-
-
+                  
                 return CreateAdaptExpression(single.modgetter, member.DestinationMember.Type, arg, member);
             }
                
@@ -435,7 +377,6 @@ namespace Mapster.Adapters
                 item.getterLine.TransformFunc = CreateAdaptExpression(item.modgetter, member.DestinationMember.Type, arg, member);
             }
 
-          //  if (member.GetterLines.Any(x => x.Condition != null))
             defaultcase = member.RestoreDestinationMemberExp 
                 ?? modGetterLine.Where(x => x.modCondition == null).FirstOrDefault().getterLine?.TransformFunc ?? member.DestinationMember.Type.CreateDefault();
 
@@ -521,9 +462,6 @@ namespace Mapster.Adapters
 
             return resultLines;
         }
-
-
-
 
 #endregion
     }
