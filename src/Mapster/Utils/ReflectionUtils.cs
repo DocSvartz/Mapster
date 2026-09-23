@@ -70,7 +70,7 @@ namespace Mapster
             return type.GetFieldsAndProperties().Any(it => (it.SetterModifier & (AccessModifier.Public | AccessModifier.NonPublic)) != 0);
         }
 
-        public static IEnumerable<IMemberModelEx> GetFieldsAndProperties(this Type type, bool includeNonPublic = false)
+        public static IEnumerable<IMemberModelEx> GetFieldsAndProperties(this Type type, bool includeNonPublic = false, AttributeMetadataCache? attributeMetadata = null)
         {
             var bindingFlags = BindingFlags.Instance | BindingFlags.Public;
             if (includeNonPublic)
@@ -80,35 +80,52 @@ namespace Mapster
                  BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
                  (x, y) => true, type.FullName);
 
+            var firstMembersByName = CreateFirstMembersByName(currentTypeMembers);
+
             if (type.GetTypeInfo().IsInterface)
             {
                 var allInterfaces = GetAllInterfaces(type);
-                return allInterfaces.SelectMany(x => GetPropertiesFunc(x, currentTypeMembers));
+                return allInterfaces.SelectMany(GetPropertiesFunc);
             }
 
-            return GetPropertiesFunc(type, currentTypeMembers).Concat(GetFieldsFunc(type, currentTypeMembers));
+            return GetPropertiesFunc(type).Concat(GetFieldsFunc(type));
 
-            IEnumerable<IMemberModelEx> GetPropertiesFunc(Type t, MemberInfo[] currentTypeMembers) => t.GetProperties(bindingFlags)
-                .Where(x => x.GetIndexParameters().Length == 0).DropHiddenMembers(currentTypeMembers)
-                .Select(CreateModel);
 
-            IEnumerable<IMemberModelEx> GetFieldsFunc(Type t, MemberInfo[] overlapMembers) =>
-                t.GetFields(bindingFlags).DropHiddenMembers(overlapMembers)
-                .Select(CreateModel);
+            IEnumerable<IMemberModelEx> GetPropertiesFunc(Type t) => t.GetProperties(bindingFlags)
+                .Where(x => x.GetIndexParameters().Length == 0).DropHiddenMembers(firstMembersByName)
+                .Select(x => new PropertyModel(x, attributeMetadata));
+
+            IEnumerable<IMemberModelEx> GetFieldsFunc(Type t) =>
+                t.GetFields(bindingFlags).DropHiddenMembers(firstMembersByName)
+                .Select(x => new FieldModel(x, attributeMetadata));
         }
 
         public static IEnumerable<T> DropHiddenMembers<T>(this IEnumerable<T> allMembers, ICollection<MemberInfo> currentTypeMembers) where T : MemberInfo
         {
-            var compareMemberNames = LinqCompat.IntersectBy(
-                allMembers,
-                currentTypeMembers.Select(x => x.Name),
-                x => x.Name).Select(x => x.Name);
+            var firstMembersByName = CreateFirstMembersByName(currentTypeMembers);
+            foreach (var member in allMembers.DropHiddenMembers(firstMembersByName))
+                yield return member;
+        }
 
+        private static Dictionary<string, MemberInfo> CreateFirstMembersByName(ICollection<MemberInfo> currentTypeMembers)
+        {
+            var firstMembersByName = new Dictionary<string, MemberInfo>(StringComparer.Ordinal);
+            foreach (var member in currentTypeMembers)
+            {
+                if (!firstMembersByName.ContainsKey(member.Name))
+                    firstMembersByName.Add(member.Name, member);
+            }
+
+            return firstMembersByName;
+        }
+
+        private static IEnumerable<T> DropHiddenMembers<T>(this IEnumerable<T> allMembers, Dictionary<string, MemberInfo> firstMembersByName) where T : MemberInfo
+        {
             foreach (var member in allMembers)
             {
-                if (compareMemberNames.Contains(member.Name))
+                if (firstMembersByName.TryGetValue(member.Name, out var currentMember))
                 {
-                    if (currentTypeMembers.First(x => x.Name == member.Name).MetadataToken == member.MetadataToken)
+                    if (currentMember.MetadataToken == member.MetadataToken)
                         yield return member;
                 }
                 else
