@@ -148,10 +148,10 @@ namespace Mapster.Tests
         {
             var retained = new RetainedCompilation();
             var config = new TypeAdapterConfig();
-            config.Default.Settings.ValueAccessingStrategies.Add((source, destination, arg) =>
+            config.Default.Settings.ValueAccessingStrategies.Add((source, destination, mapping, arg) =>
             {
                 retained.Context = arg.Context;
-                return null;
+                return false;
             });
             config.NewConfig<Source, Destination>().IgnoreMember((member, side) =>
             {
@@ -210,11 +210,11 @@ namespace Mapster.Tests
         private static Func<Source, Destination> CompileAndObserve(List<WeakReference> references)
         {
             var config = new TypeAdapterConfig();
-            config.Default.Settings.ValueAccessingStrategies.Add((source, destination, arg) =>
+            config.Default.Settings.ValueAccessingStrategies.Add((source, destination, mapping, arg) =>
             {
                 references.Add(new WeakReference(arg.Context));
                 references.Add(new WeakReference(arg.Context.AttributeMetadata));
-                return null;
+                return false;
             });
             config.NewConfig<Source, Destination>();
             return config.GetMapFunction<Source, Destination>();
@@ -266,12 +266,12 @@ namespace Mapster.Tests
             var sourceTypes = new HashSet<Type>();
             var configs = new List<TypeAdapterConfig>();
             var config = new TypeAdapterConfig();
-            config.Default.Settings.ValueAccessingStrategies.Add((source, destination, arg) =>
+            config.Default.Settings.ValueAccessingStrategies.Add((source, destination, mapping, arg) =>
             {
                 contexts.Add(arg.Context);
                 sourceTypes.Add(arg.SourceType);
                 configs.Add(arg.Context.Config);
-                return null;
+                return false;
             });
             config.NewConfig<ContainerSource, ContainerDestination>()
                 .Fork(child => child.ForType<Source, Destination>().Ignore(x => x.Plain));
@@ -304,10 +304,10 @@ namespace Mapster.Tests
             Parallel.For(0, contexts.Length, i =>
             {
                 var config = new TypeAdapterConfig();
-                config.Default.Settings.ValueAccessingStrategies.Add((source, destination, arg) =>
+                config.Default.Settings.ValueAccessingStrategies.Add((source, destination, mapping, arg) =>
                 {
                     contexts[i] = arg.Context;
-                    return null;
+                    return false;
                 });
                 config.NewConfig<Source, Destination>().Map(x => x.Plain, x => x.Plain + i);
                 config.Compile();
