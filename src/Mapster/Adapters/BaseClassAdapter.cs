@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using Mapster.Utils;
 
 namespace Mapster.Adapters
 {
@@ -15,7 +16,7 @@ namespace Mapster.Adapters
 
         #region Build the Adapter Model
 
-        protected ClassMapping CreateClassConverter(Expression source, ClassModel classModel, CompileArgument arg, Expression? destination = null, bool ctorMapping = false, ClassModel recordRestorMemberModel = null)
+        protected ClassMapping CreateClassConverter(Expression source, ClassModel classModel, CompileArgument arg, Expression? destination = null, Expression? result = null, bool ctorMapping = false, ClassModel recordRestorMemberModel = null)
         {
             var destinationMembers = classModel.Members;
             var unmappedDestinationMembers = new List<string>();
@@ -25,114 +26,130 @@ namespace Mapster.Adapters
             if (arg.Settings.IgnoreNonMapped == true)
                 IgnoreNonMapped(classModel,arg);
           
-            var sources = new List<Expression> {source};
+            var sources = new List<ResolverSourceInput> {new ResolverSourceInput(source)};
             sources.AddRange(
-                arg.Settings.ExtraSources.Select(src =>
-                    src is LambdaExpression lambda 
-                        ? lambda.Apply(arg.MapType, source) 
-                        : ExpressionEx.PropertyOrFieldPath(source, (string)src)));
+                arg.Settings.ExtraSources.Select(src => ResolverSourceInput.ConvertFrom(src,source,arg)));
             foreach (var destinationMember in destinationMembers)
             {
-                if (ProcessIgnores(arg, destinationMember, out var ignore) && !ctorMapping)
+                if (!destinationMember.ShouldMapMember(arg, MemberSide.Destination))
                     continue;
+
+                var propertyModel = new MemberMapping();
 
                 var resolvers = arg.Settings.ValueAccessingStrategies.AsEnumerable();
                 if (arg.Settings.IgnoreNonMapped == true)
                     resolvers = resolvers.Where(ValueAccessingStrategy.CustomResolvers.Contains);
-                var getter = (from fn in resolvers
+                var resolver = (from fn in resolvers
                         from src in sources
-                        select fn(src, destinationMember, arg))
-                    .FirstOrDefault(result => result != null);
+                        select fn(src, destinationMember, propertyModel, arg))
+                    .FirstOrDefault(result => result);
+                // var getter = resolver?.Exp;
+                // var overideSettings = resolver?.Settings;
 
-                if (arg.MapType == MapType.Projection && getter != null)
+                ProcessIgnores(arg, destinationMember, out var ignore);
+
+                //  if (ProcessIgnores(arg, destinationMember,out var ignore) && !ctorMapping)
+                //      continue;
+
+                if (arg.MapType == MapType.Projection && propertyModel.GetterLines.Count != 0)
                 {
                     var s = new TopLevelMemberNameVisitor();
 
-                    s.Visit(getter);
-
-                    if (s.MemberName != null && arg.Settings.ProjectToTypeResolvers.TryGetValue(s.MemberName, out var match))
+                    foreach (var item in propertyModel.GetterLines)
                     {
-                        arg.Settings.Resolvers.Add(new InvokerModel
+                        s.Visit(item.Getter);
+
+                        if (s.MemberName != null && arg.Settings.ProjectToTypeResolvers.TryGetValue(s.MemberName, out var match))
                         {
-                            Condition = null,
-                            DestinationMemberName = destinationMember.Name,
-                            Invoker = (LambdaExpression)match.Operand,
-                            SourceMemberName = null,
-                            IsChildPath = false
+                            var transFormGetter = (match.Operand as LambdaExpression)?.Apply((ParameterExpression)source);
 
-                        });
-                    }
-
-                    getter = (from fn in resolvers
-                              from src in sources
-                              select fn(src, destinationMember, arg))
-                    .FirstOrDefault(result => result != null);
-                }
-
-
-                if (arg.MapType == MapType.Projection)
-                {
-
-                    var checkgetter = (from fn in resolvers.Where(ValueAccessingStrategy.CustomResolvers.Contains)
-                                       from src in sources
-                                       select fn(src, destinationMember, arg))
-                                       .FirstOrDefault(result => result != null);
-
-                    if (checkgetter == null)
-                    {
-                        Type destinationType;
-
-                        if (destinationMember.Type.IsNullable())
-                            destinationType = destinationMember.Type.GetGenericArguments()[0];
-                        else
-                            destinationType = destinationMember.Type;
-
-                        if (arg.Settings.ProjectToTypeMapConfig == Enums.ProjectToTypeAutoMapping.OnlyPrimitiveTypes
-                            && destinationType.IsMapsterPrimitive() == false)
-                            continue;
-
-                        if (arg.Settings.ProjectToTypeMapConfig == Enums.ProjectToTypeAutoMapping.WithoutCollections
-                            && destinationType.IsCollectionCompatible() == true)
-                            continue;
+                            if(transFormGetter != null)
+                                item.ReplaceGetter(transFormGetter);
+                        }
                     }
 
                 }
 
+
+                //if (arg.MapType == MapType.Projection)
+                //{
+
+                //    var checkgetter = (from fn in resolvers.Where(ValueAccessingStrategy.CustomResolvers.Contains)
+                //                       from src in sources
+                //                       select fn(src, destinationMember, propertyModel, arg))
+                //                       .FirstOrDefault(result => result != false);
+
+                //    if (checkgetter == null)
+                //    {
+                //        Type destinationType;
+
+                //        if (destinationMember.Type.IsNullable())
+                //            destinationType = destinationMember.Type.GetGenericArguments()[0];
+                //        else
+                //            destinationType = destinationMember.Type;
+
+                //        if (arg.Settings.ProjectToTypeMapConfig == Enums.ProjectToTypeAutoMapping.OnlyPrimitiveTypes
+                //            && destinationType.IsMapsterPrimitive() == false)
+                //            continue;
+
+                //        if (arg.Settings.ProjectToTypeMapConfig == Enums.ProjectToTypeAutoMapping.WithoutCollections
+                //            && destinationType.IsCollectionCompatible() == true)
+                //            continue;
+                //    }
+
+                //}
 
                 var nextIgnore = arg.Settings.Ignore.Next((ParameterExpression)source, (ParameterExpression?)destination, destinationMember.Name);
                 var nextResolvers = arg.Settings.Resolvers.Next(arg.Settings.Ignore, (ParameterExpression)source, destinationMember.Name)
                     .ToList();
 
-                var propertyModel = new MemberMapping
-                {
-                    DestinationMember = destinationMember,
-                    Ignore = ignore,
-                    NextResolvers = nextResolvers,
-                    NextIgnore = nextIgnore,
-                    Source = (ParameterExpression)source,
-                    Destination = (ParameterExpression?)destination,
-                    UseDestinationValue = IsCanUsingDestinationValue(arg, destinationMember),
-                };
+                propertyModel
+                    .DestinationMember = destinationMember;
+                propertyModel
+                    .Ignore = ignore;
+                propertyModel
+                    .NextResolvers = nextResolvers;
+                propertyModel.
+                    NextResolvers = nextResolvers;
+                propertyModel.
+                    NextIgnore = nextIgnore;
+                propertyModel.
+                    Source = (ParameterExpression)source; //  must be determined for each GetterLine
+                propertyModel.
+                    Destination = (ParameterExpression?)destination;
+                propertyModel.
+                    Result = (ParameterExpression?)result;
+                propertyModel.
+                    UseDestinationValue = IsCanUsingDestinationValue(arg, destinationMember);
+
+
                 if(arg.MapType == MapType.ApplyNullPropagation &&
-                    getter == null && !arg.DestinationType.IsRecordType()  
+                    propertyModel.isNotFoundGetter  
+                    && !arg.DestinationType.IsRecordType()  
                     && destinationMember.Info is PropertyInfo propinfo)
                 {
                     if (propinfo.GetCustomAttributes()
                         .Any(y => y.GetType().FullName == "System.Runtime.CompilerServices.RequiredMemberAttribute"))
                     {
-                        getter = destinationMember.Type.CreateDefault();
+                        // getter = destinationMember.Type.CreateDefault(arg);
+                        propertyModel.GetterLines.Add(new(source, destinationMember.Type.CreateDefault(arg), null));
                     }
                 }
 
-                if (arg.MapType == MapType.MapToTarget && getter == null && arg.DestinationType.IsRecordType())
+                // if (arg.MapType == MapType.MapToTarget && getter == null && arg.DestinationType.IsRecordType())
+                if (arg.MapType == MapType.MapToTarget && arg.DestinationType.IsRecordType())
                 {
-                    getter = TryRestoreRecordMember(destinationMember, recordRestorMemberModel, destination) ?? getter;
+                    
+                    propertyModel
+                        .RestoreDestinationMemberExp = TryRestoreRecordMember(destinationMember, recordRestorMemberModel, destination, arg);
+
+                    if (propertyModel.GetterLines.Count == 0 && propertyModel.RestoreDestinationMemberExp != null)
+                        propertyModel.GetterLines.Add(new(destination, destinationMember.GetExpression(destination), null));
+
                 }
-                if (getter != null)
+                if (propertyModel.GetterLines.Count != 0 || propertyModel.Ignore.IsValid)
                 {
-                    propertyModel.Getter = arg.MapType == MapType.Projection 
-                        ? getter 
-                        : getter.ApplyPropertyNullPropagation();
+                    propertyModel.CreateNullPropagationChecker(arg);
                     properties.Add(propertyModel);
                 }
                 else
@@ -162,7 +179,9 @@ namespace Mapster.Adapters
                     }
                     else if (propertyModel.HasSettings())
                     {
-                        propertyModel.Getter = Expression.New(typeof(Never));
+                        //propertyModel.Getter = Expression.New(typeof(Never));
+                        propertyModel.GetterLines.Add(new(source, Expression.New(typeof(Never)), null));
+
                         properties.Add(propertyModel);
                     }
                     else if (destinationMember.UseDestinationValue(arg) || destinationMember.SetterModifier != AccessModifier.None)
@@ -200,17 +219,15 @@ namespace Mapster.Adapters
             return false;
         }
 
-        protected static bool ProcessIgnores(
+        protected static void ProcessIgnores(
             CompileArgument arg,
-            IMemberModel destinationMember,
+            IMemberModel destinationMember, 
             out IgnoreDictionary.IgnoreItem ignore)
         {
-            ignore = new IgnoreDictionary.IgnoreItem();
-            if (!destinationMember.ShouldMapMember(arg, MemberSide.Destination))
-                return true;
+            ignore = IgnoreDictionary.IgnoreItem.InvalidIgnore;
 
-            return arg.Settings.Ignore.TryGetValue(destinationMember.Name, out ignore)
-                   && ignore.Condition == null;
+            if(arg.Settings.Ignore.TryGetValue(destinationMember.Name, out var realIgnore))
+                ignore = realIgnore;
         }
 
         protected Expression CreateInstantiationExpression(Expression source, ClassMapping classConverter, CompileArgument arg, Expression? destination, ClassModel recordRestorParamModel = null)
@@ -218,7 +235,8 @@ namespace Mapster.Adapters
             var members = classConverter.Members;
 
             var arguments = new List<Expression>();
-            arg.Context.NullChecks.UnionWith(members.Where(x => x.Getter != null).Select(x => (x.Getter, arg)));
+            // ReadyToCleanUp
+            // arg.Context.NullChecks.UnionWith(members.Where(x => x.Getter != null).Select(x => (x.Getter, arg)));
             foreach (var member in members)
             {
                 var parameterInfo = (ParameterInfo)member.DestinationMember.Info!;
@@ -230,48 +248,49 @@ namespace Mapster.Adapters
                 {
                     defaultConst = parameterInfo.IsOptional && parameterInfo.DefaultValue != null
                     ? Expression.Constant(parameterInfo.DefaultValue, member.DestinationMember.Type)
-                    : parameterInfo.ParameterType.CreateDefault();
+                    : parameterInfo.ParameterType.CreateDefault(arg);
                 }
                 catch (FormatException)
                 {
-                    defaultConst = parameterInfo.ParameterType.CreateDefault();
+                    defaultConst = parameterInfo.ParameterType.CreateDefault(arg);
                 }
 
 #else
                 defaultConst = parameterInfo.IsOptional && parameterInfo.DefaultValue != null
                     ? Expression.Constant(parameterInfo.DefaultValue, member.DestinationMember.Type)
-                    : parameterInfo.ParameterType.CreateDefault();
+                    : parameterInfo.ParameterType.CreateDefault(arg);
 #endif
                 
-                if (member.Getter == null)
+                if (member.isNotFoundGetter)
                 {
                     getter = defaultConst;
 
                     if (arg.MapType == MapType.MapToTarget && arg.DestinationType.IsRecordType())
-                        getter = TryRestoreRecordMember(member.DestinationMember,recordRestorParamModel,destination) ?? getter;
+                        getter = TryRestoreRecordMember(member.DestinationMember,recordRestorParamModel,destination, arg) ?? getter;
                 }
                 else
                 {
+                    getter = GetMemberInlineAdapter(member, arg);
 
-                    if (member.Getter.CanBeNull() && member.Ignore.Condition == null
-                        && (member.DestinationMember.Type.IsAbstractOrNotPublicCtor()
-                            || member.DestinationMember.Type.UnwrapNullable().IsRecordType()))
-                    {
-                        var compareNull = Expression.Equal(member.Getter, Expression.Constant(null, member.Getter.Type));
-                        getter = Expression.Condition(ExpressionEx.Not(compareNull),
-                            CreateAdaptExpressionCore(member.Getter, member.DestinationMember.Type, arg, member),
-                           defaultConst);
-                    }
-                    else
-                       getter = member.Getter
-                            .ApplyNullPropagationFromCtor(CreateAdaptExpressionCore(member.Getter, member.DestinationMember.Type, arg, member), arg);
+                    //if (member.Getter.CanBeNull() && member.Ignore.Condition == null
+                    //    && (member.DestinationMember.Type.IsAbstractOrNotPublicCtor()
+                    //        || member.DestinationMember.Type.UnwrapNullable().IsRecordType()))
+                    //{
+                    //    var compareNull = Expression.Equal(member.Getter, Expression.Constant(null, member.Getter.Type));
+                    //    getter = Expression.Condition(ExpressionEx.Not(compareNull),
+                    //        CreateAdaptExpressionCore(member.Getter, member.DestinationMember.Type, arg, member),
+                    //       defaultConst);
+                    //}
+                    //else
+                    //   getter = member.Getter
+                    //        .ApplyNullPropagationFromCtor(CreateAdaptExpressionCore(member.Getter, member.DestinationMember.Type, arg, member,mapTypeCtor:MapType.CtorParam), arg, member);
+
                     
-
                     if (member.Ignore.Condition != null)
                     {
                         var body = member.Ignore.IsChildPath
                             ? member.Ignore.Condition.Body
-                            : member.Ignore.Condition.Apply(arg.MapType, source, arg.DestinationType.CreateDefault());
+                            : member.Ignore.Condition.Apply(arg.MapType, source, arg.DestinationType.CreateDefault(arg));
                         var condition = ExpressionEx.Not(body);
                         getter = Expression.Condition(condition, getter, defaultConst);
                     }
@@ -281,8 +300,9 @@ namespace Mapster.Adapters
                         getter = defaultConst;
 
                         if (arg.MapType == MapType.MapToTarget && arg.DestinationType.IsRecordType())
-                           getter = TryRestoreRecordMember(member.DestinationMember, recordRestorParamModel, destination) ?? getter;
+                           getter = TryRestoreRecordMember(member.DestinationMember, recordRestorParamModel, destination, arg) ?? getter;
                     }
+
                 }
                 arguments.Add(getter);
             }
@@ -335,7 +355,7 @@ namespace Mapster.Adapters
             };
         }
 
-        protected Expression? TryRestoreRecordMember(IMemberModelEx member, ClassModel? restorRecordModel, Expression? destination)
+        protected Expression? TryRestoreRecordMember(IMemberModelEx member, ClassModel? restorRecordModel, Expression? destination, CompileArgument arg)
         {
             if (restorRecordModel != null && destination != null)
             {
@@ -345,7 +365,7 @@ namespace Mapster.Adapters
                 if (find != null)
                 {
                     var compareNull = Expression.Equal(destination, Expression.Constant(null, destination.Type));
-                    return Expression.Condition(compareNull, member.Type.CreateDefault(), Expression.MakeMemberAccess(destination, (MemberInfo)find.Info));
+                    return Expression.Condition(compareNull, member.Type.CreateDefault(arg), Expression.MakeMemberAccess(destination, (MemberInfo)find.Info));
                 }
 
             }
@@ -368,6 +388,142 @@ namespace Mapster.Adapters
             return Expression.Call(getPropertyExpression, setValueMethod,
                 new[] { member.Destination, memberAsObject });
         }
+
+        /// <summary>
+        /// using for Map or Projection cases
+        /// </summary>
+        /// <param name="member"></param>
+        /// <param name="arg"></param>
+        /// <returns></returns>
+        protected Expression GetMemberInlineAdapter(MemberMapping member, CompileArgument arg)
+        {
+            Expression? result = null;
+            Expression defaultcase = null;
+
+            var modGetterLine = member.GetterLines.All(x => x.Condition == null) 
+                ? member.GetterLines.Take(1).Select(x => x.ApplyContextSettings(member, arg))
+                : member.GetterLines.Select(x => x.ApplyContextSettings(member, arg));
+            var single = modGetterLine.GetIfSingle();
+
+            if (single.getterLine != null && single.modCondition == null)
+            {
+                member.OverrideSettings = single.getterLine.OverrideSettings; // need refactoring
+
+                if (arg.MapType == MapType.Projection)
+                {
+                    var test = single.getterLine.NullPropagationChecker.ApplyProjectionNullCheck(single.modgetter);
+                    var adapt = CreateAdaptExpression(single.modgetter, member.DestinationMember.Type, arg, member);
+                    var def = adapt.Type.CreateDefault();
+
+                    return Expression.Condition(test, adapt, def);
+                }    
+                    //return Expression.Condition(single.getterLine.NullPropagationChecker.ApplyProjectionNullCheck(single.modgetter), 
+                    //    CreateAdaptExpression(single.modgetter, member.DestinationMember.Type, arg, member),
+                    //    member.DestinationMember.Type.CreateDefault()
+                    //    );
+
+
+                return CreateAdaptExpression(single.modgetter, member.DestinationMember.Type, arg, member);
+            }
+               
+
+
+            foreach (var item in modGetterLine)
+            {
+                member.OverrideSettings = item.getterLine.OverrideSettings; // need refactoring
+
+                item.getterLine.TransformFunc = CreateAdaptExpression(item.modgetter, member.DestinationMember.Type, arg, member);
+            }
+
+          //  if (member.GetterLines.Any(x => x.Condition != null))
+            defaultcase = member.RestoreDestinationMemberExp 
+                ?? modGetterLine.Where(x => x.modCondition == null).FirstOrDefault().getterLine?.TransformFunc ?? member.DestinationMember.Type.CreateDefault();
+
+            foreach (var item in modGetterLine.Where(x => x.modCondition != null).Reverse())
+            {
+                if (result == null)
+                {
+                    result = Expression.Condition(item.modCondition, item.getterLine.TransformFunc, defaultcase);
+                }
+                else
+                    result = Expression.Condition(item.modCondition, item.getterLine.TransformFunc, result);
+            }
+
+            return result;
+        }
+
+
+        protected List<Expression> GetMemberMapToTargetAdapter(MemberMapping member, Expression? destination, Expression result, CompileArgument arg)
+        {
+            var resultLines = new List<Expression>();
+
+            var resultMember = arg.MapType == MapType.MapToTarget || member.UseDestinationValue
+                    ? member.DestinationMember.GetExpression(result)
+                    : null;
+
+            var modGetterLine = member.GetterLines.All(x => x.Condition == null)
+               ? member.GetterLines.Take(1).Select(x => x.ApplyContextSettings(member,arg))
+               : member.GetterLines.Select(x => x.ApplyContextSettings(member, arg));
+
+            var single = modGetterLine.GetIfSingle();
+
+            if (single.getterLine != null && single.modCondition == null)
+
+            {
+                member.OverrideSettings = single.getterLine.OverrideSettings; // need refactoring
+
+                var adapt = CreateAdaptExpression(single.modgetter, member.DestinationMember.Type, arg, member, resultMember);
+                var transformAdapt = adapt.ApplyUseDesitationValueAndInitOnlyProps(member, arg);
+
+                if(adapt == transformAdapt && member.DestinationMember.SetterModifier != AccessModifier.None)
+                    resultLines.Add(member.DestinationMember.SetExpression(result, adapt));
+                else
+                    resultLines.Add(transformAdapt);
+            }
+
+
+            foreach (var item in modGetterLine.Where(x => x.modCondition != null))
+            {
+                if (member.DestinationMember.SetterModifier == AccessModifier.None
+                    && !member.UseDestinationValue)
+                    continue;
+
+                member.OverrideSettings = item.getterLine.OverrideSettings; // need refactoring
+
+                var adapt = CreateAdaptExpression(item.modgetter, member.DestinationMember.Type, arg, member, resultMember);
+                var transformAdapt = adapt.ApplyUseDesitationValueAndInitOnlyProps(member, arg);
+
+                if (transformAdapt == null)
+                    continue;
+
+                if (adapt == transformAdapt && member.DestinationMember.SetterModifier != AccessModifier.None)
+                {
+                    resultLines.Add(
+                    Expression.IfThen(item.modCondition, member.DestinationMember.SetExpression(result, adapt)));
+                }
+                else
+                    resultLines.Add(
+                        Expression.IfThen(item.modCondition, transformAdapt));
+            }
+
+
+            if(member.Ignore.Condition != null)
+            {
+                var test = member.Ignore.IsChildPath
+                            ? member.Ignore.Condition.Body
+                            : member.Ignore.Condition.Apply(arg.MapType, member.Source, destination);
+
+                var ApplyIgnore = Expression.IfThen(Expression.Not(test), Expression.Block(resultLines));
+                resultLines.Clear();
+                resultLines.Add(ApplyIgnore);
+
+            }
+
+            return resultLines;
+        }
+
+
+
 
 #endregion
     }

@@ -159,7 +159,7 @@ namespace Mapster.Adapters
             actions.Add(loop);
 
             if (label != null)
-                actions.Add(Expression.Label(label, arg.DestinationType.CreateDefault()));
+                actions.Add(Expression.Label(label, arg.DestinationType.CreateDefault(arg)));
 
             return shouldConvert
                 ? Expression.Block(new[] {(ParameterExpression)dict}, actions)
@@ -206,7 +206,8 @@ namespace Mapster.Adapters
                 lines.AddRange(listInit.Initializers);
             foreach (var member in members)
             {
-                var value = CreateAdaptExpression(member.Getter, member.DestinationMember.Type, arg);
+               // var value = CreateAdaptExpression(member.Getter, member.DestinationMember.Type, arg);
+                var value = GetMemberInlineAdapter(member, arg);
 
                 Expression key = Expression.Constant(member.DestinationMember.Name);
                 var itemInit = Expression.ElementInit(add!, key, value);

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace Mapster.Utils
 {
@@ -152,6 +153,11 @@ namespace Mapster.Utils
             return lambda.Apply(mapType != MapType.Projection, exps);
         }
 
+        public static Expression ApplyExtraSources(this LambdaExpression lambda, MapType mapType, params Expression[] exps)
+        {
+            return lambda.ApplyExtraSources(mapType != MapType.Projection, exps);
+        }
+
         public static Expression Apply(this LambdaExpression lambda, ParameterExpression p1, ParameterExpression? p2 = null)
         {
             if (p2 == null)
@@ -163,6 +169,15 @@ namespace Mapster.Utils
         private static Expression Apply(this LambdaExpression lambda, bool allowInvoke, params Expression[] exps)
         {
             var replacer = new ParameterExpressionReplacer(lambda.Parameters, exps);
+            var result = replacer.Visit(lambda.Body);
+            if (!allowInvoke || !replacer.ReplaceCounts.Where((n, i) => n > 1 && exps[i].IsComplex()).Any())
+                return result!;
+            return Expression.Invoke(lambda, exps);
+        }
+
+        private static Expression ApplyExtraSources(this LambdaExpression lambda, bool allowInvoke, params Expression[] exps)
+        {
+            var replacer = new ParameterExpressionReplacer(lambda.Parameters,true, exps);
             var result = replacer.Visit(lambda.Body);
             if (!allowInvoke || !replacer.ReplaceCounts.Where((n, i) => n > 1 && exps[i].IsComplex()).Any())
                 return result!;
@@ -371,7 +386,7 @@ namespace Mapster.Utils
             return detector.IsBlockExpression;
         }
 
-        public static Expression NotNullReturn(this Expression exp, Expression value)
+        public static Expression NotNullReturn(this Expression exp, Expression value, CompileArgument arg)
         {
             if (value.IsSingleValue() || !exp.CanBeNull())
                 return value;
@@ -379,7 +394,7 @@ namespace Mapster.Utils
             var compareNull = Expression.Equal(exp, Expression.Constant(null, exp.Type));
             return Expression.Condition(
                 compareNull,
-                value.Type.CreateDefault(),
+                value.Type.CreateDefault(arg),
                 value);
         }
 
@@ -407,7 +422,236 @@ namespace Mapster.Utils
 
             return param;
         }
-        public static Expression ApplyPropertyNullPropagation(this Expression getter)
+
+        public static void CreateNullPropagationChecker(this MemberMapping mapping, CompileArgument arg)
+        {
+            var IsSingleSource = mapping.GetterLines.Select(x => x.Source).Distinct().SingleOrDefault();
+            
+            if(IsSingleSource != null)
+            {
+                var finder = new DirectParameterMemberFinder(false, IsSingleSource);
+
+                foreach (var item in mapping.GetterLines)
+                {
+                    item.NullPropagationChecker = finder.Find(item.Getter)
+                    .Select(x => x.GetNullPropagationChecks(arg))
+                    .Where(x => x != null)
+                    .ToArray().ConcatPropagationChecks();
+                }
+
+            }
+            else // multisource
+            {
+                foreach (var item in mapping.GetterLines)
+                {
+                    var finder = new DirectParameterMemberFinder(false, IsSingleSource);
+                    
+                    item.NullPropagationChecker = finder.Find(item.Getter)
+                    .Select(x => x.GetNullPropagationChecks(arg))
+                    .Where(x => x != null)
+                    .ToArray().ConcatPropagationChecks();
+                }
+            }
+        }
+
+        public static Expression ApplyProjectionNullCheck(this Expression test, Expression getter)
+        {
+            if (getter.Type.CanBeNull())
+                return Expression.AndAlso(test, Expression.NotEqual(getter,getter.Type.CreateDefault()));
+           
+            return test;
+        }
+
+        public static Expression? ApplyUseDesitationValueAndInitOnlyProps(this Expression adapt, MemberMapping member, CompileArgument arg)
+        {
+
+            if(member.DestinationMember.Info is PropertyInfo propertyInfo)
+            {
+                if (propertyInfo.IsInitOnly() 
+                 || member.UseDestinationValue
+                 && member.DestinationMember.Type.IsMapsterImmutable()
+                 && member.DestinationMember.SetterModifier == AccessModifier.None)
+                    return SetValueTypeAutoPropertyByReflection(member, adapt, arg.DestinationType.GetFieldsAndProperties(true));
+            }
+
+            return adapt;
+        }
+
+        private static Expression? SetValueTypeAutoPropertyByReflection(MemberMapping member, Expression adapt, IEnumerable<IMemberModelEx> destinationProperty)
+        {
+            var modDesinationMemeberName = $"<{member.DestinationMember.Name}>k__BackingField";
+            if (destinationProperty.Any(x => x.Name == modDesinationMemeberName) == false) // Property is not autoproperty
+                return null;
+            var typeofExpression = Expression.Constant(member.Destination!.Type);
+            var getPropertyMethod = typeof(Type).GetMethod("GetField", new[] { typeof(string), typeof(BindingFlags) })!;
+            var getPropertyExpression = Expression.Call(typeofExpression, getPropertyMethod,
+                Expression.Constant(modDesinationMemeberName), Expression.Constant(BindingFlags.Instance | BindingFlags.NonPublic));
+            var setValueMethod =
+                typeof(FieldInfo).GetMethod("SetValue", new[] { typeof(object), typeof(object) })!;
+            var memberAsObject = adapt.To(typeof(object));
+            return Expression.Call(getPropertyExpression, setValueMethod,
+                new[] { member.Result ?? member.Destination, memberAsObject });
+        }
+
+
+
+        public static (Expression? modgetter, Expression? modCondition, GetterLine getterLine) ApplyContextSettings(this GetterLine getterLine, MemberMapping member, CompileArgument arg)
+        {
+            if (getterLine.Getter == null)
+                return (getterLine.Getter, getterLine.Condition, getterLine);
+
+            var modgetter = arg.MapType == MapType.Projection ? getterLine.Getter : getterLine.Getter.CreateNullPropagation(getterLine.NullPropagationChecker);
+
+            // create test expression -> modgetter != null && getterLine.Condition
+            var modCondition = arg.Settings.IgnoreNullValues.GetValueOrDefault() == false ? getterLine.Condition
+                : modgetter.CanBeNull() == false ? getterLine.Condition
+                : getterLine.Condition == null ? modgetter.NotNullTestCondition()
+                : Expression.AndAlso(modgetter.NotNullTestCondition(), getterLine.Condition);
+
+            if(arg.DestinationType.IsRecordType() && member.Ignore.Condition != null)
+            {
+                var test = member.Ignore.IsChildPath
+                            ? member.Ignore.Condition.Body
+                            : member.Ignore.Condition.Apply(arg.MapType, member.Source, member.Destination);
+
+                modCondition = modCondition == null ? Expression.Not(test)
+                    : Expression.AndAlso(modCondition, Expression.Not(test));
+            }
+
+            return (modgetter, modCondition, getterLine);
+
+        }
+
+        public static Expression NotNullTestCondition(this Expression exp)
+        {
+            if (exp.Type.CanBeNull())
+                return Expression.NotEqual(exp, Expression.Constant(null, exp.Type));
+            else
+                throw new ArgumentException($"Expression: {exp} never return null!");
+        }
+
+        public static Expression CreateNullPropagation(this Expression getter, Expression? condition)
+        {
+            if (condition == null)
+                return getter;
+
+            if (!getter.Type.CanBeNull())
+            {
+                var transform = Expression.Convert(getter, typeof(Nullable<>).MakeGenericType(getter.Type));
+                return Expression.Condition(condition, transform, transform.Type.CreateDefault());
+            }
+            else
+                return Expression.Condition(condition, getter, getter.Type.CreateDefault());
+        }
+
+
+        public static Expression ApplyPropertyNullPropagation(this Expression getter, CompileArgument arg, Expression source)
+        {
+            var current = getter;
+            var result = getter;
+            Expression? condition = null;
+
+            var finder = new DirectParameterMemberFinder(false,source);
+            var condition2 = finder.Find(getter)
+                .Select(x => x.GetNullPropagationChecks(arg))
+                .Where(x => x != null)
+                .ToArray().ConcatPropagationChecks();
+
+            if (condition2 == null)
+                return getter;
+
+            if (!getter.Type.CanBeNull())
+            {
+                var transform = Expression.Convert(getter, typeof(Nullable<>).MakeGenericType(getter.Type));
+                return Expression.Condition(condition2, transform, transform.Type.CreateDefault());
+            }
+            else
+                return Expression.Condition(condition2, getter, getter.Type.CreateDefault());
+        }  
+
+        public static Expression ApplyNullPropagationFromCtor(this Expression getter, Expression adapt, CompileArgument arg, MemberMapping mapping)
+        {
+            if (getter == null)
+                return adapt;
+
+            var finder = new DirectParameterMemberFinder(true,mapping.Source);
+
+            Expression? condition = finder.Find(getter)
+                .Select(x => x.GetNullPropagationChecks(arg))
+                .Where(x => x != null)
+                .ToArray().ConcatPropagationChecks();
+
+            if (condition == null)
+                return adapt;
+
+            // add supporting DestinationTransforms
+            var transform = arg.Settings.DestinationTransforms.Find(it => it.Condition(adapt.Type));
+            if (transform != null)
+                return transform.TransformFunc(adapt.Type).Apply(arg.MapType, Expression.Condition(condition, adapt, adapt.Type.CreateDefault(arg)));
+
+            return Expression.Condition(condition, adapt, adapt.Type.CreateDefault(member: mapping));
+        }
+
+
+        private static Expression? ConcatPropagationChecks(this Expression[] checks)
+        {
+            if (checks.Length == 0)
+                return null;
+
+            if (checks.Length == 1)
+                return checks.First();
+
+            Expression? result = null;
+
+            for (int i = 0; i < checks.Length; i++)
+            {
+                if (i == 0)
+                    result = checks[i];
+                else
+                {
+                    result = Expression.AndAlso(result, checks[i]);
+                }
+
+            }
+
+            return result;
+        }
+
+        private static Expression? GetNullPropagationChecks (this Expression getter, CompileArgument arg)
+        {
+            Expression? condition = null;
+            var current = getter;
+          
+            while (current != null)
+            {
+                Expression? compareNull = null;
+
+                if (current.Type.CanBeNull() && current is not ParameterExpression)
+                    compareNull = Expression.NotEqual(current, Expression.Constant(null, current.Type));
+             
+                else if (current.Type.CanBeNull() && current is ParameterExpression param
+                    && arg.MapType == MapType.Projection)
+
+                    compareNull = Expression.NotEqual(param, Expression.Constant(null, param.Type));
+
+                if (compareNull != null)
+                {
+                    if (condition == null)
+                        condition = compareNull;
+                    else
+                        condition = Expression.AndAlso(compareNull, condition);
+                }
+
+                if (current is MemberExpression member)
+                    current = member.Expression;
+                else
+                    current = null;
+            }
+
+            return condition;
+        }
+
+        public static Expression ApplyPropertyNullPropagationLegasy(this Expression getter, CompileArgument arg)
         {
             var current = getter;
             var result = getter;
@@ -415,7 +659,7 @@ namespace Mapster.Utils
 
             while (current.NodeType == ExpressionType.MemberAccess)
             {
-                var memEx = (MemberExpression) current;
+                var memEx = (MemberExpression)current;
                 var expr = memEx.Expression;
                 if (expr == null)
                     break;
@@ -445,16 +689,17 @@ namespace Mapster.Utils
             return getter;
         }
 
-        public static Expression ApplyNullPropagationFromCtor(this Expression getter, Expression adapt, CompileArgument arg)
+        public static Expression ApplyNullPropagationFromCtorLegasy(this Expression getter, Expression adapt, CompileArgument arg, MemberMapping mapping)
         {
             if (getter == null)
                 return adapt;
 
             Expression? condition = null;
             var current = getter;
-            var checks = arg.Context.NullChecks
-                .Where(x => !object.ReferenceEquals(x.arg, arg))
-                .Select(x => x.param);
+            // ReadyToCleanUp
+            //var checks = arg.Context.NullChecks
+            //    .Where(x => !object.ReferenceEquals(x.arg, arg))
+            //    .Select(x => x.param);
 
             while (current != null) 
             {
@@ -462,8 +707,12 @@ namespace Mapster.Utils
 
                 if (current.CanBeNull() && current is not ParameterExpression)
                     compareNull = Expression.NotEqual(current, Expression.Constant(null, current.Type));
+                // ReadyToCleanUp
+                //else if (current.CanBeNull() && current is ParameterExpression param
+                //    && !checks.Contains(param))
                 else if (current.CanBeNull() && current is ParameterExpression param
-                    && !checks.Contains(param))
+                    && arg.MapType == MapType.Projection)
+
                     compareNull = Expression.NotEqual(param, Expression.Constant(null, param.Type));
 
                 if (compareNull != null)
@@ -486,9 +735,9 @@ namespace Mapster.Utils
             // add supporting DestinationTransforms
             var transform = arg.Settings.DestinationTransforms.Find(it => it.Condition(adapt.Type));
             if (transform != null)
-                return transform.TransformFunc(adapt.Type).Apply(arg.MapType, Expression.Condition(condition, adapt, Expression.Default(adapt.Type)));
+                return transform.TransformFunc(adapt.Type).Apply(arg.MapType, Expression.Condition(condition, adapt, adapt.Type.CreateDefault(arg)));
 
-            return Expression.Condition(condition, adapt, Expression.Default(adapt.Type));
+            return Expression.Condition(condition, adapt, adapt.Type.CreateDefault(member:mapping));
         }
 
         public static string? GetMemberPath(this LambdaExpression lambda, bool firstLevelOnly = false, bool noError = false)
