@@ -46,25 +46,6 @@ namespace Mapster.Adapters
                 
                 ProcessIgnores(arg, destinationMember, out var ignore);
 
-                if (arg.MapType == MapType.Projection && propertyModel.GetterLines.Count != 0)
-                {
-                    var s = new TopLevelMemberNameVisitor();
-
-                    foreach (var item in propertyModel.GetterLines)
-                    {
-                        s.Visit(item.Getter);
-
-                        if (s.MemberName != null && arg.Settings.ProjectToTypeResolvers.TryGetValue(s.MemberName, out var match))
-                        {
-                            var transFormGetter = (match.Operand as LambdaExpression)?.Apply((ParameterExpression)source);
-
-                            if(transFormGetter != null)
-                                item.ReplaceGetter(transFormGetter);
-                        }
-                    }
-
-                }
-
                 var nextIgnore = arg.Settings.Ignore.Next((ParameterExpression)source, (ParameterExpression?)destination, destinationMember.Name);
                 var nextResolvers = arg.Settings.Resolvers.Next(arg.Settings.Ignore, (ParameterExpression)source, destinationMember.Name)
                     .ToList();

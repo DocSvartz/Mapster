@@ -493,6 +493,31 @@ namespace Mapster.Utils
                 new[] { member.Result ?? member.Destination, memberAsObject });
         }
 
+        public static Expression? TransformGetterToProjection(this Expression? getter, MemberMapping member, CompileArgument arg)
+        { 
+            /// Apply .Include() to getter 
+
+            if (getter is null)
+                return getter;
+
+            if (arg.Settings.ProjectToTypeResolvers.Count == 0)
+                return getter;
+
+            var s = new TopLevelMemberNameVisitor();
+
+            s.Visit(getter);
+
+            if (s.MemberName != null && arg.Settings.ProjectToTypeResolvers.TryGetValue(s.MemberName, out var match))
+            {
+                var transFormGetter = (match.Operand as LambdaExpression)?.Apply(member.Source);
+
+                if (transFormGetter != null)
+                    return transFormGetter;
+            }
+
+            return getter;
+        }
+
 
 
         public static (Expression? modgetter, Expression? modCondition, GetterLine getterLine) ApplyContextSettings(this GetterLine getterLine, MemberMapping member, CompileArgument arg)
@@ -500,7 +525,8 @@ namespace Mapster.Utils
             if (getterLine.Getter == null)
                 return (getterLine.Getter, getterLine.Condition, getterLine);
 
-            var modgetter = arg.MapType == MapType.Projection ? getterLine.Getter : getterLine.Getter.CreateNullPropagation(getterLine.NullPropagationChecker);
+            var modgetter = arg.MapType == MapType.Projection ? getterLine.Getter.TransformGetterToProjection(member,arg)
+                    : getterLine.Getter.CreateNullPropagation(getterLine.NullPropagationChecker);
 
             // create test expression -> modgetter != null && getterLine.Condition
             var modCondition = arg.Settings.IgnoreNullValues.GetValueOrDefault() == false ? getterLine.Condition

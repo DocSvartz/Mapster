@@ -39,15 +39,12 @@ namespace Mapster.Models
         }
 
         public Expression Source {  get; init; }
-        public Expression? Getter {  get; private set; }
+        public Expression? Getter {  get; init; }
         public TypeAdapterSettings? OverrideSettings { get; init; }
         public Expression? Condition { get; set; }
         public Expression? NullPropagationChecker { get; set; }
         public Expression? TransformFunc { get; set; }
         public bool IsCustomMap { get; init; }
-        public void ReplaceGetter(Expression getter)
-        {
-            Getter = getter;
-        }
+        
     }
 }
