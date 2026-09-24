@@ -226,7 +226,7 @@ namespace Mapster.Adapters
             if (arg.SourceType.GetDictionaryType() == null)
             {
                 var srcNames = arg.GetSourceNames();
-                var propNames = arg.SourceType.GetFieldsAndProperties(true)
+                var propNames = arg.SourceType.GetFieldsAndProperties(arg, true)
                     .Where(model => model.ShouldMapMember(arg, MemberSide.Source))
                     .Select(model => model.Name)
                     .Where(name => !srcNames.Contains(name))

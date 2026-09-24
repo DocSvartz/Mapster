@@ -686,6 +686,7 @@ namespace Mapster
                 DestinationType = tuple.Destination,
                 MapType = mapType,
                 ExplicitMapping = RuleMap.ContainsKey(tuple),
+                TypeMemberModelsCache = this.TypeMemberModelsCache
 
             };
 

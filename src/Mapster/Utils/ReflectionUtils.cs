@@ -73,22 +73,43 @@ namespace Mapster
 
         public static IEnumerable<IMemberModelEx> GetFieldsAndProperties(this Type type, PreCompileArgument arg, bool includeNonPublic = false, AttributeMetadataCache? attributeMetadata = null)
         {
-            var filterBindingFlags = BindingFlags.Instance | BindingFlags.Public;
-            if (includeNonPublic)
-                filterBindingFlags |= BindingFlags.NonPublic;
+           arg.TypeMemberModelsCache.TryGetValue(type, out var model);
 
+            if(model is null)
+            {
+                model = type.GetAllFieldsAndProperties(attributeMetadata).ToArray();
+                arg.TypeMemberModelsCache.TryAdd(type, model);
+            }
 
-            var members = type.GetMembers(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            if(includeNonPublic)
+                return model;
 
-            var firstMembersByName = CreateFirstMembersByName();
+            return model.Where(member => ((member.Info as MemberInfo)?.IsPublicPropertyOrField()).GetValueOrDefault());
 
         }
 
         public static IEnumerable<IMemberModelEx> GetFieldsAndProperties(this Type type, CompileArgument arg, bool includeNonPublic = false, AttributeMetadataCache? attributeMetadata = null)
         {
-            var bindingFlags = BindingFlags.Instance | BindingFlags.Public;
+            arg.Context.Config.TypeMemberModelsCache.TryGetValue(type, out var model);
+
+            if (model is null)
+            {
+                model = type.GetAllFieldsAndProperties(attributeMetadata).ToArray();
+                arg.Context.Config.TypeMemberModelsCache.TryAdd(type, model);
+            }
+
             if (includeNonPublic)
-                bindingFlags |= BindingFlags.NonPublic;
+                return model;
+
+            return model.Where(member => ((member.Info as MemberInfo)?.IsPublicPropertyOrField()).GetValueOrDefault());
+        }
+
+        private static IEnumerable<IMemberModelEx> GetAllFieldsAndProperties(this Type type, AttributeMetadataCache? attributeMetadata = null)
+        {
+           
+            IEnumerable<MemberInfo> members = type.GetTypeInfo().IsInterface 
+                ? GetAllInterfaces(type).SelectMany(type => type.GetMembers(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
+                : type.GetMembers(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 
             var currentTypeMembers = type.FindMembers(MemberTypes.Property | MemberTypes.Field,
                  BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
@@ -96,22 +117,36 @@ namespace Mapster
 
             var firstMembersByName = CreateFirstMembersByName(currentTypeMembers);
 
-            if (type.GetTypeInfo().IsInterface)
-            {
-                var allInterfaces = GetAllInterfaces(type);
-                return allInterfaces.SelectMany(GetPropertiesFunc);
-            }
-
-            return GetPropertiesFunc(type).Concat(GetFieldsFunc(type));
+            return GetPropertiesFunc(members).Concat(GetFieldsFunc(members));
 
 
-            IEnumerable<IMemberModelEx> GetPropertiesFunc(Type t) => t.GetProperties(bindingFlags)
+            IEnumerable<IMemberModelEx> GetPropertiesFunc(IEnumerable<MemberInfo> t) =>
+                t.OfType<PropertyInfo>()
                 .Where(x => x.GetIndexParameters().Length == 0).DropHiddenMembers(firstMembersByName)
                 .Select(x => new PropertyModel(x, attributeMetadata));
 
-            IEnumerable<IMemberModelEx> GetFieldsFunc(Type t) =>
-                t.GetFields(bindingFlags).DropHiddenMembers(firstMembersByName)
+            IEnumerable<IMemberModelEx> GetFieldsFunc(IEnumerable<MemberInfo> t) =>
+                t.OfType<FieldInfo>()
+                .DropHiddenMembers(firstMembersByName)
                 .Select(x => new FieldModel(x, attributeMetadata));
+        }
+
+        public static bool IsPublicPropertyOrField(this MemberInfo member)
+        {
+            if (member is PropertyInfo property)
+                return property.IsPublicProperty();
+            if (member is FieldInfo field)
+                return field.IsPublic;
+
+            return false;
+        } 
+        public static bool IsPublicProperty(this PropertyInfo property)
+        {
+            if (property.CanRead && property.GetMethod.IsPublic) return true;
+
+            if (property.CanWrite && property.SetMethod.IsPublic) return true;
+
+            return false;
         }
 
         public static IEnumerable<T> DropHiddenMembers<T>(this IEnumerable<T> allMembers, ICollection<MemberInfo> currentTypeMembers) where T : MemberInfo
