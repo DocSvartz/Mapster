@@ -31,10 +31,9 @@ namespace Mapster.Adapters
                 arg.Settings.ExtraSources.Select(src => ResolverSourceInput.ConvertFrom(src,source,arg)));
             foreach (var destinationMember in destinationMembers)
             {
-                if (!destinationMember.ShouldMapMember(arg, MemberSide.Destination))
-                    continue;
-
                 var propertyModel = new MemberMapping();
+
+                ProcessIgnores(arg, destinationMember, out var ignore);
 
                 var resolvers = arg.Settings.ValueAccessingStrategies.AsEnumerable();
                 if (arg.Settings.IgnoreNonMapped == true)
@@ -44,8 +43,6 @@ namespace Mapster.Adapters
                         select fn(src, destinationMember, propertyModel, arg))
                     .FirstOrDefault(result => result);
                 
-                ProcessIgnores(arg, destinationMember, out var ignore);
-
                 var nextIgnore = arg.Settings.Ignore.Next((ParameterExpression)source, (ParameterExpression?)destination, destinationMember.Name);
                 var nextResolvers = arg.Settings.Resolvers.Next(arg.Settings.Ignore, (ParameterExpression)source, destinationMember.Name)
                     .ToList();
@@ -167,10 +164,15 @@ namespace Mapster.Adapters
             IMemberModel destinationMember, 
             out IgnoreDictionary.IgnoreItem ignore)
         {
-            ignore = IgnoreDictionary.IgnoreItem.InvalidIgnore;
+            if (!destinationMember.ShouldMapMember(arg, MemberSide.Destination))
+                ignore = new IgnoreDictionary.IgnoreItem(); // equal to set Ignore without condition;
+            else
+            {
+                ignore = IgnoreDictionary.IgnoreItem.InvalidIgnore; // Ignore is not set
 
-            if(arg.Settings.Ignore.TryGetValue(destinationMember.Name, out var realIgnore))
-                ignore = realIgnore;
+                if (arg.Settings.Ignore.TryGetValue(destinationMember.Name, out var realIgnore))
+                    ignore = realIgnore; // сonditional Ignore set
+            }
         }
 
         protected Expression CreateInstantiationExpression(Expression source, ClassMapping classConverter, CompileArgument arg, Expression? destination, ClassModel recordRestorParamModel = null)

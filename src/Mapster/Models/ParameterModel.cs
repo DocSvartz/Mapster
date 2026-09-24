@@ -12,13 +12,19 @@ namespace Mapster.Models
         public ParameterModel(ParameterInfo parameterInfo)
         {
             _parameterInfo = parameterInfo;
+            IsRequired = !parameterInfo.IsOptional;
         }
 
         public Type Type => _parameterInfo.ParameterType;
         public string Name => _parameterInfo.Name.ToPascalCase();
         public object Info => _parameterInfo;
+        public bool IsBackField => false;
+        public bool IsRequired { get; private set; }
+
         public AccessModifier SetterModifier => AccessModifier.Public;
         public AccessModifier AccessModifier => AccessModifier.Public;
+
+        
 
         public Expression GetExpression(Expression source)
         {

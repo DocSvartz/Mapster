@@ -82,12 +82,15 @@ namespace Mapster.Adapters
                                
                 if (member.Ignore.WithOutCondition && !member.IsMaybeReMapping)
                 {
+                    if (member.DestinationMember.IsBackField) // not restore Backfields
+                        continue;
+
                     if (arg.MapType == MapType.MapToTarget)
                         lines.Add(
                             Expression.Bind((MemberInfo)member.DestinationMember.Info!, member.DestinationMember.GetExpression(destination)));
-                    else
-                        lines.Add(
-                            Expression.Bind((MemberInfo)member.DestinationMember.Info!, member.DestinationMember.Type.CreateDefault()));
+                    //else
+                    //    lines.Add(
+                    //        Expression.Bind((MemberInfo)member.DestinationMember.Info!, member.DestinationMember.Type.CreateDefault()));
                     continue;
                 }
 
@@ -114,6 +117,9 @@ namespace Mapster.Adapters
                 {
                     if (arg.MapType == MapType.MapToTarget && member.RestoreDestinationMemberExp != null)
                     {
+                        if (member.DestinationMember.IsBackField) // not restore Backfields
+                            continue;
+
                         var adapt = member.RestoreDestinationMemberExp
                             .ApplyUseDesitationValueAndInitOnlyProps(member, arg);
 
