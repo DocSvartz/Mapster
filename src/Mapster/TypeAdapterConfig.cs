@@ -16,6 +16,7 @@ namespace Mapster
     {
         public static List<TypeAdapterRule> RulesTemplate { get; } = CreateRuleTemplate();
         public static TypeAdapterConfig GlobalSettings { get; } = new TypeAdapterConfig();
+        public ConcurrentDictionary<Type, IMemberModelEx[]> TypeMemberModelsCache { get; } = new();
 
         private static List<TypeAdapterRule> CreateRuleTemplate()
         {
@@ -685,6 +686,7 @@ namespace Mapster
                 DestinationType = tuple.Destination,
                 MapType = mapType,
                 ExplicitMapping = RuleMap.ContainsKey(tuple),
+
             };
 
             //auto add setting if there is attr setting

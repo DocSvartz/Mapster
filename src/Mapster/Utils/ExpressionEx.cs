@@ -471,7 +471,7 @@ namespace Mapster.Utils
                  || member.UseDestinationValue
                  && member.DestinationMember.Type.IsMapsterImmutable()
                  && member.DestinationMember.SetterModifier == AccessModifier.None)
-                    return SetValueTypeAutoPropertyByReflection(member, adapt, arg.DestinationType.GetFieldsAndProperties(true));
+                    return SetValueTypeAutoPropertyByReflection(member, adapt, arg.DestinationType.GetFieldsAndProperties(arg, true));
             }
 
             return adapt;

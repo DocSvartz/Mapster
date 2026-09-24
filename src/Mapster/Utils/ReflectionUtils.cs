@@ -2,6 +2,7 @@
 using Mapster.Utils;
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -51,7 +52,7 @@ namespace Mapster
             return !type.GetTypeInfo().IsValueType || type.IsNullable();
         }
 
-        public static bool IsPoco(this Type type)
+        public static bool IsPoco(this Type type, IEnumerable<IMemberModelEx> members)
         {
             //not nullable
             if (type.IsNullable())
@@ -67,10 +68,23 @@ namespace Mapster
             if (type.IsClass && type.GetProperties().Count() != 0)
                 return true;
 
-            return type.GetFieldsAndProperties().Any(it => (it.SetterModifier & (AccessModifier.Public | AccessModifier.NonPublic)) != 0);
+            return members.Any(it => (it.SetterModifier & (AccessModifier.Public | AccessModifier.NonPublic)) != 0);
         }
 
-        public static IEnumerable<IMemberModelEx> GetFieldsAndProperties(this Type type, bool includeNonPublic = false, AttributeMetadataCache? attributeMetadata = null)
+        public static IEnumerable<IMemberModelEx> GetFieldsAndProperties(this Type type, PreCompileArgument arg, bool includeNonPublic = false, AttributeMetadataCache? attributeMetadata = null)
+        {
+            var filterBindingFlags = BindingFlags.Instance | BindingFlags.Public;
+            if (includeNonPublic)
+                filterBindingFlags |= BindingFlags.NonPublic;
+
+
+            var members = type.GetMembers(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
+            var firstMembersByName = CreateFirstMembersByName();
+
+        }
+
+        public static IEnumerable<IMemberModelEx> GetFieldsAndProperties(this Type type, CompileArgument arg, bool includeNonPublic = false, AttributeMetadataCache? attributeMetadata = null)
         {
             var bindingFlags = BindingFlags.Instance | BindingFlags.Public;
             if (includeNonPublic)
@@ -478,7 +492,7 @@ namespace Mapster
             return type.IsMapsterPrimitive() || type.IsRecordType();
         }
 
-        public static bool IsNotSelfCreation(this Type type)
+        public static bool IsNotSelfCreation(this Type type, IEnumerable<IMemberModelEx> members)
         {
             if (type.IsMapsterPrimitive())
                 return false;
@@ -490,7 +504,7 @@ namespace Mapster
                 return true;
             
 
-            return type.GetFieldsAndProperties().All(it => (it.SetterModifier & (AccessModifier.Public | AccessModifier.NonPublic)) == 0);
+            return members.All(it => (it.SetterModifier & (AccessModifier.Public | AccessModifier.NonPublic)) == 0);
         }
 
         public static bool IsNotCustomConverterFactory(this CompileArgument arg, TypeAdapterRule? rule)

@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Mapster.Models;
+using System;
+using System.Collections.Concurrent;
 
 namespace Mapster
 {
@@ -9,5 +11,6 @@ namespace Mapster
         public Type DestinationType;
         public MapType MapType;
         public bool ExplicitMapping;
+        public ConcurrentDictionary<Type, IMemberModelEx[]> TypeMemberModelsCache { get; init; }
     }
 }

@@ -254,7 +254,7 @@ namespace Mapster.Adapters
         {
             return new ClassModel
             {
-                Members = arg.DestinationType.GetFieldsAndProperties(true)
+                Members = arg.DestinationType.GetFieldsAndProperties(arg,true)
             };
         }
 
@@ -278,7 +278,7 @@ namespace Mapster.Adapters
         {
             return new ClassModel
             {
-                Members = arg.DestinationType.GetFieldsAndProperties(true)
+                Members = arg.DestinationType.GetFieldsAndProperties(arg,true)
                     .Where(x => x.GetType() == typeof(PropertyModel))
                     .Where(y => ((PropertyInfo)y.Info).GetCustomAttributes()
                     .Any(y => y.GetType().FullName == "System.Runtime.CompilerServices.RequiredMemberAttribute"))

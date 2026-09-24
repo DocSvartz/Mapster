@@ -62,7 +62,7 @@ namespace Mapster
         private static bool PropertyOrFieldFn(ResolverSourceInput srcInput, IMemberModel destinationMember, MemberMapping memberMapping, CompileArgument arg)
         {
             var source = srcInput.Src;
-            var members = source.Type.GetFieldsAndProperties(true, arg.Context.AttributeMetadata);
+            var members = source.Type.GetFieldsAndProperties(arg, true, arg.Context.AttributeMetadata);
             var strategy = arg.Settings.NameMatchingStrategy;
             var destinationMemberName = destinationMember.GetMemberName(MemberSide.Destination, arg.Settings.GetMemberNames, strategy.DestinationMemberNameConverter, arg);
             var resolver = members
@@ -116,7 +116,7 @@ namespace Mapster
         private static Expression? GetDeepFlattening(Expression source, string propertyName, CompileArgument arg)
         {
             var strategy = arg.Settings.NameMatchingStrategy;
-            var members = source.Type.GetFieldsAndProperties(true);
+            var members = source.Type.GetFieldsAndProperties(arg, true);
             foreach (var member in members)
             {
                 if (!member.ShouldMapMember(arg, MemberSide.Source))
@@ -143,7 +143,7 @@ namespace Mapster
         {
             var strategy = arg.Settings.NameMatchingStrategy;
             var destinationMemberName = destinationMember.GetMemberName(MemberSide.Destination, arg.Settings.GetMemberNames, strategy.DestinationMemberNameConverter, arg);
-            var members = source.Type.GetFieldsAndProperties(true);
+            var members = source.Type.GetFieldsAndProperties(arg, true);
 
             foreach (var member in members)
             {
@@ -166,7 +166,7 @@ namespace Mapster
         private static IEnumerable<string> GetDeepUnflattening(IMemberModel destinationMember, string propertyName, CompileArgument arg)
         {
             var strategy = arg.Settings.NameMatchingStrategy;
-            var members = destinationMember.Type.GetFieldsAndProperties(true);
+            var members = destinationMember.Type.GetFieldsAndProperties(arg, true);
             foreach (var member in members)
             {
                 if (!member.ShouldMapMember(arg, MemberSide.Destination))
@@ -178,7 +178,7 @@ namespace Mapster
                     yield return member.Name;
                 }
                 else if (propertyName.StartsWith(destMemberName) &&
-                    (propertyType.IsPoco() || propertyType.IsRecordType()))
+                    (propertyType.IsPoco(propertyType.GetFieldsAndProperties(arg)) || propertyType.IsRecordType()))
                 {
                     foreach (var prop in GetDeepUnflattening(member, propertyName.Substring(destMemberName.Length).TrimStart('_'), arg))
                     {
