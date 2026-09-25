@@ -1,4 +1,5 @@
-﻿using Mapster.Models;
+﻿using Mapster.Config;
+using Mapster.Models;
 using System;
 using System.Collections.Concurrent;
 
@@ -12,5 +13,6 @@ namespace Mapster
         public MapType MapType;
         public bool ExplicitMapping;
         public ConcurrentDictionary<Type, IMemberModelEx[]> TypeMemberModelsCache { get; init; }
+        internal ConfigAttributeMetadataCache ConfigAttributeMetadataCache { get; init; }
     }
 }

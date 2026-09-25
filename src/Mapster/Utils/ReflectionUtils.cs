@@ -1,4 +1,5 @@
-﻿using Mapster.Models;
+﻿using Mapster.Config;
+using Mapster.Models;
 using Mapster.Utils;
 using System;
 using System.Collections;
@@ -72,13 +73,13 @@ namespace Mapster
             return members.Any(it => (it.SetterModifier & (AccessModifier.Public | AccessModifier.NonPublic)) != 0);
         }
 
-        public static IEnumerable<IMemberModelEx> GetFieldsAndProperties(this Type type, PreCompileArgument arg, bool includeNonPublic = false, AttributeMetadataCache? attributeMetadata = null)
+        public static IEnumerable<IMemberModelEx> GetFieldsAndProperties(this Type type, PreCompileArgument arg, bool includeNonPublic = false)
         {
            arg.TypeMemberModelsCache.TryGetValue(type, out var model);
 
             if(model is null)
             {
-                model = type.GetAllFieldsAndProperties(attributeMetadata).ToArray();
+                model = type.GetAllFieldsAndProperties(arg.ConfigAttributeMetadataCache).ToArray();
                 arg.TypeMemberModelsCache.TryAdd(type, model);
             }
 
@@ -89,13 +90,13 @@ namespace Mapster
 
         }
 
-        public static IEnumerable<IMemberModelEx> GetFieldsAndProperties(this Type type, CompileArgument arg, bool includeNonPublic = false, AttributeMetadataCache? attributeMetadata = null)
+        public static IEnumerable<IMemberModelEx> GetFieldsAndProperties(this Type type, CompileArgument arg, bool includeNonPublic = false)
         {
             arg.Context.Config.TypeMemberModelsCache.TryGetValue(type, out var model);
 
             if (model is null)
             {
-                model = type.GetAllFieldsAndProperties(attributeMetadata).ToArray();
+                model = type.GetAllFieldsAndProperties(arg.Context.Config.ConfigAttributeMetadataCache).ToArray();
                 arg.Context.Config.TypeMemberModelsCache.TryAdd(type, model);
             }
 
@@ -105,7 +106,7 @@ namespace Mapster
             return model.Where(member => ((member.Info as MemberInfo)?.IsPublicPropertyOrField()).GetValueOrDefault());
         }
 
-        private static IEnumerable<IMemberModelEx> GetAllFieldsAndProperties(this Type type, AttributeMetadataCache? attributeMetadata = null)
+        private static IEnumerable<IMemberModelEx> GetAllFieldsAndProperties(this Type type, ConfigAttributeMetadataCache attributeMetadata)
         {
             IEnumerable<MemberInfo> members = type.GetTypeInfo().IsInterface 
                 ? GetAllInterfaces(type).SelectMany(type => type.GetPropertiesOrFields())

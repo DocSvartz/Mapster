@@ -1,4 +1,5 @@
 ﻿using Mapster.Adapters;
+using Mapster.Config;
 using Mapster.Models;
 using Mapster.Utils;
 using System;
@@ -17,6 +18,7 @@ namespace Mapster
         public static List<TypeAdapterRule> RulesTemplate { get; } = CreateRuleTemplate();
         public static TypeAdapterConfig GlobalSettings { get; } = new TypeAdapterConfig();
         public ConcurrentDictionary<Type, IMemberModelEx[]> TypeMemberModelsCache { get; } = new();
+        internal ConfigAttributeMetadataCache ConfigAttributeMetadataCache { get; } = new();
 
         private static List<TypeAdapterRule> CreateRuleTemplate()
         {

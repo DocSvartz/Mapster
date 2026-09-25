@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Mapster.Config;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -9,13 +10,15 @@ namespace Mapster.Models
     public class FieldModel : IMemberModelEx
     {
         private readonly FieldInfo _fieldInfo;
-        private readonly AttributeMetadataCache? _attributeMetadata;
+        //private readonly AttributeMetadataCache? _attributeMetadata;
+        private readonly ConfigAttributeMetadataCache _attributeMetadata;
+
         public FieldModel(FieldInfo fieldInfo)
         {
             _fieldInfo = fieldInfo;
         }
 
-        internal FieldModel(FieldInfo fieldInfo, AttributeMetadataCache? attributeMetadata)
+        internal FieldModel(FieldInfo fieldInfo, ConfigAttributeMetadataCache attributeMetadata)
             : this(fieldInfo)
         {
             _attributeMetadata = attributeMetadata;

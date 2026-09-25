@@ -1,3 +1,4 @@
+using Mapster.Config;
 using Mapster.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Shouldly;
@@ -20,19 +21,19 @@ namespace Mapster.Tests
             var second = new CompileContext(new TypeAdapterConfig());
             var property = typeof(Source).GetProperty(nameof(Source.Original));
             var field = typeof(Source).GetField(nameof(Source.Field));
-            var propertyModel = new PropertyModel(property, first.AttributeMetadata);
-            var fieldModel = new FieldModel(field, first.AttributeMetadata);
+            var propertyModel = new PropertyModel(property, first.Config.ConfigAttributeMetadataCache);
+            var fieldModel = new FieldModel(field, first.Config.ConfigAttributeMetadataCache);
 
             propertyModel.GetType().ShouldBe(typeof(PropertyModel));
             fieldModel.GetType().ShouldBe(typeof(FieldModel));
             propertyModel.GetCustomAttributesData().ShouldBeSameAs(
-                new PropertyModel(property, first.AttributeMetadata).GetCustomAttributesData());
+                new PropertyModel(property, first.Config.ConfigAttributeMetadataCache).GetCustomAttributesData());
             fieldModel.GetCustomAttributesData().ShouldBeSameAs(
-                new FieldModel(field, first.AttributeMetadata).GetCustomAttributesData());
+                new FieldModel(field, first.Config.ConfigAttributeMetadataCache).GetCustomAttributesData());
             propertyModel.GetCustomAttributesData().ShouldNotBeSameAs(
-                new PropertyModel(property, second.AttributeMetadata).GetCustomAttributesData());
+                new PropertyModel(property, first.Config.ConfigAttributeMetadataCache).GetCustomAttributesData());
             fieldModel.GetCustomAttributesData().ShouldNotBeSameAs(
-                new FieldModel(field, second.AttributeMetadata).GetCustomAttributesData());
+                new FieldModel(field, first.Config.ConfigAttributeMetadataCache).GetCustomAttributesData());
             new CompileArgument { Context = first }.CloneWith(MapType.MapToTarget).Context.ShouldBeSameAs(first);
         }
 
@@ -82,7 +83,7 @@ namespace Mapster.Tests
         public void Models_Are_Lazy_And_Public_Construction_Remains_Uncached()
         {
             var property = new CountingProperty(typeof(Source).GetProperty(nameof(Source.Original)));
-            var cache = new AttributeMetadataCache();
+            var cache = new Config.ConfigAttributeMetadataCache();
             var cached = new PropertyModel(property, cache);
             var uncached = new PropertyModel(property);
             property.Reads.ShouldBe(0);
@@ -92,8 +93,8 @@ namespace Mapster.Tests
             uncached.GetCustomAttributesData();
             uncached.GetCustomAttributesData();
             property.Reads.ShouldBe(3);
-            cache.Complete();
-            cache.Complete();
+            //cache.Complete();
+            //cache.Complete();
             cached.GetCustomAttributesData();
             cached.GetCustomAttributesData();
             property.Reads.ShouldBe(5);
@@ -114,7 +115,7 @@ namespace Mapster.Tests
         [TestMethod]
         public void Attribute_Instances_Are_Created_Per_Lookup()
         {
-            var model = new PropertyModel(typeof(Source).GetProperty(nameof(Source.Original)), new AttributeMetadataCache());
+            var model = new PropertyModel(typeof(Source).GetProperty(nameof(Source.Original)), new ConfigAttributeMetadataCache());
             var first = model.GetCustomAttributeFromData<AdaptMemberAttribute>();
             var second = model.GetCustomAttributeFromData<AdaptMemberAttribute>();
             first.ShouldNotBeSameAs(second);

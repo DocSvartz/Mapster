@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Mapster.Config;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -10,7 +11,9 @@ namespace Mapster.Models
     public class PropertyModel : IMemberModelEx
     {
         private readonly PropertyInfo _propertyInfo;
-        private readonly AttributeMetadataCache? _attributeMetadata;
+       // private readonly AttributeMetadataCache? _attributeMetadata;
+        private readonly ConfigAttributeMetadataCache _attributeMetadata;
+
         public PropertyModel(PropertyInfo propertyInfo)
         {
             _propertyInfo = propertyInfo;
@@ -19,7 +22,7 @@ namespace Mapster.Models
                     .Any(y => y.GetType().FullName == "System.Runtime.CompilerServices.RequiredMemberAttribute");
         }
 
-        internal PropertyModel(PropertyInfo propertyInfo, AttributeMetadataCache? attributeMetadata)
+        internal PropertyModel(PropertyInfo propertyInfo, ConfigAttributeMetadataCache attributeMetadata)
             : this(propertyInfo)
         {
             _attributeMetadata = attributeMetadata;
