@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
 // ReSharper disable once CheckNamespace
 namespace Mapster
@@ -106,10 +107,9 @@ namespace Mapster
 
         private static IEnumerable<IMemberModelEx> GetAllFieldsAndProperties(this Type type, AttributeMetadataCache? attributeMetadata = null)
         {
-           
             IEnumerable<MemberInfo> members = type.GetTypeInfo().IsInterface 
-                ? GetAllInterfaces(type).SelectMany(type => type.GetMembers(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
-                : type.GetMembers(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                ? GetAllInterfaces(type).SelectMany(type => type.GetPropertiesOrFields())
+                : type.GetPropertiesOrFields();
 
             var currentTypeMembers = type.FindMembers(MemberTypes.Property | MemberTypes.Field,
                  BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
@@ -129,6 +129,13 @@ namespace Mapster
                 t.OfType<FieldInfo>()
                 .DropHiddenMembers(firstMembersByName)
                 .Select(x => new FieldModel(x, attributeMetadata));
+        }
+
+        public static MemberInfo[] GetPropertiesOrFields(this Type type)
+        {
+            return type.FindMembers(MemberTypes.Property | MemberTypes.Field,
+                 BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
+                 (x, y) => true, true);
         }
 
         public static bool IsPublicPropertyOrField(this MemberInfo member)

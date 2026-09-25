@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using Mapster.Utils;
 
 namespace Mapster.Adapters
 {
@@ -31,10 +30,14 @@ namespace Mapster.Adapters
                 arg.Settings.ExtraSources.Select(src => ResolverSourceInput.ConvertFrom(src,source,arg)));
             foreach (var destinationMember in destinationMembers)
             {
-                var propertyModel = new MemberMapping();
-
                 ProcessIgnores(arg, destinationMember, out var ignore);
 
+                // perf optimization. Backfields are not processed in the standard mapping pipeline.
+                if (destinationMember.IsBackField && ignore.WithOutCondition) 
+                    continue;
+
+                var propertyModel = new MemberMapping();
+   
                 var resolvers = arg.Settings.ValueAccessingStrategies.AsEnumerable();
                 if (arg.Settings.IgnoreNonMapped == true)
                     resolvers = resolvers.Where(ValueAccessingStrategy.CustomResolvers.Contains);
