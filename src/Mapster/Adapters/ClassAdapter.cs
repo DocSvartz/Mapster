@@ -193,6 +193,42 @@ namespace Mapster.Adapters
             return Expression.MemberInit(newInstance, lines);
         }
 
+        protected override Expression CreateInlineWithRequiredMemberOnly(Expression source, CompileArgument arg)
+        {
+            var transformArg = arg.MapType == MapType.MapToTarget ? arg.CloneWith(MapType.Map) : arg;
+
+            var exp = CreateInstantiationExpression(source, transformArg);
+            if (exp.NodeType == ExpressionType.Throw)
+                return exp;
+
+            var memberInit = exp as MemberInitExpression;
+            var newInstance = memberInit?.NewExpression ?? exp as NewExpression;
+            if (newInstance == null)
+                return exp;
+
+           var classModel = GetSetterModel(transformArg);
+           var classConverter = CreateClassConverter(source, classModel, transformArg);
+
+            var members = classConverter.Members;
+
+            var lines = new List<MemberBinding>();
+            if (memberInit != null)
+                lines.AddRange(memberInit.Bindings);
+
+            foreach (var member in members)
+            {
+                if (!member.DestinationMember.IsRequired)
+                    continue;
+
+                var value = GetMemberInlineAdapter(member, transformArg);
+
+                var bind = Expression.Bind((MemberInfo)member.DestinationMember.Info!, value);
+                lines.Add(bind);
+            }
+
+            return Expression.MemberInit(newInstance, lines);
+        }
+
         static Expression CreateIncludeProjectionExpression(Expression source, CompileArgument arg)
         {
             Expression body = arg.DestinationType.CreateDefault(arg);
@@ -235,5 +271,7 @@ namespace Mapster.Adapters
 
             return base.CreateExpressionBody(source, destination, arg);
         }
+
+        
     }
 }

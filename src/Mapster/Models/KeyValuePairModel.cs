@@ -31,7 +31,7 @@ namespace Mapster.Models
         public AccessModifier AccessModifier => AccessModifier.Public;
 
         public bool IsBackField => false;
-        public bool IsRequired => true;
+        public bool IsRequired => false;
 
         public IEnumerable<object> GetCustomAttributes(bool inherit) => Enumerable.Empty<object>();
 
