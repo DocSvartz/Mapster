@@ -33,4 +33,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Mapster.Core\Mapster.Core.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Config\" />
+  </ItemGroup>
 </Project>

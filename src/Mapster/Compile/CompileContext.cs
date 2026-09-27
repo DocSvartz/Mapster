@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 using Mapster.Models;
 
@@ -6,6 +7,7 @@ namespace Mapster
 {
     public class CompileContext
     {
+        public long Identity { get; init; }
         public HashSet<TypeTuple> Running { get; } = new();
         public Stack<TypeAdapterConfig> Configs { get; } = new();
         public TypeAdapterConfig Config => Configs.Peek();
@@ -25,6 +27,7 @@ namespace Mapster
 
         public CompileContext(TypeAdapterConfig config)
         {
+            Identity = DateTime.UtcNow.Ticks;
             Configs.Push(config);
         }
     }

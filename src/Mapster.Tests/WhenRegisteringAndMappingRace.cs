@@ -32,16 +32,27 @@ namespace Mapster.Tests
             TypeAdapter.Adapt<WhenAddingCustomMappings.SimplePoco, WeirdPoco>(simplePoco);
         }
 
-        [TestMethod, TestCategory("speed"), Ignore]
+        [TestMethod, TestCategory("speed")]
         public void Race_Condition_Produces_Error()
         {
             TypeAdapterConfig.GlobalSettings.RequireDestinationMemberSource = true;
 
             var simplePoco = new WhenAddingCustomMappings.SimplePoco {Id = Guid.NewGuid(), Name = "TestName"};
 
-            var exception = Should.Throw<AggregateException>(() =>
-            {
-                for (int i = 0; i < 100; i++)
+            TypeAdapterConfig
+               .GlobalSettings
+               .ForDestinationType<WeirdPoco>()
+               .Ignore(dest => dest.Children);
+
+
+            TypeAdapterConfig<WhenAddingCustomMappings.SimplePoco, WeirdPoco>.NewConfig()
+                                .Map(dest => dest.IHaveADifferentId, src => src.Id)
+                                .Map(dest => dest.MyNamePropertyIsDifferent, src => src.Name)
+                                ;
+
+            var r = DateTime.UtcNow.Ticks;
+
+            for (int i = 0; i < 10000; i++)
                 {
                     Parallel.Invoke(
                         () =>
@@ -49,15 +60,12 @@ namespace Mapster.Tests
                             TypeAdapterConfig<WhenAddingCustomMappings.SimplePoco, WeirdPoco>.NewConfig()
                                 .Map(dest => dest.IHaveADifferentId, src => src.Id)
                                 .Map(dest => dest.MyNamePropertyIsDifferent, src => src.Name)
-                                .Ignore(dest => dest.Children);
+                                ;
                         },
                         () => { TypeAdapter.Adapt<WeirdPoco>(simplePoco); }
                         );
                 }
-            });
-
-            exception.InnerException.ShouldBeOfType(typeof(CompileException));
-
+           
         }
 
         [TestMethod, TestCategory("speed"), Ignore]

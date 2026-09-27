@@ -27,7 +27,7 @@ namespace Mapster
         private static bool CustomResolverFn(ResolverSourceInput srcInput, IMemberModel destinationMember, MemberMapping memberMapping, CompileArgument arg)
         {
             var source = srcInput.Src;
-            var config = source.Type == arg.SourceType ? arg.Settings : arg.Context.Config.GetMergedSettings(new TypeTuple(source.Type, arg.DestinationType),arg.MapType);
+            var config = source.Type == arg.SourceType ? arg.Settings : arg.Context.Config.GetMergedSettings(new TypeTuple(source.Type, arg.DestinationType),arg.MapType,arg.Context.Identity);
             var resolvers = srcInput.Settings != null ? srcInput.Settings.ApplyResolversOnly(config) : config.Resolvers;
             if (resolvers.Count == 0)
                 return false;

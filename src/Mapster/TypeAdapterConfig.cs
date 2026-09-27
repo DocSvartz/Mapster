@@ -2,6 +2,7 @@
 using Mapster.Models;
 using Mapster.Utils;
 using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data.SqlTypes;
@@ -180,7 +181,7 @@ namespace Mapster
 		public TypeAdapterSetter<TSource, TDestination> ForType<TSource, TDestination>()
         {
             var key = new TypeTuple(typeof(TSource), typeof(TDestination));
-            var settings = GetSettings(key);
+            var settings = GetSettings(key, DateTime.UtcNow.Ticks);
             return new TypeAdapterSetter<TSource, TDestination>(settings, this);
         }
 
@@ -194,7 +195,7 @@ namespace Mapster
 		public TypeAdapterSetter ForType(Type sourceType, Type destinationType)
         {
             var key = new TypeTuple(sourceType, destinationType);
-            var settings = GetSettings(key);
+            var settings = GetSettings(key, DateTime.UtcNow.Ticks);
             return new TypeAdapterSetter(settings, this);
         }
 
@@ -207,7 +208,7 @@ namespace Mapster
 		public TypeAdapterSetter<TDestination> ForDestinationType<TDestination>()
         {
             var key = new TypeTuple(typeof(void), typeof(TDestination));
-            var settings = GetSettings(key);
+            var settings = GetSettings(key, DateTime.UtcNow.Ticks);
             return new TypeAdapterSetter<TDestination>(settings, this);
         }
 
@@ -220,17 +221,17 @@ namespace Mapster
 		public TypeAdapterSetter ForDestinationType(Type destinationType)
         {
             var key = new TypeTuple(typeof(void), destinationType);
-            var settings = GetSettings(key);
+            var settings = GetSettings(key, DateTime.UtcNow.Ticks);
             return new TypeAdapterSetter(settings, this);
         }
 
-        private TypeAdapterSettings GetSettings(TypeTuple key)
+        private TypeAdapterSettings GetSettings(TypeTuple key, long Identity)
         {
             var rule = RuleMap.GetOrAdd(key, types =>
             {
                 var r = types.Source == typeof(void)
-                    ? CreateDestinationTypeRule(types)
-                    : CreateTypeTupleRule(types);
+                    ? CreateDestinationTypeRule(types, Identity)
+                    : CreateTypeTupleRule(types, Identity);
                 Rules.LockAdd(r);
                 return r;
             });
@@ -241,7 +242,7 @@ namespace Mapster
             return rule.Settings;
         }
 
-        private TypeAdapterRule CreateTypeTupleRule(TypeTuple key)
+        private TypeAdapterRule CreateTypeTupleRule(TypeTuple key, long Identity)
         {
             return new TypeAdapterRule
             {
@@ -259,7 +260,7 @@ namespace Mapster
             };
         }
 
-        private static TypeAdapterRule CreateDestinationTypeRule(TypeTuple key)
+        private static TypeAdapterRule CreateDestinationTypeRule(TypeTuple key, long Identity)
         {
             return new TypeAdapterRule
             {
@@ -406,7 +407,7 @@ namespace Mapster
                     var cloned = Clone();
                     fork(cloned);
                     context.Configs.Push(cloned);
-                    arg.Settings = cloned.GetMergedSettings(tuple, mapType);
+                    arg.Settings = cloned.GetMergedSettings(tuple, mapType, context.Identity);
                 }
                 return CreateMapExpression(arg);
             }
@@ -678,7 +679,7 @@ namespace Mapster
             return settings;
         }
 
-        internal TypeAdapterSettings GetMergedSettings(TypeTuple tuple, MapType mapType)
+        internal TypeAdapterSettings GetMergedSettings(TypeTuple tuple, MapType mapType, long compileId)
         {
             var arg = new PreCompileArgument
             {
@@ -694,23 +695,59 @@ namespace Mapster
             var attrSettings = GetAttributeSettings(tuple, mapType).ToList();
             if (!arg.ExplicitMapping && attrSettings.Any(rule => rule.Priority(arg) == 100))
             {
-                GetSettings(tuple);
+                GetSettings(tuple, compileId);
                 arg.ExplicitMapping = true;
             }
 
             var result = new TypeAdapterSettings();
             lock (Rules)
             {
-                var rules = Rules.Reverse<TypeAdapterRule>().Concat(attrSettings);
-                var settings = from rule in rules
-                    let priority = rule.Priority(arg)
-                    where priority != null
-                    orderby priority.Value descending
-                    select rule.Settings;
+                var rules = Rules.Where(id => id.Identity <= compileId)
+                    .Reverse<TypeAdapterRule>().Concat(attrSettings);
+
+                var MatchingRule = from rule in rules
+                                   let priority = rule.Priority(arg)
+                                   where priority != null
+                                   orderby priority.Value descending
+                                   select rule;
+
+                var settings = MatchingRule.Except(  
+                    MatchingRule.GroupBy(id => new { id.Settings.SourceType, id.Settings.DestinationType })
+                    .Where(x => x.Skip(1).Any())
+                    .Where(x => x.Any(x => x.IsDeleted))
+                    .Select(x =>
+                    {
+                        bool allAreDeleted = x.All(item => item.IsDeleted);
+
+                        if (allAreDeleted)
+                            return x.Skip(1);
+                        else
+                            return x.Where(x => x.IsDeleted);
+
+                    })
+                    .SelectMany(x => x)
+                    )
+                    .Select(x=>x.Settings);
+                    
+
+
+                //var settings = from rule in rules
+                //    let priority = rule.Priority(arg)
+                //    where priority != null
+                //    orderby priority.Value descending
+                //    select rule;
+
+
+
                 foreach (var setting in settings)
                 {
                     result.Apply(setting);
                 }
+
+                if (Rules.Where(x => x.IsDeleted && x.Settings.SourceType == tuple.Source)
+                        .Take(5).Count() == 3)
+                    Rules.Remove(Rules.Where(x => x.IsDeleted && x.Settings.SourceType == tuple.Source).First());
+
             }
 
             //remove recursive include types
@@ -753,7 +790,7 @@ namespace Mapster
         }
         private CompileArgument GetCompileArgument(TypeTuple tuple, MapType mapType, CompileContext context)
         {
-            var setting = GetMergedSettings(tuple, mapType);
+            var setting = GetMergedSettings(tuple, mapType, context.Identity);
             return new CompileArgument
             {
                 SourceType = tuple.Source,
@@ -934,7 +971,7 @@ namespace Mapster
         private void Remove(TypeTuple key)
         {
             if (RuleMap.TryRemove(key, out var rule))
-                Rules.LockRemove(rule);
+                rule.IsDeleted = true;                 
             _mapDict.TryRemove(key, out _);
             _mapToTargetDict.TryRemove(key, out _);
             _projectionDict.TryRemove(key, out _);
