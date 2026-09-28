@@ -746,7 +746,11 @@ namespace Mapster
 
                 if (Rules.Where(x => x.IsDeleted && x.Settings.SourceType == tuple.Source)
                         .Take(5).Count() == 3)
-                    Rules.Remove(Rules.Where(x => x.IsDeleted && x.Settings.SourceType == tuple.Source).First());
+
+                {
+                   Rules.RemoveAll(x=>x.IsDeleted && x.Settings.SourceType == tuple.Source && x.Identity < compileId);
+                }
+                    
 
             }
 
