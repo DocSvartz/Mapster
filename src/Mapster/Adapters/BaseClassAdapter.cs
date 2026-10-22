@@ -218,7 +218,7 @@ namespace Mapster.Adapters
                 else
                 {
                     getter = GetMemberInlineAdapter(member, arg);
-                                                           
+
                     if (member.Ignore.Condition != null)
                     {
                         var body = member.Ignore.IsChildPath
@@ -228,13 +228,13 @@ namespace Mapster.Adapters
                         getter = Expression.Condition(condition, getter, defaultConst);
                     }
                     else
-                        if (arg.Settings.Ignore.Any(x => x.Key == member.DestinationMember.Name))
-                    {
-                        getter = defaultConst;
+                        if (member.Ignore.WithOutCondition)
+                        {
+                            getter = defaultConst;
 
-                        if (arg.MapType == MapType.MapToTarget && arg.DestinationType.IsRecordType())
-                           getter = TryRestoreRecordMember(member.DestinationMember, recordRestorParamModel, destination, arg) ?? getter;
-                    }
+                            if (arg.MapType == MapType.MapToTarget && arg.DestinationType.IsRecordType())
+                                getter = TryRestoreRecordMember(member.DestinationMember, recordRestorParamModel, destination, arg) ?? getter;
+                        }
 
                 }
                 arguments.Add(getter);
