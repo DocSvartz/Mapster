@@ -81,18 +81,18 @@ namespace Mapster.Adapters
                 if (member.DestinationMember.SetterModifier == AccessModifier.None)
                     continue;
                                
-                if (member.Ignore.WithOutCondition && !member.IsMaybeReMapping)
+                if (!member.IsMaybeReMapping && member.IsNotFoundGetter)
                 {
-                    if (member.DestinationMember.IsBackField) // not restore Backfields
-                        continue;
+                    if(member.Ignore.WithOutCondition || !member.Ignore.IsValid)
+                    {
+                        if (member.DestinationMember.IsBackField) // not restore Backfields
+                            continue;
 
-                    if (arg.MapType == MapType.MapToTarget)
-                        lines.Add(
-                            Expression.Bind((MemberInfo)member.DestinationMember.Info!, member.DestinationMember.GetExpression(destination)));
-                    //else
-                    //    lines.Add(
-                    //        Expression.Bind((MemberInfo)member.DestinationMember.Info!, member.DestinationMember.Type.CreateDefault()));
-                    continue;
+                        if (arg.MapType == MapType.MapToTarget && member.RestoreDestinationMemberExp != null)
+                            lines.Add(
+                                Expression.Bind((MemberInfo)member.DestinationMember.Info!, member.RestoreDestinationMemberExp));
+                        continue;
+                    }
                 }
 
                 var adapt = GetMemberInlineAdapter(member, arg);
@@ -137,6 +137,11 @@ namespace Mapster.Adapters
             }
 
             return lines.Count > 0 ? (Expression)Expression.Block(lines) : Expression.Empty();
+        }
+
+        protected override Expression GetMemberInlineAdapter(MemberMapping member, CompileArgument arg, Expression? defaultValue = null)
+        {
+            return base.GetMemberInlineAdapter(member, arg, TryRestoreRecordMember(member,arg));
         }
     }
 }

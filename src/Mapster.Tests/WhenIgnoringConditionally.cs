@@ -163,13 +163,16 @@ namespace Mapster.Tests
                 .IgnoreIf((src, dest) => src.Name == "TestName", dest => dest.Name)
                 .Compile();
 
+            var targetRecord = new SimpleRecord(42, "TargetName");
             var poco = new SimplePoco { Id = 1, Name = "TestName" };
 
-            var srt = poco.BuildAdapter().CreateMapToTargetExpression<SimpleRecord>();
             var dto = TypeAdapter.Adapt<SimplePoco, SimpleRecord>(poco);
+
+            var update = poco.Adapt(targetRecord);
 
             dto.Id.ShouldBe(1);
             dto.Name.ShouldBeNull();
+            update.Name.ShouldBe(targetRecord.Name);
         }
 
         // Regression test for https://github.com/MapsterMapper/Mapster/issues/1007

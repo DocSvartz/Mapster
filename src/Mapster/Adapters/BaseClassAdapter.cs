@@ -81,18 +81,14 @@ namespace Mapster.Adapters
                         propertyModel.GetterLines.Add(new GetterLine(source, destinationMember.Type.CreateDefault(arg), null));
                     }
                 }
-
+                //maybe refactoring to always create record restored member
                 if (arg.MapType == MapType.MapToTarget && arg.DestinationType.IsRecordType())
                 {
-                    
                     propertyModel
-                        .RestoreDestinationMemberExp = TryRestoreRecordMember(destinationMember, recordRestorMemberModel, destination, arg);
-
-                    if (propertyModel.GetterLines.Count == 0 && propertyModel.RestoreDestinationMemberExp != null)
-                        propertyModel.GetterLines.Add(new GetterLine(destination, destinationMember.GetExpression(destination), null));
-
+                        .RestoreDestinationMemberExp = TryRestoreRecordMember(destinationMember, arg);
                 }
-                if (propertyModel.GetterLines.Count != 0 || propertyModel.Ignore.IsValid)
+                if (propertyModel.GetterLines.Count != 0 || propertyModel.Ignore.IsValid
+                    || propertyModel.RestoreDestinationMemberExp != null)
                 {
                     propertyModel.CreateNullPropagationChecker(arg);
                     properties.Add(propertyModel);
@@ -213,29 +209,19 @@ namespace Mapster.Adapters
                     getter = defaultConst;
 
                     if (arg.MapType == MapType.MapToTarget && arg.DestinationType.IsRecordType())
-                        getter = TryRestoreRecordMember(member.DestinationMember,recordRestorParamModel,destination, arg) ?? getter;
+                        getter = TryRestoreRecordMember(member.DestinationMember, arg) ?? getter;
                 }
                 else
                 {
-                    getter = GetMemberInlineAdapter(member, arg);
-
-                    if (member.Ignore.Condition != null)
+                    if (member.Ignore.WithOutCondition)
                     {
-                        var body = member.Ignore.IsChildPath
-                            ? member.Ignore.Condition.Body
-                            : member.Ignore.Condition.Apply(arg.MapType, source, arg.DestinationType.CreateDefault(arg));
-                        var condition = ExpressionEx.Not(body);
-                        getter = Expression.Condition(condition, getter, defaultConst);
+                        getter = defaultConst;
+
+                        if (arg.MapType == MapType.MapToTarget && arg.DestinationType.IsRecordType())
+                            getter = TryRestoreRecordMember(member.DestinationMember, arg) ?? getter;
                     }
                     else
-                        if (member.Ignore.WithOutCondition)
-                        {
-                            getter = defaultConst;
-
-                            if (arg.MapType == MapType.MapToTarget && arg.DestinationType.IsRecordType())
-                                getter = TryRestoreRecordMember(member.DestinationMember, recordRestorParamModel, destination, arg) ?? getter;
-                        }
-
+                        getter = GetMemberInlineAdapter(member, arg);
                 }
                 arguments.Add(getter);
             }
@@ -288,22 +274,29 @@ namespace Mapster.Adapters
             };
         }
 
-        protected Expression? TryRestoreRecordMember(IMemberModelEx member, ClassModel? restorRecordModel, Expression? destination, CompileArgument arg)
+        protected Expression? TryRestoreRecordMember(IMemberModelEx member, CompileArgument arg)
         {
-            if (restorRecordModel != null && destination != null)
+            arg.Context.Config.TypeMemberModelsCache.TryGetValue(arg.DestinationType, out var members);
+
+            if (members != null && arg.MapType == MapType.MapToTarget)
             {
-                var find = restorRecordModel.Members
-                               .Where(x => x.Name == member.Name).FirstOrDefault();
+                var find = members
+                               .Where(x => string.Equals(x.Name, member.Name, StringComparison.InvariantCultureIgnoreCase)).FirstOrDefault();
 
                 if (find != null)
                 {
-                    var compareNull = Expression.Equal(destination, Expression.Constant(null, destination.Type));
-                    return Expression.Condition(compareNull, member.Type.CreateDefault(arg), Expression.MakeMemberAccess(destination, (MemberInfo)find.Info));
+                    var compareNull = Expression.Equal(arg.Destination, Expression.Constant(null, arg.Destination.Type));
+                    return Expression.Condition(compareNull, member.Type.CreateDefault(arg), Expression.MakeMemberAccess(arg.Destination, (MemberInfo)find.Info));
                 }
 
             }
 
             return null;
+        }
+
+        protected Expression? TryRestoreRecordMember(MemberMapping member, CompileArgument arg)
+        {
+            return TryRestoreRecordMember(member.DestinationMember, arg);
         }
 
         protected static Expression SetValueTypeAutoPropertyByReflection(MemberMapping member, Expression adapt, ClassModel checkmodel)
@@ -328,10 +321,10 @@ namespace Mapster.Adapters
         /// <param name="member"></param>
         /// <param name="arg"></param>
         /// <returns></returns>
-        protected Expression GetMemberInlineAdapter(MemberMapping member, CompileArgument arg)
+        protected virtual Expression GetMemberInlineAdapter(MemberMapping member, CompileArgument arg, Expression? defaultValue = null)
         {
             Expression? result = null;
-            Expression defaultcase = null;
+            Expression defaultcase = defaultValue;
 
             var modGetterLine = member.GetterLines.All(x => x.Condition == null) 
                 ? member.GetterLines.Take(1).Select(x => x.ApplyContextSettings(member, arg)).ToArray()
@@ -361,8 +354,9 @@ namespace Mapster.Adapters
                 modGetterLine[i].TransformFunc = CreateAdaptExpression(modGetterLine[i].modgetter, member.DestinationMember.Type, arg, member);
             }
 
-            defaultcase = member.RestoreDestinationMemberExp 
-                ?? modGetterLine.Where(x => x.modCondition == null).FirstOrDefault().TransformFunc ?? member.DestinationMember.Type.CreateDefault();
+            if(defaultcase == null)
+                defaultcase = member.RestoreDestinationMemberExp 
+                    ?? modGetterLine.Where(x => x.modCondition == null).FirstOrDefault().TransformFunc ?? member.DestinationMember.Type.CreateDefault();
 
             foreach (var item in modGetterLine.Where(x => x.modCondition != null).Reverse())
             {
