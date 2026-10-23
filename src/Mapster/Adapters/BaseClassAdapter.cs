@@ -1,4 +1,5 @@
-﻿using Mapster.Models;
+﻿using Mapster.Enums;
+using Mapster.Models;
 using Mapster.Utils;
 using System;
 using System.Collections.Generic;
@@ -132,8 +133,8 @@ namespace Mapster.Adapters
                 }
             }
 
-            var requireDestMemberSource = arg.Settings.RequireDestinationMemberSource ??
-                                          arg.Context.Config.RequireDestinationMemberSource;
+            var requireDestMemberSource = arg.Settings.RequireDestinationMemberSource.HasPropertyOrFields()
+                || arg.Context.Config.RequireDestinationMemberSource;
             if (requireDestMemberSource &&
                 unmappedDestinationMembers.Count > 0 &&
                 arg.Settings.SkipDestinationMemberCheck != true)
@@ -177,6 +178,7 @@ namespace Mapster.Adapters
         protected Expression CreateInstantiationExpression(Expression source, ClassMapping classConverter, CompileArgument arg, Expression? destination, ClassModel recordRestorParamModel = null)
         {
             var members = classConverter.Members;
+            var unmappedDestinationCtorParams = new List<string>();
 
             var arguments = new List<Expression>();
 
@@ -224,6 +226,14 @@ namespace Mapster.Adapters
                         getter = GetMemberInlineAdapter(member, arg);
                 }
                 arguments.Add(getter);
+
+                if(member.IsNotFoundGetter && !member.Ignore.WithOutCondition)
+                    unmappedDestinationCtorParams.Add(member.DestinationMember.Name);
+            }
+
+            if(arg.Settings.RequireDestinationMemberSource.HasConstrutorMembers())
+            {
+
             }
 
             return Expression.New(classConverter.ConstructorInfo!, arguments);

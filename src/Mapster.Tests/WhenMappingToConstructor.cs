@@ -16,7 +16,8 @@ namespace Mapster.Tests
         public void MapToConstructor_Auto()
         {
             TypeAdapterConfig<Poco, Dto>.NewConfig()
-                .MapToConstructor(true);
+                .MapToConstructor(true)
+                .RequireDestinationMemberSource(Mapster.Enums.DestinationMemebers.ConstrutorMembers);
 
             var poco = new Poco { Id = "A", Name = "Test", Prop = "Prop" };
             var dto = poco.Adapt<Dto>();

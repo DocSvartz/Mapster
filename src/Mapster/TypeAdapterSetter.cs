@@ -244,6 +244,14 @@ namespace Mapster
         {
             setter.CheckCompiled();
 
+            setter.Settings.RequireDestinationMemberSource = value ? Enums.DestinationMemebers.AllMembers : Enums.DestinationMemebers.None;
+            return setter;
+        }
+
+        public static TSetter RequireDestinationMemberSource<TSetter>(this TSetter setter, Enums.DestinationMemebers value) where TSetter : TypeAdapterSetter
+        {
+            setter.CheckCompiled();
+
             setter.Settings.RequireDestinationMemberSource = value;
             return setter;
         }
