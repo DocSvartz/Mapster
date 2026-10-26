@@ -3,10 +3,10 @@ using System.Reflection;
 
 namespace Mapster.Models
 {
-    internal class ClassModel
+    internal class MembersModel
     {
         public bool BreakOnUnmatched { get; set; }
-        public ConstructorInfo? ConstructorInfo { get; set; }
+        public MethodBase? ConstructorInfo { get; set; }
         public IEnumerable<IMemberModelEx> Members { get; set; } 
     }
 }

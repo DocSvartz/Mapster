@@ -54,32 +54,36 @@ namespace Mapster.Adapters
         {
             //new TDestination(src.Prop1, src.Prop2)
 
-            if (arg.DestinationType.isDefaultCtor() || arg.GetConstructUsing() != null)
-                if (arg.Settings.MapToConstructor == null)
-                    return base.CreateInstantiationExpression(source, destination, arg);
+            //if (arg.DestinationType.isDefaultCtor() || arg.GetConstructUsing() != null)
+            //    if (arg.Settings.MapToConstructor == null)
+            //        return base.CreateInstantiationExpression(source, destination, arg);
 
-            ClassMapping? classConverter;
-            var ctor = arg.Settings.MapToConstructor as ConstructorInfo;
-            if (ctor == null)
-            {
-                var destType = arg.DestinationType.GetTypeInfo().IsInterface
-                    ? DynamicTypeGenerator.GetTypeForInterface(arg.DestinationType, arg.Settings.Includes.Count > 0)
-                    : arg.DestinationType;
-                if (destType == null)
-                    return base.CreateInstantiationExpression(source, destination, arg);
+            //ClassMapping? classConverter;
+            //var ctor = arg.Settings.MapToConstructor as ConstructorInfo;
+            //if (ctor == null)
+            //{
+            //    var destType = arg.DestinationType.GetTypeInfo().IsInterface
+            //        ? DynamicTypeGenerator.GetTypeForInterface(arg.DestinationType, arg.Settings.Includes.Count > 0)
+            //        : arg.DestinationType;
+            //    if (destType == null)
+            //        return base.CreateInstantiationExpression(source, destination, arg);
 
-                classConverter = OptimalConstuctorSelector(source, arg);
-            }
-            else
-            {
-                var model = GetConstructorModel(ctor, false);
-                classConverter = CreateClassConverter(source, model, arg, ctorMapping:true);
-            }
+            //    classConverter = OptimalConstuctorSelector(source, arg);
+            //}
+            //else
+            //{
+            //    var model = GetConstructorModel(ctor, false);
+            //    classConverter = CreateSourceToDestinationConveter(source, model, arg, ctorMapping:true);
+            //}
 
-            if (classConverter == null)
+            //if (classConverter == null)
+            //    return base.CreateInstantiationExpression(source, destination, arg);
+
+            if (arg.DestinationType.HasDefaultConstructor() || arg.GetConstructUsing() != null)
                 return base.CreateInstantiationExpression(source, destination, arg);
 
-            return CreateInstantiationExpression(source, classConverter, arg, destination);
+
+            return CreateInstantiationExpression(source, arg.TypeConverter.ConstructorMapping, arg, destination);
         }
 
         protected override Expression CreateBlockExpression(Expression source, Expression destination, CompileArgument arg)
@@ -95,7 +99,7 @@ namespace Mapster.Adapters
             //  dest.Prop2 = convert(src.Prop2);
 
             var classModel = GetSetterModel(arg);
-            var classConverter = CreateClassConverter(source, classModel, arg, destination);
+            var classConverter = CreateSourceToDestinationConveter(source, classModel, arg, destination);
             var members = classConverter.Members;
 
             var lines = new List<Expression>();
@@ -144,19 +148,19 @@ namespace Mapster.Adapters
             if (newInstance == null)
                 return null;
             var contructorMembers = newInstance.GetAllMemberExpressionsMemberInfo().ToArray();
-            ClassModel? classModel;
-            ClassMapping? classConverter;
-            if (IsRequiredOnly)
-            {
-                classModel = GetOnlyRequiredPropertySetterModel(arg);
-                classConverter = CreateClassConverter(source, classModel, arg, ctorMapping: true);
-            }
-            else
-            {
-                classModel = GetSetterModel(arg);
-                classConverter = CreateClassConverter(source, classModel, arg);
-            }
-            var members = classConverter.Members;
+            //MembersModel? classModel;
+            //ClassMapping? classConverter;
+            //if (IsRequiredOnly)
+            //{
+            //    classModel = GetOnlyRequiredPropertySetterModel(arg);
+            //    classConverter = CreateSourceToDestinationConveter(source, classModel, arg, ctorMapping: true);
+            //}
+            //else
+            //{
+            //    classModel = GetSetterModel(arg);
+            //    classConverter = CreateSourceToDestinationConveter(source, classModel, arg);
+            //}
+            var members = arg.TypeConverter.PropertyOrFieldMapping.Members;
 
             var lines = new List<MemberBinding>();
             if (memberInit != null)
@@ -199,7 +203,7 @@ namespace Mapster.Adapters
                 return exp;
 
            var classModel = GetSetterModel(transformArg);
-           var classConverter = CreateClassConverter(source, classModel, transformArg);
+           var classConverter = CreateSourceToDestinationConveter(source, classModel, transformArg);
 
             var members = classConverter.Members;
 
@@ -264,19 +268,19 @@ namespace Mapster.Adapters
             return base.CreateExpressionBody(source, destination, arg);
         }
 
-        protected ClassMapping? OptimalConstuctorSelector(Expression source, CompileArgument arg)
-        {
-            var MappingScoreGroups = arg.DestinationType.GetConstructors()
-                .Select(it => GetConstructorModel(it, false))
-                .Select(it => CreateClassConverter(source, it, arg, ctorMapping: true))
-                // if param of ctor is optional it case equal find getter state
-                .GroupBy(x => x.Members.Where(y => !y.IsNotFoundGetter || !y.DestinationMember.IsRequired).Count() - (x.ConstructorInfo?.GetParameters().Count()).GetValueOrDefault())
-                .OrderByDescending(x => x.Key)
-                .Take(2);
+        //protected ClassMapping? OptimalConstuctorSelector(Expression source, CompileArgument arg)
+        //{
+        //    var MappingScoreGroups = arg.DestinationType.GetConstructors()
+        //        .Select(it => GetConstructorModel(it, false))
+        //        .Select(it => CreateSourceToDestinationConstructorConveter(source, it, arg))
+        //        // if param of ctor is optional it case equal find getter state
+        //        .GroupBy(x => x.Members.Where(y => !y.IsNotFoundGetter || !y.DestinationMember.IsRequired).Count() - (x.ConstructorInfo?.GetParameters().Count()).GetValueOrDefault())
+        //        .OrderByDescending(x => x.Key)
+        //        .Take(2);
 
-            return MappingScoreGroups.FirstOrDefault()
-                ?.OrderByDescending(x => x.ConstructorInfo?.GetParameters().Count())
-                .FirstOrDefault();
-        }
+        //    return MappingScoreGroups.FirstOrDefault()
+        //        ?.OrderByDescending(x => x.ConstructorInfo?.GetParameters().Count())
+        //        .FirstOrDefault();
+        //}
     }
 }

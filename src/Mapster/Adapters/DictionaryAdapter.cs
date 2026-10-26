@@ -193,7 +193,7 @@ namespace Mapster.Adapters
             var newInstance = listInit?.NewExpression ?? (NewExpression)exp;
 
             var classModel = GetSetterModel(arg);
-            var classConverter = CreateClassConverter(source, classModel, arg);
+            var classConverter = CreateSourceToDestinationConveter(source, classModel, arg);
             var members = classConverter.Members;
 
             var dictType = exp.Type.GetDictionaryType()!;
@@ -217,7 +217,7 @@ namespace Mapster.Adapters
             return Expression.ListInit(newInstance, lines);
         }
 
-        protected override ClassModel GetSetterModel(CompileArgument arg)
+        protected override MembersModel GetSetterModel(CompileArgument arg)
         {
             //get member name from map
             var destNames = arg.GetDestinationNames(false).AsEnumerable();
@@ -245,7 +245,7 @@ namespace Mapster.Adapters
                 .Select(name => new KeyValuePairModel(name, dictArgs[1], getFn, setFn))
                 .ToList();
 
-            return new ClassModel
+            return new MembersModel
             {
                 Members = sourceModels
             };

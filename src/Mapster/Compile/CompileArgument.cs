@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using Mapster.MappingModels;
 using Mapster.Utils;
 
 namespace Mapster
@@ -10,6 +11,7 @@ namespace Mapster
     {
         public Type SourceType { get; set; }
         public Type DestinationType { get; set; }
+        internal TypeConverterModel TypeConverter { get; set; }
         public MapType MapType { get; set; }
         public bool ExplicitMapping { get; set; }
         public TypeAdapterSettings Settings { get; set; }
@@ -72,7 +74,11 @@ namespace Mapster
 
                 Source = this.Source,
                 Destination = this.Destination,
-                Result = this.Result
+                Result = this.Result,
+
+                TypeConverter = this.TypeConverter,
+
+               
             };
 
             if (mapType != null)

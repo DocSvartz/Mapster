@@ -96,6 +96,12 @@ namespace Mapster
             get => Get(nameof(EnableNonPublicMembers));
             set => Set(nameof(EnableNonPublicMembers), value);
         }
+
+        public bool? EnableNonPublicConstructors
+        {
+            get => Get(nameof(EnableNonPublicConstructors));
+            set => Set(nameof(EnableNonPublicConstructors), value);
+        }
         public object? GenerateMapper
         {
             get => Get<object>(nameof(GenerateMapper));

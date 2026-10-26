@@ -2,7 +2,7 @@
 
 namespace Mapster.MappingModels
 {
-    internal class MetodMapping : BaseMapping
+    internal class MetodConverterModel : BaseConveterModel
     {
         public MethodBase Info {  get; set; }
     }

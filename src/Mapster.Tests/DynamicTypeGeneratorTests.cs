@@ -131,6 +131,8 @@ namespace Mapster.Tests
             var config = TypeAdapterConfig<ISource, IDestination>.NewConfig()
                 .Include<Source, Destination>(); // and possibly many more
 
+            config.Compile();
+
             //Act && Assert
             Should.NotThrow(() => config.Compile());
         }

@@ -2,7 +2,7 @@
 
 namespace Mapster.MappingModels
 {
-    internal class ConstructorMapping: MetodMapping
+    internal class ConstructorConveterModel: MetodConverterModel
     {
         public ConstructorInfo? ConstructorInfo => this.Info as ConstructorInfo;
     }

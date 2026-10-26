@@ -1,4 +1,5 @@
 ﻿using Mapster.Enums;
+using Mapster.MappingModels;
 using Mapster.Models;
 using Mapster.Utils;
 using System;
@@ -6,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Security.Cryptography;
 
 namespace Mapster.Adapters
 {
@@ -16,7 +18,7 @@ namespace Mapster.Adapters
 
         #region Build the Adapter Model
 
-        protected ClassMapping CreateClassConverter(Expression source, ClassModel classModel, CompileArgument arg, Expression? destination = null, Expression? result = null, bool ctorMapping = false, ClassModel recordRestorMemberModel = null)
+        protected BaseConveterModel CreateSourceToDestinationConveter(Expression source, MembersModel classModel, CompileArgument arg, Expression? destination = null, Expression? result = null, bool ctorMapping = false, MembersModel recordRestorMemberModel = null)
         {
             var destinationMembers = classModel.Members;
             var unmappedDestinationMembers = new List<string>();
@@ -47,7 +49,7 @@ namespace Mapster.Adapters
                         select fn(src, destinationMember, propertyModel, arg))
                     .FirstOrDefault(result => result);
                 
-                var nextIgnore = arg.Settings.Ignore.Next((ParameterExpression)source, (ParameterExpression?)destination, destinationMember.Name);
+                var nextIgnore = arg.Settings.Ignore.Next((ParameterExpression)source, (ParameterExpression?)arg.Destination, destinationMember.Name);
                 var nextResolvers = arg.Settings.Resolvers.Next(arg.Settings.Ignore, (ParameterExpression)source, destinationMember.Name)
                     .ToList();
 
@@ -142,11 +144,27 @@ namespace Mapster.Adapters
                 throw new InvalidOperationException($"The following members of destination class {arg.DestinationType} do not have a corresponding source member mapped or ignored:{string.Join(",", unmappedDestinationMembers)}");
             }
 
-            return new ClassMapping
-            {
-                ConstructorInfo = classModel.ConstructorInfo,
-                Members = properties,
-            };
+            if(classModel.ConstructorInfo is ConstructorInfo)
+                return new ConstructorConveterModel() { Info = classModel.ConstructorInfo, Members = properties };
+            if (classModel.ConstructorInfo is MethodBase)
+                return new MetodConverterModel() { Info = classModel.ConstructorInfo, Members = properties };
+            else
+                return new PropertyOrFielldConveterModel() { Members = properties };
+        }
+
+        protected ConstructorConveterModel CreateSourceToDestinationConstructorConveter(Expression source, MembersModel classModel, CompileArgument arg)
+        {
+            if (CreateSourceToDestinationConveter(source, classModel, arg, ctorMapping:true) is ConstructorConveterModel constructorConveter)
+                return constructorConveter;
+                        
+            throw new InvalidOperationException("Is not ConstructorConverter");
+        }
+        protected PropertyOrFielldConveterModel CreateSourceToDestinationPropertOrFieldConverter(Expression source, MembersModel classModel, Expression? destination, CompileArgument arg)
+        {
+            if (CreateSourceToDestinationConveter(source, classModel, arg) is PropertyOrFielldConveterModel propertyOrFieldModel)
+                return propertyOrFieldModel;
+
+            throw new InvalidOperationException("Is not PropertyOrFieldModelConverter");
         }
 
         protected static bool IsCanUsingDestinationValue(CompileArgument arg, IMemberModelEx destinationMember)
@@ -175,7 +193,7 @@ namespace Mapster.Adapters
             }
         }
 
-        protected Expression CreateInstantiationExpression(Expression source, ClassMapping classConverter, CompileArgument arg, Expression? destination, ClassModel recordRestorParamModel = null)
+        protected Expression CreateInstantiationExpression(Expression source, ConstructorConveterModel classConverter, CompileArgument arg, Expression? destination, MembersModel recordRestorParamModel = null)
         {
             var members = classConverter.Members;
             var unmappedDestinationCtorParams = new List<string>();
@@ -239,9 +257,9 @@ namespace Mapster.Adapters
             return Expression.New(classConverter.ConstructorInfo!, arguments);
         }
 
-        protected virtual ClassModel GetConstructorModel(ConstructorInfo ctor, bool breakOnUnmatched)
+        protected virtual MembersModel GetConstructorModel(ConstructorInfo ctor, bool breakOnUnmatched)
         {
-            return new ClassModel
+            return new MembersModel
             {
                 BreakOnUnmatched = breakOnUnmatched,
                 ConstructorInfo = ctor,
@@ -249,15 +267,15 @@ namespace Mapster.Adapters
             };
         }
 
-        protected virtual ClassModel GetSetterModel(CompileArgument arg)
+        protected virtual MembersModel GetSetterModel(CompileArgument arg)
         {
-            return new ClassModel
+            return new MembersModel
             {
                 Members = arg.DestinationType.GetFieldsAndProperties(arg,true)
             };
         }
 
-        protected void IgnoreNonMapped (ClassModel classModel, CompileArgument arg)
+        protected void IgnoreNonMapped (MembersModel classModel, CompileArgument arg)
         {
             var notMappingToIgnore = LinqCompat.ExceptBy(
                 classModel.Members,
@@ -273,9 +291,9 @@ namespace Mapster.Adapters
             }
         }
 
-        protected virtual ClassModel GetOnlyRequiredPropertySetterModel(CompileArgument arg)
+        protected virtual MembersModel GetOnlyRequiredPropertySetterModel(CompileArgument arg)
         {
-            return new ClassModel
+            return new MembersModel
             {
                 Members = arg.DestinationType.GetFieldsAndProperties(arg,true)
                     .Where(x => x.GetType() == typeof(PropertyModel))
@@ -309,7 +327,7 @@ namespace Mapster.Adapters
             return TryRestoreRecordMember(member.DestinationMember, arg);
         }
 
-        protected static Expression SetValueTypeAutoPropertyByReflection(MemberMapping member, Expression adapt, ClassModel checkmodel)
+        protected static Expression SetValueTypeAutoPropertyByReflection(MemberMapping member, Expression adapt, MembersModel checkmodel)
         {
             var modDesinationMemeberName = $"<{member.DestinationMember.Name}>k__BackingField";
             if (checkmodel.Members.Any(x => x.Name == modDesinationMemeberName) == false) // Property is not autoproperty
@@ -454,6 +472,67 @@ namespace Mapster.Adapters
             return resultLines;
         }
 
-#endregion
+        protected virtual TypeConverterModel CreateTypeConverter(Expression source, Expression? destination, CompileArgument arg)
+        {
+            ConstructorConveterModel? constructorMapping = null;
+
+            var s = arg.DestinationType.HasDefaultConstructor();
+
+            var destType = arg.DestinationType.IsInterface && arg.DestinationType.GetDictionaryType() == null
+                ? DynamicTypeGenerator.GetTypeForInterface(arg.DestinationType, arg.Settings.Includes.Count > 0) ?? arg.DestinationType
+                : arg.DestinationType;
+
+            if (arg.GetConstructUsing() is null)
+            {
+                ConstructorInfo[] destypeConstuctors = arg.Settings.EnableNonPublicConstructors.GetValueOrDefault() 
+                    ? destType!.GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+                    : destType!.GetConstructors(BindingFlags.Instance | BindingFlags.Public);
+
+
+                
+                //if (arg.Settings.MapToConstructor == null 
+                //    && destypeConstuctors.Where(x => x.GetParameters().Length == 0).FirstOrDefault() == null)
+                //     throw new InvalidOperationException($"No default constructor for type '{arg.DestinationType.Name}', please use 'MapToConstructor', 'ConstructUsing' or 'MapWith" );
+
+                if (arg.Settings.MapToConstructor is ConstructorInfo customCtor)
+                    constructorMapping = GetConsturctorMapping(customCtor, source, arg);
+                else
+                    constructorMapping = OptimalConstuctorSelector(destypeConstuctors, source, arg);
+            }
+
+
+            var propertyOrFieldConverter = CreateSourceToDestinationPropertOrFieldConverter(source, GetSetterModel(arg), destination, arg);
+
+            return new TypeConverterModel() { ConstructorMapping = constructorMapping, PropertyOrFieldMapping = propertyOrFieldConverter };
+        }
+
+        protected ConstructorConveterModel? OptimalConstuctorSelector(IEnumerable<ConstructorInfo> constructors, Expression source, CompileArgument arg)
+        {
+            var MappingScoreGroups = constructors
+                .Select(it => GetConstructorModel(it, false))
+                .Select(it => CreateSourceToDestinationConstructorConveter(source, it, arg))
+                // if param of ctor is optional it case equal find getter state
+                .GroupBy(x => x.Members.Where(y => !y.IsNotFoundGetter || !y.DestinationMember.IsRequired).Count() - (x.ConstructorInfo?.GetParameters().Count()).GetValueOrDefault())
+                .OrderByDescending(x => x.Key)
+                .Take(2);
+
+            return MappingScoreGroups.FirstOrDefault()
+                ?.OrderByDescending(x => x.ConstructorInfo?.GetParameters().Count())
+                .FirstOrDefault();
+        }
+
+        protected ConstructorConveterModel GetConsturctorMapping(ConstructorInfo constructor, Expression source, CompileArgument arg)
+        {
+            return CreateSourceToDestinationConstructorConveter(source, GetConstructorModel(constructor, false), arg);
+        }
+
+        protected override Expression CreateExpressionBody(Expression source, Expression? destination, CompileArgument arg)
+        {
+            arg.TypeConverter = CreateTypeConverter(source,destination,arg);
+
+            return base.CreateExpressionBody(source, destination, arg);
+        }
+
+        #endregion
     }
 }

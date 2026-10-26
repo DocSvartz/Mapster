@@ -11,7 +11,7 @@ namespace Mapster.Adapters
 {
     internal class RecordTypeAdapter2 : ClassAdapter
     {
-        private ClassMapping? ClassConverterContext;
+       // private ClassMapping? ClassConverterContext;
         protected override int Score => -149;
         protected override bool UseTargetValue => false;
         protected override bool CanMap(PreCompileArgument arg)
@@ -35,18 +35,28 @@ namespace Mapster.Adapters
             //new TDestination(src.Prop1, src.Prop2)
             Expression installExpr;
 
-            if (arg.GetConstructUsing() != null || arg.Settings.MapToConstructor != null || arg.DestinationType == null)
+            //if (arg.GetConstructUsing() != null || arg.Settings.MapToConstructor != null || arg.DestinationType == null)
+            //    installExpr = base.CreateInstantiationExpression(source, destination, arg);
+            //else
+            //{
+            //    var restorParamModel = GetSetterModel(arg);
+            //    var classConverter = OptimalConstuctorSelector(source, arg);
+
+            //    if (classConverter == null)
+            //        return base.CreateInstantiationExpression(source, destination, arg);
+
+            //    installExpr = CreateInstantiationExpression(source, classConverter, arg, destination, restorParamModel);
+            //}
+
+            if(arg.GetConstructUsing() != null)
                 installExpr = base.CreateInstantiationExpression(source, destination, arg);
             else
             {
                 var restorParamModel = GetSetterModel(arg);
-                var classConverter = OptimalConstuctorSelector(source, arg);
 
-                if (classConverter == null)
-                    return base.CreateInstantiationExpression(source, destination, arg);
-
-                installExpr = CreateInstantiationExpression(source, classConverter, arg, destination, restorParamModel);
+                installExpr = CreateInstantiationExpression(source, arg.TypeConverter.ConstructorMapping, arg, destination, restorParamModel);
             }
+                
 
 
             return RecordInlineExpression(source, destination, arg, installExpr); // Activator field when not include in public ctor
@@ -64,10 +74,10 @@ namespace Mapster.Adapters
             var newInstance = memberInit?.NewExpression ?? (NewExpression)exp;
             var contructorMembers = newInstance.Constructor?.GetParameters().ToList() ?? new();
             var classModel = GetSetterModel(arg);
-            var classConverter = CreateClassConverter(source, classModel, arg, destination: destination, recordRestorMemberModel: classModel);
+            var classConverter = CreateSourceToDestinationConveter(source, classModel, arg, destination: destination, recordRestorMemberModel: classModel);
             var members = classConverter.Members;
 
-            ClassConverterContext = classConverter;
+           // ClassConverterContext = classConverter;
 
             var lines = new List<MemberBinding>();
             if (memberInit != null)
@@ -107,7 +117,7 @@ namespace Mapster.Adapters
         protected override Expression CreateBlockExpression(Expression source, Expression result, Expression? destination, CompileArgument arg)
         {
             var classModel = GetSetterModel(arg);
-            var classConverter = CreateClassConverter(source, classModel, arg, destination ?? result, result:result, recordRestorMemberModel:classModel);
+            var classConverter = CreateSourceToDestinationConveter(source, classModel, arg, destination ?? result, result:result, recordRestorMemberModel:classModel);
             var members = classConverter.Members;
 
             var lines = new List<Expression>();
