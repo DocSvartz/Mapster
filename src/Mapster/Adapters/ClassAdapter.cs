@@ -60,7 +60,7 @@ namespace Mapster.Adapters
             if (arg.DestinationType.HasDefaultConstructor() && arg.Settings.MapToConstructor == null)
                 return base.CreateInstantiationExpression(source, destination, arg);
 
-            return CreateInstantiationExpression(source, arg.TypeConverter.ConstructorMapping, arg, destination);
+            return CreateInstantiationExpression(source, arg.TypeConverter.ConstructorMapping, arg);
         }
 
         protected override Expression CreateBlockExpression(Expression source, Expression destination, CompileArgument arg)

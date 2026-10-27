@@ -51,11 +51,8 @@ namespace Mapster.Adapters
             if(arg.GetConstructUsing() != null)
                 installExpr = base.CreateInstantiationExpression(source, destination, arg);
             else
-            {
-                var restorParamModel = GetSetterModel(arg);
+                installExpr = CreateInstantiationExpression(source, arg.TypeConverter.ConstructorMapping, arg);
 
-                installExpr = CreateInstantiationExpression(source, arg.TypeConverter.ConstructorMapping, arg, destination, restorParamModel);
-            }
                 
 
 
@@ -70,12 +67,12 @@ namespace Mapster.Adapters
             //}
 
             var exp = installExpr;
-            var memberInit = exp as MemberInitExpression;
+            var memberInit = installExpr as MemberInitExpression;
             var newInstance = memberInit?.NewExpression ?? (NewExpression)exp;
-            var contructorMembers = newInstance.Constructor?.GetParameters().ToList() ?? new();
-            var classModel = GetSetterModel(arg);
-            var classConverter = CreateSourceToDestinationConveter(source, classModel, arg);
-            var members = classConverter.Members;
+            var contructorMembers = arg.TypeConverter.ConstructorMapping?.Members ?? Array.Empty<MemberMapping>();
+           // var classModel = GetSetterModel(arg);
+           // var classConverter = CreateSourceToDestinationConveter(source, classModel, arg);
+            var members = arg.TypeConverter.PropertyOrFieldMapping.Members;
 
            // ClassConverterContext = classConverter;
 
@@ -85,7 +82,7 @@ namespace Mapster.Adapters
             foreach (var member in members)
             {
                 if (!arg.Settings.Resolvers.Any(r => r.DestinationMemberName == member.DestinationMember.Name)
-                    && contructorMembers.Any(x => string.Equals(x.Name, member.DestinationMember.Name, StringComparison.InvariantCultureIgnoreCase)))
+                    && contructorMembers.Any(x => string.Equals(x.DestinationMember.Name, member.DestinationMember.Name, StringComparison.InvariantCultureIgnoreCase)))
                     continue;
 
                 if (member.DestinationMember.SetterModifier == AccessModifier.None)
@@ -116,9 +113,9 @@ namespace Mapster.Adapters
 
         protected override Expression CreateBlockExpression(Expression source, Expression result, Expression? destination, CompileArgument arg)
         {
-            var classModel = GetSetterModel(arg);
-            var classConverter = CreateSourceToDestinationConveter(source, classModel, arg);
-            var members = classConverter.Members;
+            //var classModel = GetSetterModel(arg);
+            //var classConverter = CreateSourceToDestinationConveter(source, classModel, arg);
+            var members = arg.TypeConverter.PropertyOrFieldMapping.Members;
 
             var lines = new List<Expression>();
 

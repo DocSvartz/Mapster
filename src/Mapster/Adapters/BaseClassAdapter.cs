@@ -205,7 +205,7 @@ namespace Mapster.Adapters
             }
         }
 
-        protected Expression CreateInstantiationExpression(Expression source, ConstructorConveterModel classConverter, CompileArgument arg, Expression? destination, MembersModel recordRestorParamModel = null)
+        protected Expression CreateInstantiationExpression(Expression source, ConstructorConveterModel classConverter, CompileArgument arg)
         {
             var members = classConverter.Members;
             var unmappedDestinationCtorParams = new List<string>();
