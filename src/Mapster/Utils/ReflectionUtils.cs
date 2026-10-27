@@ -418,8 +418,6 @@ namespace Mapster
         {
             var memberName = getMemberNames.Select(func => func(member, side))
                 .FirstOrDefault(name => name != null);
-            if (memberName == null && arg.ConstructorMapping == true)
-                memberName = member.Name.ToPascalCase();
             if (memberName == null)
                 memberName = member.Name;
 

@@ -18,12 +18,11 @@ namespace Mapster.Adapters
 
         #region Build the Adapter Model
 
-        protected BaseConveterModel CreateSourceToDestinationConveter(Expression source, MembersModel classModel, CompileArgument arg, bool ctorMapping = false)
+        protected BaseConveterModel CreateSourceToDestinationConveter(Expression source, MembersModel classModel, CompileArgument arg)
         {
             var destinationMembers = classModel.Members;
             var unmappedDestinationMembers = new List<string>();
             var properties = new List<MemberMapping>();
-            arg.ConstructorMapping = ctorMapping;
 
             if (arg.Settings.IgnoreNonMapped == true)
                 IgnoreNonMapped(classModel,arg);
@@ -167,7 +166,7 @@ namespace Mapster.Adapters
 
         protected ConstructorConveterModel CreateSourceToDestinationConstructorConveter(Expression source, MembersModel classModel, CompileArgument arg)
         {
-            if (CreateSourceToDestinationConveter(source, classModel, arg, ctorMapping:true) is ConstructorConveterModel constructorConveter)
+            if (CreateSourceToDestinationConveter(source, classModel, arg) is ConstructorConveterModel constructorConveter)
                 return constructorConveter;
                         
             throw new InvalidOperationException("Is not ConstructorConverter");

@@ -74,7 +74,9 @@ namespace Mapster
             var destinationMemberName = destinationMember.GetMemberName(MemberSide.Destination, arg.Settings.GetMemberNames, strategy.DestinationMemberNameConverter, arg);
             var resolver = members
                 .Where(member => member.ShouldMapMember(arg, MemberSide.Source))
-                .Where(member => member.GetMemberName(MemberSide.Source, arg.Settings.GetMemberNames, strategy.SourceMemberNameConverter, arg) == destinationMemberName)
+                .Where(member => member.GetMemberName(MemberSide.Source, arg.Settings.GetMemberNames, 
+                destinationMember.Info is ParameterInfo ? strategy.SourceToParametrNameConverter : strategy.SourceMemberNameConverter, 
+                    arg) == destinationMemberName)
                 .Select(member => member.GetExpression(source))
                 .FirstOrDefault();
 

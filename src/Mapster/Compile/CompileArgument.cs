@@ -17,7 +17,6 @@ namespace Mapster
         public TypeAdapterSettings Settings { get; set; }
         public CompileContext Context { get; set; }
         public bool UseDestinationValue { get; set; }
-        public bool? ConstructorMapping { get; set; }
 
         public ParameterExpression Source { get; init; }
         public ParameterExpression Destination { get; init; }
@@ -66,7 +65,6 @@ namespace Mapster
                 Settings = this.Settings,
                 Context = this.Context,
                 UseDestinationValue = this.UseDestinationValue,
-                ConstructorMapping = this.ConstructorMapping,
                 _srcNames = this._srcNames,
                 _destNames = this._destNames,
                 _fetchConstructUsing = this._fetchConstructUsing,
