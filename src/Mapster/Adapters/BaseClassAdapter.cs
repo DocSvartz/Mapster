@@ -18,7 +18,7 @@ namespace Mapster.Adapters
 
         #region Build the Adapter Model
 
-        protected BaseConveterModel CreateSourceToDestinationConveter(Expression source, MembersModel classModel, CompileArgument arg, Expression? destination = null, Expression? result = null, bool ctorMapping = false, MembersModel recordRestorMemberModel = null)
+        protected BaseConveterModel CreateSourceToDestinationConveter(Expression source, MembersModel classModel, CompileArgument arg, bool ctorMapping = false)
         {
             var destinationMembers = classModel.Members;
             var unmappedDestinationMembers = new List<string>();
@@ -79,9 +79,9 @@ namespace Mapster.Adapters
                 propertyModel.
                     Source = (ParameterExpression)source; //  must be determined for each GetterLine
                 propertyModel.
-                    Destination = (ParameterExpression?)destination;
+                    Destination = arg.Destination;
                 propertyModel.
-                    Result = (ParameterExpression?)result;
+                    Result = arg.Result;
                 propertyModel.
                     UseDestinationValue = IsCanUsingDestinationValue(arg, destinationMember);
 
@@ -98,7 +98,7 @@ namespace Mapster.Adapters
                     }
                 }
                 //maybe refactoring to always create record restored member
-                if (arg.MapType == MapType.MapToTarget && arg.DestinationType.IsRecordType())
+                if (arg.DestinationType.IsRecordType())
                 {
                     propertyModel
                         .RestoreDestinationMemberExp = TryRestoreRecordMember(destinationMember, arg);

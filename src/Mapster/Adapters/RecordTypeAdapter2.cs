@@ -74,7 +74,7 @@ namespace Mapster.Adapters
             var newInstance = memberInit?.NewExpression ?? (NewExpression)exp;
             var contructorMembers = newInstance.Constructor?.GetParameters().ToList() ?? new();
             var classModel = GetSetterModel(arg);
-            var classConverter = CreateSourceToDestinationConveter(source, classModel, arg, destination: destination, recordRestorMemberModel: classModel);
+            var classConverter = CreateSourceToDestinationConveter(source, classModel, arg);
             var members = classConverter.Members;
 
            // ClassConverterContext = classConverter;
@@ -117,7 +117,7 @@ namespace Mapster.Adapters
         protected override Expression CreateBlockExpression(Expression source, Expression result, Expression? destination, CompileArgument arg)
         {
             var classModel = GetSetterModel(arg);
-            var classConverter = CreateSourceToDestinationConveter(source, classModel, arg, destination ?? result, result:result, recordRestorMemberModel:classModel);
+            var classConverter = CreateSourceToDestinationConveter(source, classModel, arg);
             var members = classConverter.Members;
 
             var lines = new List<Expression>();

@@ -76,7 +76,7 @@ namespace Mapster.Adapters
             //  dest.Prop2 = convert(src.Prop2);
 
             var classModel = GetSetterModel(arg);
-            var classConverter = CreateSourceToDestinationConveter(source, classModel, arg, destination);
+            var classConverter = CreateSourceToDestinationConveter(source, classModel, arg);
             var members = classConverter.Members;
 
             var lines = new List<Expression>();
