@@ -24,6 +24,13 @@ namespace Mapster
             CustomResolverForDictionary,
         };
 
+        public static readonly HashSet<ValueAccess> RemapMaybeResolvers = new HashSet<ValueAccess>
+        {
+            CustomResolver,
+            FlattenMemberFn,
+            CustomResolverForDictionary
+        };
+
         private static bool CustomResolverFn(ResolverSourceInput srcInput, IMemberModel destinationMember, MemberMapping memberMapping, CompileArgument arg)
         {
             var source = srcInput.Src;

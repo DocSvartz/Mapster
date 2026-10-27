@@ -40,15 +40,28 @@ namespace Mapster.Adapters
                     continue;
 
                 var propertyModel = new MemberMapping();
-   
-                var resolvers = arg.Settings.ValueAccessingStrategies.AsEnumerable();
-                if (arg.Settings.IgnoreNonMapped == true)
-                    resolvers = resolvers.Where(ValueAccessingStrategy.CustomResolvers.Contains);
-                var resolver = (from fn in resolvers
-                        from src in sources
-                        select fn(src, destinationMember, propertyModel, arg))
-                    .FirstOrDefault(result => result);
-                
+
+                //If member has ignore without contition,
+                //it canbe remap in using Custom mapping or flattening Custom mapping only
+                if (ignore.WithOutCondition)
+                {
+                    var onlyCustomResolvers = arg.Settings.ValueAccessingStrategies.AsEnumerable().Where(ValueAccessingStrategy.RemapMaybeResolvers.Contains);
+                    var resolver = (from fn in onlyCustomResolvers
+                                    from src in sources
+                                    select fn(src, destinationMember, propertyModel, arg))
+                        .FirstOrDefault(result => result);
+                }
+                else
+                {
+                    var resolvers = arg.Settings.ValueAccessingStrategies.AsEnumerable();
+                    if (arg.Settings.IgnoreNonMapped == true)
+                        resolvers = resolvers.Where(ValueAccessingStrategy.CustomResolvers.Contains);
+                    var resolver = (from fn in resolvers
+                                    from src in sources
+                                    select fn(src, destinationMember, propertyModel, arg))
+                        .FirstOrDefault(result => result);
+                }
+
                 var nextIgnore = arg.Settings.Ignore.Next((ParameterExpression)source, (ParameterExpression?)arg.Destination, destinationMember.Name);
                 var nextResolvers = arg.Settings.Resolvers.Next(arg.Settings.Ignore, (ParameterExpression)source, destinationMember.Name)
                     .ToList();
