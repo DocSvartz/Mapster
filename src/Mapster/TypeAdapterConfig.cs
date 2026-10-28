@@ -91,6 +91,7 @@ namespace Mapster
         public bool AllowImplicitSourceInheritance { get; set; } = true;
         public bool SelfContainedCodeGeneration { get; set; }
         public bool ActivateCustomConvertersSrcNullPropagation { get; set; } = false;
+        public bool IsLegasyIgnoreParameterNameMatching { get; set; } = true;
 
         public Func<LambdaExpression, Delegate> Compiler { get; set; } = lambda => lambda.Compile();
 

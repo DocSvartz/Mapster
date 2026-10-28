@@ -20,7 +20,7 @@ namespace Mapster.Models
         }
 
         public Type Type => _parameterInfo.ParameterType;
-        public string Name => _parameterInfo.Name.ToPascalCase();
+        public string Name => _parameterInfo.Name;
         public object Info => _parameterInfo;
         public bool IsBackField => false;
         public bool IsRequired { get; private set; }
