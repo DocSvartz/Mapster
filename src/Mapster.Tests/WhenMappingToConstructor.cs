@@ -15,8 +15,12 @@ namespace Mapster.Tests
         [TestMethod]
         public void MapToConstructor_Auto()
         {
-            TypeAdapterConfig<Poco, Dto>.NewConfig()
+            var config = new TypeAdapterConfig();
+            config.IsLegasyIgnoreParameterNameMatching = false;
+
+            config.NewConfig<Poco, Dto>()
                 .MapToConstructor(true)
+                .Ignore("age")
                 .RequireDestinationMemberSource(Mapster.Enums.DestinationMemebers.ConstrutorMembers);
 
             var poco = new Poco { Id = "A", Name = "Test", Prop = "Prop" };

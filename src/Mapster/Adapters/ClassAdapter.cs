@@ -144,6 +144,9 @@ namespace Mapster.Adapters
                 lines.AddRange(memberInit.Bindings);
             foreach (var member in members)
             {
+                if (member.IsNotFoundGetter)
+                    continue;
+
                 if (member.Ignore.WithOutCondition && !member.IsMaybeReMapping)
                     continue;
 
@@ -193,7 +196,14 @@ namespace Mapster.Adapters
                 if (!member.DestinationMember.IsRequired)
                     continue;
 
-                var value = GetMemberInlineAdapter(member, transformArg);
+                Expression value;
+
+                if (member.IsNotFoundGetter)
+                    value = arg.MapType == MapType.MapToTarget
+                        ? TryRestoreRecordMember(member, arg) ?? member.DestinationMember.Type.CreateDefault()
+                        : member.DestinationMember.Type.CreateDefault();
+                else
+                    value = GetMemberInlineAdapter(member, transformArg);
 
                 var bind = Expression.Bind((MemberInfo)member.DestinationMember.Info!, value);
                 lines.Add(bind);

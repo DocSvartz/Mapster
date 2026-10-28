@@ -8,6 +8,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Security.Cryptography;
+using System.Text;
 
 namespace Mapster.Adapters
 {
@@ -21,7 +22,7 @@ namespace Mapster.Adapters
         protected BaseConveterModel CreateSourceToDestinationConveter(Expression source, MembersModel classModel, CompileArgument arg)
         {
             var destinationMembers = classModel.Members;
-            var unmappedDestinationMembers = new List<string>();
+            //var unmappedDestinationMembers = new List<string>();
             var properties = new List<MemberMapping>();
 
             if (arg.Settings.IgnoreNonMapped == true)
@@ -127,8 +128,8 @@ namespace Mapster.Adapters
                         {
                             if (classModel.BreakOnUnmatched)
                                 return null!;
-                            if(!arg.Settings.Ignore.Any(x=>x.Key == destinationMember.Name)) // Don't mark a constructor parameter if it was explicitly ignored
-                                unmappedDestinationMembers.Add(destinationMember.Name);
+                            //if(!arg.Settings.Ignore.Any(x=>x.Key == destinationMember.Name)) // Don't mark a constructor parameter if it was explicitly ignored
+                            //    unmappedDestinationMembers.Add(destinationMember.Name);
                         }
 
                         properties.Add(propertyModel);
@@ -142,19 +143,21 @@ namespace Mapster.Adapters
                     {
                         if (classModel.BreakOnUnmatched)
                             return null!;
-                        unmappedDestinationMembers.Add(destinationMember.Name);
+                        //unmappedDestinationMembers.Add(destinationMember.Name);
+
+                        properties.Add(propertyModel);
                     }
                 }
             }
 
-            var requireDestMemberSource = arg.Settings.RequireDestinationMemberSource.HasPropertyOrFields()
-                || arg.Context.Config.RequireDestinationMemberSource;
-            if (requireDestMemberSource &&
-                unmappedDestinationMembers.Count > 0 &&
-                arg.Settings.SkipDestinationMemberCheck != true)
-            {
-                throw new InvalidOperationException($"The following members of destination class {arg.DestinationType} do not have a corresponding source member mapped or ignored:{string.Join(",", unmappedDestinationMembers)}");
-            }
+            //var requireDestMemberSource = arg.Settings.RequireDestinationMemberSource.HasPropertyOrFields()
+            //    || arg.Context.Config.RequireDestinationMemberSource;
+            //if (requireDestMemberSource &&
+            //    unmappedDestinationMembers.Count > 0 &&
+            //    arg.Settings.SkipDestinationMemberCheck != true)
+            //{
+            //    throw new InvalidOperationException($"The following members of destination class {arg.DestinationType} do not have a corresponding source member mapped or ignored:{string.Join(",", unmappedDestinationMembers)}");
+            //}
 
             if(classModel.ConstructorInfo is ConstructorInfo)
                 return new ConstructorConveterModel() { Info = classModel.ConstructorInfo, Members = properties };
@@ -200,8 +203,16 @@ namespace Mapster.Adapters
             {
                 ignore = IgnoreDictionary.IgnoreItem.InvalidIgnore; // Ignore is not set
 
-                if (arg.Settings.Ignore.TryGetValue(destinationMember.Name, out var realIgnore))
-                    ignore = realIgnore; // сonditional Ignore set
+                if(arg.Context.Config.IsLegasyIgnoreParameterNameMatching && destinationMember.Info is ParameterInfo)
+                {
+                    if (arg.Settings.Ignore.TryGetValue(destinationMember.Name.ToPascalCase(), out var realIgnore))
+                        ignore = realIgnore; // сonditional Ignore set
+                }
+                else
+                {
+                    if (arg.Settings.Ignore.TryGetValue(destinationMember.Name, out var realIgnore))
+                        ignore = realIgnore; // сonditional Ignore set
+                }
             }
         }
 
@@ -500,20 +511,57 @@ namespace Mapster.Adapters
                     ? destType!.GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
                     : destType!.GetConstructors(BindingFlags.Instance | BindingFlags.Public);
 
-
-                
-                //if (arg.Settings.MapToConstructor == null 
-                //    && destypeConstuctors.Where(x => x.GetParameters().Length == 0).FirstOrDefault() == null)
-                //     throw new InvalidOperationException($"No default constructor for type '{arg.DestinationType.Name}', please use 'MapToConstructor', 'ConstructUsing' or 'MapWith" );
-
                 if (arg.Settings.MapToConstructor is ConstructorInfo customCtor)
                     constructorMapping = GetConsturctorMapping(customCtor, source, arg);
                 else
                     constructorMapping = OptimalConstuctorSelector(destypeConstuctors, source, arg);
             }
 
-
             var propertyOrFieldConverter = CreateSourceToDestinationPropertOrFieldConverter(source, GetSetterModel(arg), destination, arg);
+
+
+            // RequireDestMemberSource checking section
+
+            var requireDestMemberSource = arg.Settings.RequireDestinationMemberSource;
+
+            if (arg.Context.Config.RequireDestinationMemberSource == true
+                && requireDestMemberSource == DestinationMemebers.None)
+                requireDestMemberSource = DestinationMemebers.AllMembers;
+
+            if(requireDestMemberSource != DestinationMemebers.None 
+                && arg.Settings.SkipDestinationMemberCheck != true)
+            {
+                var exeptionMessage = new StringBuilder();
+                exeptionMessage.AppendLine($"The following members of destination class {arg.DestinationType} do not have a corresponding source member mapped or ignored:");
+
+                var startMessageLength = exeptionMessage.Length;
+
+                if(requireDestMemberSource.HasPropertyOrFields())
+                {
+                    var unMappingProperties = propertyOrFieldConverter.Members
+                        .Where(x => x.IsNotFoundGetter && !x.Ignore.WithOutCondition)
+                        .Select(x => x.DestinationMember.Name).ToArray();
+
+                    if(unMappingProperties.Length != 0)
+                        exeptionMessage.AppendLine($"- Property or Field members: {string.Join(", ", unMappingProperties)}");
+                }
+
+                if(requireDestMemberSource.HasConstrutorMembers())
+                {
+                    var unMappingCtorParams = constructorMapping == null 
+                        ? Array.Empty<string>()
+                        : constructorMapping.Members
+                            .Where(x => x.IsNotFoundGetter && !x.Ignore.WithOutCondition)
+                            .Select(x => x.DestinationMember.Name).ToArray();
+
+                    if(unMappingCtorParams.Length != 0)
+                        exeptionMessage.AppendLine($"- Сonstructor parameters: {string.Join(", ", unMappingCtorParams)}");
+                }
+
+                if(exeptionMessage.Length > startMessageLength)
+                    throw new InvalidOperationException(exeptionMessage.ToString());
+            }
+
 
             return new TypeConverterModel() { ConstructorMapping = constructorMapping, PropertyOrFieldMapping = propertyOrFieldConverter };
         }
