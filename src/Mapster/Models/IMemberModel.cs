@@ -11,6 +11,7 @@ namespace Mapster.Models
         object? Info { get; }
         public bool IsBackField { get; }
         public bool IsRequired { get; }
+        public bool IsParameter { get; }
         AccessModifier SetterModifier { get; }
         AccessModifier AccessModifier { get; }
 

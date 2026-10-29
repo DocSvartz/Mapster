@@ -32,6 +32,7 @@ namespace Mapster.Models
 
         public bool IsBackField => false;
         public bool IsRequired => false;
+        public bool IsParameter => false;
 
         public IEnumerable<object> GetCustomAttributes(bool inherit) => Enumerable.Empty<object>();
 

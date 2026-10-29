@@ -24,6 +24,7 @@ namespace Mapster.Models
         public object Info => _parameterInfo;
         public bool IsBackField => false;
         public bool IsRequired { get; private set; }
+        public bool IsParameter => true;
 
         public AccessModifier SetterModifier => AccessModifier.Public;
         public AccessModifier AccessModifier => AccessModifier.Public;

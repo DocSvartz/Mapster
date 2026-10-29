@@ -36,8 +36,9 @@ namespace Mapster.Models
 
         public bool IsBackField { get; private set; }
         public bool IsRequired  { get; private set; }
+        public bool IsParameter => false;
 
-    public Expression GetExpression(Expression source)
+        public Expression GetExpression(Expression source)
         {
             return Expression.Field(source, _fieldInfo);
         }

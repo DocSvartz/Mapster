@@ -52,6 +52,7 @@ namespace Mapster.Models
 
         public bool IsBackField => false;
         public bool IsRequired { get; private set; }
+        public bool IsParameter => false;
 
         public virtual Expression GetExpression(Expression source)
         {
