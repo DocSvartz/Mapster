@@ -126,8 +126,7 @@ namespace Mapster.Adapters
                         var info = (ParameterInfo)destinationMember.Info!;
                         if (!info.IsOptional)
                         {
-                            if (classModel.BreakOnUnmatched)
-                                return null!;
+                           
                             //if(!arg.Settings.Ignore.Any(x=>x.Key == destinationMember.Name)) // Don't mark a constructor parameter if it was explicitly ignored
                             //    unmappedDestinationMembers.Add(destinationMember.Name);
                         }
@@ -141,8 +140,7 @@ namespace Mapster.Adapters
                     }
                     else if (destinationMember.UseDestinationValue(arg) || destinationMember.SetterModifier != AccessModifier.None)
                     {
-                        if (classModel.BreakOnUnmatched)
-                            return null!;
+                        
                         //unmappedDestinationMembers.Add(destinationMember.Name);
 
                         properties.Add(propertyModel);
@@ -280,11 +278,10 @@ namespace Mapster.Adapters
             return Expression.New(classConverter.ConstructorInfo!, arguments);
         }
 
-        protected virtual MembersModel GetConstructorModel(ConstructorInfo ctor, bool breakOnUnmatched)
+        protected virtual MembersModel GetConstructorModel(ConstructorInfo ctor)
         {
             return new MembersModel
             {
-                BreakOnUnmatched = breakOnUnmatched,
                 ConstructorInfo = ctor,
                 Members = ctor.GetParameters().Select(ReflectionUtils.CreateModel)
             };
@@ -569,7 +566,7 @@ namespace Mapster.Adapters
         protected ConstructorConveterModel? OptimalConstuctorSelector(IEnumerable<ConstructorInfo> constructors, Expression source, CompileArgument arg)
         {
             var MappingScoreGroups = constructors
-                .Select(it => GetConstructorModel(it, false))
+                .Select(it => GetConstructorModel(it))
                 .Select(it => CreateSourceToDestinationConstructorConveter(source, it, arg))
                 // if param of ctor is optional it case equal find getter state
                 .GroupBy(x => x.Members.Where(y => !y.IsNotFoundGetter || !y.DestinationMember.IsRequired).Count() - (x.ConstructorInfo?.GetParameters().Count()).GetValueOrDefault())
@@ -583,7 +580,7 @@ namespace Mapster.Adapters
 
         protected ConstructorConveterModel GetConsturctorMapping(ConstructorInfo constructor, Expression source, CompileArgument arg)
         {
-            return CreateSourceToDestinationConstructorConveter(source, GetConstructorModel(constructor, false), arg);
+            return CreateSourceToDestinationConstructorConveter(source, GetConstructorModel(constructor), arg);
         }
 
         protected override Expression CreateExpressionBody(Expression source, Expression? destination, CompileArgument arg)

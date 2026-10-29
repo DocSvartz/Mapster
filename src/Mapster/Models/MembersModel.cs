@@ -5,7 +5,6 @@ namespace Mapster.Models
 {
     internal class MembersModel
     {
-        public bool BreakOnUnmatched { get; set; }
         public MethodBase? ConstructorInfo { get; set; }
         public IEnumerable<IMemberModelEx> Members { get; set; } 
     }
