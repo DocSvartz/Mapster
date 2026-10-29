@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Security.Cryptography;
 using System.Text;
 
 namespace Mapster.Adapters
@@ -19,11 +18,11 @@ namespace Mapster.Adapters
 
         #region Build the Adapter Model
 
-        protected BaseConveterModel CreateSourceToDestinationConveter(Expression source, MembersModel classModel, CompileArgument arg)
+        private List<MemberMapping> CreateSourceToDestinationConveter(Expression source, MembersModel classModel, CompileArgument arg)
         {
             var destinationMembers = classModel.Members;
             //var unmappedDestinationMembers = new List<string>();
-            var properties = new List<MemberMapping>();
+            List<MemberMapping> members = new List<MemberMapping>();
 
             if (arg.Settings.IgnoreNonMapped == true)
                 IgnoreNonMapped(classModel,arg);
@@ -107,7 +106,7 @@ namespace Mapster.Adapters
                     || propertyModel.RestoreDestinationMemberExp != null)
                 {
                     propertyModel.CreateNullPropagationChecker(arg);
-                    properties.Add(propertyModel);
+                    members.Add(propertyModel);
                 }
                 else
                 {
@@ -131,19 +130,19 @@ namespace Mapster.Adapters
                             //    unmappedDestinationMembers.Add(destinationMember.Name);
                         }
 
-                        properties.Add(propertyModel);
+                        members.Add(propertyModel);
                     }
                     else if (propertyModel.HasSettings())
                     {
                         propertyModel.GetterLines.Add(new GetterLine(source, Expression.New(typeof(Never)), null));
-                        properties.Add(propertyModel);
+                        members.Add(propertyModel);
                     }
                     else if (destinationMember.UseDestinationValue(arg) || destinationMember.SetterModifier != AccessModifier.None)
                     {
                         
                         //unmappedDestinationMembers.Add(destinationMember.Name);
 
-                        properties.Add(propertyModel);
+                        members.Add(propertyModel);
                     }
                 }
             }
@@ -157,27 +156,25 @@ namespace Mapster.Adapters
             //    throw new InvalidOperationException($"The following members of destination class {arg.DestinationType} do not have a corresponding source member mapped or ignored:{string.Join(",", unmappedDestinationMembers)}");
             //}
 
-            if(classModel.ConstructorInfo is ConstructorInfo)
-                return new ConstructorConveterModel() { Info = classModel.ConstructorInfo, Members = properties };
-            if (classModel.ConstructorInfo is MethodBase)
-                return new MetodConverterModel() { Info = classModel.ConstructorInfo, Members = properties };
-            else
-                return new PropertyOrFielldConveterModel() { Members = properties };
+            //if(classModel.ConstructorInfo is ConstructorInfo)
+            //    return new ConstructorConveterModel() { Info = classModel.ConstructorInfo, Members = members };
+            //if (classModel.ConstructorInfo is MethodBase)
+            //    return new MetodConverterModel() { Info = classModel.ConstructorInfo, Members = members };
+            //else
+            //    return new PropertyOrFielldConveterModel() { Members = members };
+
+            return members;
         }
 
-        protected ConstructorConveterModel CreateSourceToDestinationConstructorConveter(Expression source, MembersModel classModel, CompileArgument arg)
+        protected ConstructorConveterModel CreateSourceToDestinationConstructorConveter(Expression source, ConstructorInfo constructor, CompileArgument arg)
         {
-            if (CreateSourceToDestinationConveter(source, classModel, arg) is ConstructorConveterModel constructorConveter)
-                return constructorConveter;
-                        
-            throw new InvalidOperationException("Is not ConstructorConverter");
+            var memberModel = GetConstructorModel(constructor);
+            return new ConstructorConveterModel() { Info = constructor, Members = CreateSourceToDestinationConveter(source, memberModel, arg) };
         }
-        protected PropertyOrFielldConveterModel CreateSourceToDestinationPropertOrFieldConverter(Expression source, MembersModel classModel, Expression? destination, CompileArgument arg)
+        protected PropertyOrFielldConveterModel CreateSourceToDestinationPropertOrFieldConverter(Expression source, CompileArgument arg)
         {
-            if (CreateSourceToDestinationConveter(source, classModel, arg) is PropertyOrFielldConveterModel propertyOrFieldModel)
-                return propertyOrFieldModel;
-
-            throw new InvalidOperationException("Is not PropertyOrFieldModelConverter");
+            var memberModel = GetSetterModel(arg);
+            return new PropertyOrFielldConveterModel() { Members = CreateSourceToDestinationConveter(source, memberModel, arg) };
         }
 
         protected static bool IsCanUsingDestinationValue(CompileArgument arg, IMemberModelEx destinationMember)
@@ -509,12 +506,12 @@ namespace Mapster.Adapters
                     : destType!.GetConstructors(BindingFlags.Instance | BindingFlags.Public);
 
                 if (arg.Settings.MapToConstructor is ConstructorInfo customCtor)
-                    constructorMapping = GetConsturctorMapping(customCtor, source, arg);
+                    constructorMapping = CreateSourceToDestinationConstructorConveter(source, customCtor, arg);
                 else
                     constructorMapping = OptimalConstuctorSelector(destypeConstuctors, source, arg);
             }
 
-            var propertyOrFieldConverter = CreateSourceToDestinationPropertOrFieldConverter(source, GetSetterModel(arg), destination, arg);
+            var propertyOrFieldConverter = CreateSourceToDestinationPropertOrFieldConverter(source, arg);
 
 
             // RequireDestMemberSource checking section
@@ -566,7 +563,6 @@ namespace Mapster.Adapters
         protected ConstructorConveterModel? OptimalConstuctorSelector(IEnumerable<ConstructorInfo> constructors, Expression source, CompileArgument arg)
         {
             var MappingScoreGroups = constructors
-                .Select(it => GetConstructorModel(it))
                 .Select(it => CreateSourceToDestinationConstructorConveter(source, it, arg))
                 // if param of ctor is optional it case equal find getter state
                 .GroupBy(x => x.Members.Where(y => !y.IsNotFoundGetter || !y.DestinationMember.IsRequired).Count() - (x.ConstructorInfo?.GetParameters().Count()).GetValueOrDefault())
@@ -576,11 +572,6 @@ namespace Mapster.Adapters
             return MappingScoreGroups.FirstOrDefault()
                 ?.OrderByDescending(x => x.ConstructorInfo?.GetParameters().Count())
                 .FirstOrDefault();
-        }
-
-        protected ConstructorConveterModel GetConsturctorMapping(ConstructorInfo constructor, Expression source, CompileArgument arg)
-        {
-            return CreateSourceToDestinationConstructorConveter(source, GetConstructorModel(constructor), arg);
         }
 
         protected override Expression CreateExpressionBody(Expression source, Expression? destination, CompileArgument arg)

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using Mapster.MappingModels;
 using Mapster.Models;
 using Mapster.Utils;
 
@@ -75,8 +76,8 @@ namespace Mapster.Adapters
             //if (src.Prop2 != null)
             //  dest.Prop2 = convert(src.Prop2);
 
-            var classModel = GetSetterModel(arg);
-            var classConverter = CreateSourceToDestinationConveter(source, classModel, arg);
+            //var classModel = GetSetterModel(arg);
+            var classConverter = CreateSourceToDestinationPropertOrFieldConverter(source, arg);
             var members = classConverter.Members;
 
             var lines = new List<Expression>();
@@ -182,8 +183,8 @@ namespace Mapster.Adapters
             if (newInstance == null)
                 return exp;
 
-           var classModel = GetSetterModel(transformArg);
-           var classConverter = CreateSourceToDestinationConveter(source, classModel, transformArg);
+           //var classModel = GetSetterModel(transformArg);
+           var classConverter = CreateSourceToDestinationPropertOrFieldConverter(source, transformArg);
 
             var members = classConverter.Members;
 

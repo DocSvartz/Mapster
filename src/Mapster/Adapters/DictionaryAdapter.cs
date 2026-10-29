@@ -192,8 +192,8 @@ namespace Mapster.Adapters
             var listInit = exp as ListInitExpression;
             var newInstance = listInit?.NewExpression ?? (NewExpression)exp;
 
-            var classModel = GetSetterModel(arg);
-            var classConverter = CreateSourceToDestinationConveter(source, classModel, arg);
+            //var classModel = GetSetterModel(arg);
+            var classConverter = CreateSourceToDestinationPropertOrFieldConverter(source, arg);
             var members = classConverter.Members;
 
             var dictType = exp.Type.GetDictionaryType()!;

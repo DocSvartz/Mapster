@@ -37,8 +37,8 @@ namespace Mapster.Adapters
                 if (destType == null)
                     return base.CreateInstantiationExpression(source, destination, arg);
                 var ctor = destType.GetConstructors()[0];
-                var classModel = GetConstructorModel(ctor);
-                var classConverter = CreateSourceToDestinationConstructorConveter(source, classModel, arg);
+                //var classModel = GetConstructorModel(ctor);
+                var classConverter = CreateSourceToDestinationConstructorConveter(source, ctor, arg);
                 return CreateInstantiationExpression(source, classConverter, arg);
             }
             else
