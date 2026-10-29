@@ -161,6 +161,7 @@ namespace Mapster.Tests
         {
             TypeAdapterConfig<SimplePoco, SimpleRecord>.NewConfig()
                 .IgnoreIf((src, dest) => src.Name == "TestName", dest => dest.Name)
+                .IsLegasyIgnoreParameterNameMatching(true)
                 .Compile();
 
             var targetRecord = new SimpleRecord(42, "TargetName");

@@ -74,6 +74,7 @@ namespace Mapster.Tests
                         DestinationMemberNameConverter = input => input.ToLowerInvariant(),
                     })
                    ;
+            config.Default.IsLegasyIgnoreParameterNameMatching(true);
             config
                 .NewConfig<A707, B707>()
                 .MapToConstructor(GetConstructor<B707>())

@@ -31,6 +31,14 @@ namespace Mapster
                 throw new InvalidOperationException("TypeAdapter.Adapt was already called, please clone or create new TypeAdapterConfig.");
         }
 
+        public static TSetter IsLegasyIgnoreParameterNameMatching<TSetter>(this TSetter setter, bool value) where TSetter : TypeAdapterSetter
+        {
+            setter.CheckCompiled();
+
+            setter.Settings.IsLegasyIgnoreParameterNameMatching = value;
+            return setter;
+        }
+
         public static TSetter AddDestinationTransform<TSetter, TDestinationMember>(this TSetter setter, Expression<Func<TDestinationMember, TDestinationMember>> transform) where TSetter : TypeAdapterSetter
         {
             setter.CheckCompiled();
@@ -402,6 +410,8 @@ namespace Mapster
                 setter.RequireDestinationMemberSource(attr.RequireDestinationMemberSource);
             return setter;
         }
+
+
     }
 
     public class TypeAdapterSetter<TDestination> : TypeAdapterSetter

@@ -16,7 +16,6 @@ namespace Mapster.Tests
         public void MapToConstructor_Auto()
         {
             var config = new TypeAdapterConfig();
-            config.IsLegasyIgnoreParameterNameMatching = false;
 
             config.NewConfig<Poco, Dto>()
                 .MapToConstructor(true)

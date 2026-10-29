@@ -8,7 +8,8 @@ namespace Mapster
     {
         public Func<string, string> SourceMemberNameConverter { get; set; }
         public Func<string, string> DestinationMemberNameConverter { get; set; }
-        public Func<string, string> SourceToParametrNameConverter { get; set; }
+        public Func<string, string> SourceMemberToParameterNameConverter { get; set; }
+        public Func<string, string> ParameterNameConverter { get; set; }
 
         public void Apply(object other)
         {
@@ -21,21 +22,24 @@ namespace Mapster
         {
             SourceMemberNameConverter ??= other.SourceMemberNameConverter;
             DestinationMemberNameConverter ??= other.DestinationMemberNameConverter;
-            SourceToParametrNameConverter ??= other.SourceToParametrNameConverter;
+            SourceMemberToParameterNameConverter ??= other.SourceMemberToParameterNameConverter;
+            ParameterNameConverter ??= other.ParameterNameConverter;
         }
 
         public static readonly NameMatchingStrategy Exact = new NameMatchingStrategy
         {
             SourceMemberNameConverter = MapsterHelper.Identity,
             DestinationMemberNameConverter = MapsterHelper.Identity,
-            SourceToParametrNameConverter = MapsterHelper.PascalCase,
+            SourceMemberToParameterNameConverter = MapsterHelper.PascalCase,
+            ParameterNameConverter = MapsterHelper.PascalCase
         };
 
         public static readonly NameMatchingStrategy Flexible = new NameMatchingStrategy
         {
             SourceMemberNameConverter = MapsterHelper.PascalCase,
             DestinationMemberNameConverter = MapsterHelper.PascalCase,
-            SourceToParametrNameConverter = MapsterHelper.PascalCase,
+            SourceMemberToParameterNameConverter = MapsterHelper.PascalCase,
+            ParameterNameConverter= MapsterHelper.PascalCase
 
         };
 
@@ -43,21 +47,22 @@ namespace Mapster
         {
             SourceMemberNameConverter = MapsterHelper.LowerCase,
             DestinationMemberNameConverter = MapsterHelper.LowerCase,
-            SourceToParametrNameConverter = MapsterHelper.PascalCase,
+            SourceMemberToParameterNameConverter = MapsterHelper.PascalCase,
+            ParameterNameConverter = MapsterHelper.PascalCase
         };
 
         public static readonly NameMatchingStrategy ToCamelCase = new NameMatchingStrategy
         {
             SourceMemberNameConverter = MapsterHelper.CamelCase,
             DestinationMemberNameConverter = MapsterHelper.Identity,
-            SourceToParametrNameConverter = MapsterHelper.PascalCase,
+            SourceMemberToParameterNameConverter = MapsterHelper.PascalCase,
         };
 
         public static readonly NameMatchingStrategy FromCamelCase = new NameMatchingStrategy
         {
             SourceMemberNameConverter = MapsterHelper.Identity,
             DestinationMemberNameConverter = MapsterHelper.CamelCase,
-            SourceToParametrNameConverter = MapsterHelper.PascalCase,
+            SourceMemberToParameterNameConverter = MapsterHelper.PascalCase,
         };
 
         public static NameMatchingStrategy ConvertSourceMemberName(Func<string, string> nameConverter)
@@ -66,7 +71,8 @@ namespace Mapster
             {
                 SourceMemberNameConverter = nameConverter,
                 DestinationMemberNameConverter = MapsterHelper.Identity,
-                SourceToParametrNameConverter = MapsterHelper.PascalCase,
+                SourceMemberToParameterNameConverter = MapsterHelper.PascalCase,
+                ParameterNameConverter = MapsterHelper.PascalCase
             };
         }
 
@@ -76,17 +82,30 @@ namespace Mapster
             {
                 SourceMemberNameConverter = MapsterHelper.Identity,
                 DestinationMemberNameConverter = nameConverter,
-                SourceToParametrNameConverter = MapsterHelper.PascalCase,
+                SourceMemberToParameterNameConverter = MapsterHelper.PascalCase,
+                ParameterNameConverter = MapsterHelper.PascalCase
             };
         }
 
-        public static NameMatchingStrategy ConvertSourceToParametrMemberName(Func<string, string> nameConverter)
+        public static NameMatchingStrategy ConvertSourceMemberToParameterMemberName(Func<string, string> nameConverter)
         {
             return new NameMatchingStrategy
             {
                 SourceMemberNameConverter = MapsterHelper.Identity,
                 DestinationMemberNameConverter = MapsterHelper.Identity,
-                SourceToParametrNameConverter = nameConverter,
+                SourceMemberToParameterNameConverter = nameConverter,
+                ParameterNameConverter = MapsterHelper.PascalCase
+            };
+        }
+
+        public static NameMatchingStrategy ConvertParameterMemberName(Func<string, string> nameConverter)
+        {
+            return new NameMatchingStrategy
+            {
+                SourceMemberNameConverter = MapsterHelper.Identity,
+                DestinationMemberNameConverter = MapsterHelper.Identity,
+                SourceMemberToParameterNameConverter = MapsterHelper.PascalCase,
+                ParameterNameConverter = nameConverter
             };
         }
 

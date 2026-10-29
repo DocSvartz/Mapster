@@ -219,6 +219,12 @@ namespace Mapster
             get => Get(nameof(ReMapDestinationMembers), () => new List<string>());
         }
 
+        public bool? IsLegasyIgnoreParameterNameMatching
+        {
+            get => Get(nameof(IsLegasyIgnoreParameterNameMatching));
+            set => Set(nameof(IsLegasyIgnoreParameterNameMatching), value);
+        }
+
         internal bool Compiled { get; set; }
 
         public TypeAdapterSettings Clone()

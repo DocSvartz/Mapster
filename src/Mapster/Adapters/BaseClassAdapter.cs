@@ -203,7 +203,7 @@ namespace Mapster.Adapters
             {
                 ignore = IgnoreDictionary.IgnoreItem.InvalidIgnore; // Ignore is not set
 
-                if(arg.Context.Config.IsLegasyIgnoreParameterNameMatching && destinationMember.Info is ParameterInfo)
+                if(arg.Settings.IsLegasyIgnoreParameterNameMatching == true && destinationMember.Info is ParameterInfo)
                 {
                     if (arg.Settings.Ignore.TryGetValue(destinationMember.Name.ToPascalCase(), out var realIgnore))
                         ignore = realIgnore; // сonditional Ignore set
