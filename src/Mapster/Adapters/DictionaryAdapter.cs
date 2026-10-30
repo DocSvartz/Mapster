@@ -1,10 +1,11 @@
-﻿using System;
+﻿using Mapster.MappingModels;
+using Mapster.Models;
+using Mapster.Utils;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using Mapster.Models;
-using Mapster.Utils;
 
 namespace Mapster.Adapters
 {
@@ -30,16 +31,21 @@ namespace Mapster.Adapters
                 || arg.Settings.IgnoreNonMapped == true;
         }
 
-        protected override Expression CreateInstantiationExpression(Expression source, Expression? destination, CompileArgument arg)
+        protected override ConstructorConveterModel? DestiantionConstructorSelector(Expression source, CompileArgument arg, out Expression? defaultExpression) 
         {
+            defaultExpression = null;
+
             if (arg.DestinationType.GetTypeInfo().IsInterface)
             {
                 var dict = arg.DestinationType.GetDictionaryType()!;
                 var dictArgs = dict.GetGenericArguments();
-                var dictType = typeof(Dictionary<,>).MakeGenericType(dictArgs);
-                return Expression.New(dictType);
+                var constructor = typeof(Dictionary<,>).MakeGenericType(dictArgs).GetConstructor(Array.Empty<Type>());
+                
+                if (constructor != null)
+                    return CreateSourceToDestinationConstructorConveter(source, constructor, arg);
             }
-            return base.CreateInstantiationExpression(source, destination, arg);
+
+            return CreateSourceToDestinationConstructorConveter(source, arg.DestinationType.GetConstructor(Array.Empty<Type>())!, arg);
         }
 
         protected override Expression CreateBlockExpression(Expression source, Expression destination, CompileArgument arg)

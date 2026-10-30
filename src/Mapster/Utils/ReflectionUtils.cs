@@ -461,6 +461,22 @@ namespace Mapster
             return type.GetConstructor(Type.EmptyTypes) != null;
         }
 
+        public static bool HasDefaultConstructor(this Type type, IEnumerable<ConstructorInfo> constructors, out ConstructorInfo? constructor)
+        {
+            constructor = null;
+
+            if (type == typeof(void)
+                || type.GetTypeInfo().IsAbstract
+                || type.GetTypeInfo().IsInterface
+                )
+                return false;
+            if (type.GetTypeInfo().IsValueType)
+                return true;
+
+            constructor = constructors.Where(x => x.GetParameters().Length == 0).FirstOrDefault();
+            return constructor != null;
+        }
+
         public static IEnumerable<InvokerModel> Next(this IEnumerable<InvokerModel> resolvers, IgnoreDictionary ignore, ParameterExpression source, string destName)
         {
             return resolvers.Where(it => !ignore.TryGetValue(it.DestinationMemberName, out var item) || item.Condition != null)

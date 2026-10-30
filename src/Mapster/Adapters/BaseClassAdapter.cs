@@ -491,25 +491,7 @@ namespace Mapster.Adapters
 
         protected virtual TypeConverterModel CreateTypeConverter(Expression source, Expression? destination, CompileArgument arg)
         {
-            ConstructorConveterModel? constructorMapping = null;
-
-            var s = arg.DestinationType.HasDefaultConstructor();
-
-            var destType = arg.DestinationType.IsInterface && arg.DestinationType.GetDictionaryType() == null
-                ? DynamicTypeGenerator.GetTypeForInterface(arg.DestinationType, arg.Settings.Includes.Count > 0) ?? arg.DestinationType
-                : arg.DestinationType;
-
-            if (arg.GetConstructUsing() is null)
-            {
-                ConstructorInfo[] destypeConstuctors = arg.Settings.EnableNonPublicConstructors.GetValueOrDefault() 
-                    ? destType!.GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-                    : destType!.GetConstructors(BindingFlags.Instance | BindingFlags.Public);
-
-                if (arg.Settings.MapToConstructor is ConstructorInfo customCtor)
-                    constructorMapping = CreateSourceToDestinationConstructorConveter(source, customCtor, arg);
-                else
-                    constructorMapping = OptimalConstuctorSelector(destypeConstuctors, source, arg);
-            }
+            var constructorConverter = DestiantionConstructorSelector(source,arg, out var defCtor);
 
             var propertyOrFieldConverter = CreateSourceToDestinationPropertOrFieldConverter(source, arg);
 
@@ -542,9 +524,9 @@ namespace Mapster.Adapters
 
                 if(requireDestMemberSource.HasConstrutorMembers())
                 {
-                    var unMappingCtorParams = constructorMapping == null 
+                    var unMappingCtorParams = constructorConverter == null 
                         ? Array.Empty<string>()
-                        : constructorMapping.Members
+                        : constructorConverter.Members
                             .Where(x => x.IsNotFoundGetter && !x.Ignore.WithOutCondition)
                             .Select(x => x.DestinationMember.Name).ToArray();
 
@@ -557,7 +539,7 @@ namespace Mapster.Adapters
             }
 
 
-            return new TypeConverterModel() { ConstructorMapping = constructorMapping, PropertyOrFieldMapping = propertyOrFieldConverter };
+            return new TypeConverterModel() { ConstructorMapping = constructorConverter, PropertyOrFieldMapping = propertyOrFieldConverter, CustomInitExpression = defCtor };
         }
 
         protected ConstructorConveterModel? OptimalConstuctorSelector(IEnumerable<ConstructorInfo> constructors, Expression source, CompileArgument arg)
@@ -572,6 +554,43 @@ namespace Mapster.Adapters
             return MappingScoreGroups.FirstOrDefault()
                 ?.OrderByDescending(x => x.ConstructorInfo?.GetParameters().Count())
                 .FirstOrDefault();
+        }
+
+        protected virtual ConstructorConveterModel? DestiantionConstructorSelector(Expression source, CompileArgument arg, out Expression? defaultExpression)
+        {
+            ConstructorConveterModel? constructorMapping = null;
+            defaultExpression = null;
+
+            if (arg.Settings.MapToConstructor is ConstructorInfo customCtor)
+                constructorMapping = CreateSourceToDestinationConstructorConveter(source, customCtor, arg);
+            else
+            {
+                var destType = arg.DestinationType.IsInterface
+                  ? DynamicTypeGenerator.GetTypeForInterface(arg.DestinationType, arg.Settings.Includes.Count > 0) ?? arg.DestinationType
+                  : arg.DestinationType;
+
+
+                ConstructorInfo[] destypeConstuctors = arg.Settings.EnableNonPublicConstructors.GetValueOrDefault()
+                    ? destType!.GetConstructors(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+                    : destType!.GetConstructors(BindingFlags.Instance | BindingFlags.Public);
+
+                if(destType.HasDefaultConstructor(destypeConstuctors,out var constructor))
+                {
+                    if(constructor is not null)
+                        constructorMapping = CreateSourceToDestinationConstructorConveter(source, constructor, arg);
+                    
+                    // ValueType
+                    if (constructor is null && destypeConstuctors.Length == 0) 
+                        defaultExpression = Expression.Default(arg.DestinationType);
+                    else
+                        constructorMapping = OptimalConstuctorSelector(destypeConstuctors, source, arg);
+                }
+                else
+                    constructorMapping = OptimalConstuctorSelector(destypeConstuctors, source, arg);
+
+            }
+
+            return constructorMapping;
         }
 
         protected override Expression CreateExpressionBody(Expression source, Expression? destination, CompileArgument arg)
