@@ -581,7 +581,7 @@ namespace Mapster.Adapters
                     
                     // ValueType
                     if (constructor is null && destypeConstuctors.Length == 0) 
-                        defaultExpression = Expression.Default(arg.DestinationType);
+                        defaultExpression = Expression.New(arg.DestinationType);
                     else
                         constructorMapping = OptimalConstuctorSelector(destypeConstuctors, source, arg);
                 }
