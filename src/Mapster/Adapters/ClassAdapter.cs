@@ -55,8 +55,8 @@ namespace Mapster.Adapters
         {
             //new TDestination(src.Prop1, src.Prop2)
 
-            if(arg.GetConstructUsing() != null)
-                return base.CreateInstantiationExpression(source, destination, arg);
+            //if(arg.GetConstructUsing() != null)
+            //    return base.CreateInstantiationExpression(source, destination, arg);
 
             //if (arg.DestinationType.HasDefaultConstructor() && arg.Settings.MapToConstructor == null)
             //    return base.CreateInstantiationExpression(source, destination, arg);

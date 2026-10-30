@@ -491,7 +491,20 @@ namespace Mapster.Adapters
 
         protected virtual TypeConverterModel CreateTypeConverter(Expression source, Expression? destination, CompileArgument arg)
         {
-            var constructorConverter = DestiantionConstructorSelector(source,arg, out var defCtor);
+            Expression customInitExpression = null;
+            ConstructorConveterModel? constructorConverter = null;
+
+            var constructUsing = arg.GetConstructUsing();
+         
+            if (constructUsing != null)
+            {
+                var args = destination == null ? new[] { source } : new[] { source, destination };
+                customInitExpression = constructUsing.Apply(arg.MapType, args)
+                    .TrimConversion(true)
+                    .To(arg.DestinationType);
+            }    
+            else
+                constructorConverter = DestiantionConstructorSelector(source,arg, out customInitExpression);
 
             var propertyOrFieldConverter = CreateSourceToDestinationPropertOrFieldConverter(source, arg);
 
@@ -539,7 +552,7 @@ namespace Mapster.Adapters
             }
 
 
-            return new TypeConverterModel() { ConstructorMapping = constructorConverter, PropertyOrFieldMapping = propertyOrFieldConverter, CustomInitExpression = defCtor };
+            return new TypeConverterModel() { ConstructorMapping = constructorConverter, PropertyOrFieldMapping = propertyOrFieldConverter, CustomInitExpression = customInitExpression };
         }
 
         protected ConstructorConveterModel? OptimalConstuctorSelector(IEnumerable<ConstructorInfo> constructors, Expression source, CompileArgument arg)
