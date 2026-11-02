@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -835,17 +836,17 @@ namespace Mapster.Utils
            return bindings.Select(x => x.Member.Name).ToArray();
         }
 
-        public static bool IsNewOrMemberMemberInitExpression(this Expression expression, out (string[] ctorParamsName, string[]? memberBindingsName)? members)
+        public static bool IsNewOrMemberMemberInitExpression(this Expression expression, out (string[] ctorParamsName, MemberBinding[] memberBindings)? members)
         {
             if (expression is MemberInitExpression memberInit)
             {
-                members = (memberInit.NewExpression.GetNewExpressionParamsName(), memberInit.Bindings.GetMemberBindingsName());
+                members = (memberInit.NewExpression.GetNewExpressionParamsName(), memberInit.Bindings.ToArray());
                 return true;
             }
 
             if (expression is NewExpression newExp)
             {
-                members = (newExp.GetNewExpressionParamsName(), null);
+                members = (newExp.GetNewExpressionParamsName(), Array.Empty<MemberBinding>());
                 return true;
             }
 

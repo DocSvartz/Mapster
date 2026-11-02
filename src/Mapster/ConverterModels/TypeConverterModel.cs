@@ -5,8 +5,8 @@ namespace Mapster.MappingModels
 {
     internal class TypeConverterModel
     {
-        private bool? _isNewOrMemberInit;
-        (string[] ctorParamsName, string[]? memberBindingsName)? _customInitMemberNames;
+        private bool? _isNewOrMemberInitCustomExp;
+        (string[] ctorParamsName, MemberBinding[] memberBindings)? _customInitInfo;
 
         public Expression? CustomInitExpression { get; set; }
         public ConstructorConveterModel? ConstructorMapping { get; set; }
@@ -14,21 +14,20 @@ namespace Mapster.MappingModels
 
         private bool CheckCustomInit()
         {
-            if (_isNewOrMemberInit != null)
-                return _isNewOrMemberInit.GetValueOrDefault();
+            if (_isNewOrMemberInitCustomExp != null)
+                return _isNewOrMemberInitCustomExp.GetValueOrDefault();
 
             if (CustomInitExpression is null)
-                _isNewOrMemberInit = false;
+                _isNewOrMemberInitCustomExp = false;
 
-            _isNewOrMemberInit = CustomInitExpression!.IsNewOrMemberMemberInitExpression(out _customInitMemberNames);
+            _isNewOrMemberInitCustomExp = CustomInitExpression!.IsNewOrMemberMemberInitExpression(out _customInitInfo);
 
 
-            return _isNewOrMemberInit.GetValueOrDefault();
+            return _isNewOrMemberInitCustomExp.GetValueOrDefault();
         }
 
-        public bool IsNewOrMemberInitCustomExpr { get => CheckCustomInit(); }
+        public bool IsCustomInit => ConstructorMapping == null;
+        public bool IsNewOrMemberInit  => IsCustomInit ? CheckCustomInit() : true;
 
-        public (string[] ctorParamsName, string[]? memberBindingsName)? CustomInitMemberNames  
-            { get => IsNewOrMemberInitCustomExpr ? _customInitMemberNames : _customInitMemberNames;}
     }
 }
