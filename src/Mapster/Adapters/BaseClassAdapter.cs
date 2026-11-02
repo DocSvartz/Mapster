@@ -552,7 +552,7 @@ namespace Mapster.Adapters
             }
 
 
-            return new TypeConverterModel() { ConstructorMapping = constructorConverter, PropertyOrFieldMapping = propertyOrFieldConverter, CustomInitExpression = customInitExpression };
+            return new TypeConverterModel(arg.Settings) { ConstructorMapping = constructorConverter, PropertyOrFieldMapping = propertyOrFieldConverter, CustomInitExpression = customInitExpression };
         }
 
         protected ConstructorConveterModel? OptimalConstuctorSelector(IEnumerable<ConstructorInfo> constructors, Expression source, CompileArgument arg)

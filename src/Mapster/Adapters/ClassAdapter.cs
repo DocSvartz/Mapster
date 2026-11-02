@@ -117,15 +117,20 @@ namespace Mapster.Adapters
             if (arg.MapType == MapType.Projection && arg.DestinationType.IsAbstract && arg.Settings.Includes.Count > 0)
                 return CreateIncludeProjectionExpression(source, arg);
 
-            var exp = CreateInstantiationExpression(source, arg);
-            if (exp.NodeType == ExpressionType.Throw)
+            if (arg.TypeConverter.IsNewOrMemberInit == false)
                 return null;
 
-            var memberInit = exp as MemberInitExpression;
-            var newInstance = memberInit?.NewExpression ?? exp as NewExpression;
-            if (newInstance == null)
-                return null;
-            var contructorMembers = newInstance.GetAllMemberExpressionsMemberInfo().ToArray();
+            //var exp = CreateInstantiationExpression(source, arg);
+            //if (exp.NodeType == ExpressionType.Throw)
+             //   return null;
+            var newInstance = arg.TypeConverter.GetCustomNewExp ?? CreateInstantiationExpression(source, arg) as NewExpression;
+
+
+            //var memberInit = exp as MemberInitExpression;
+            //var newInstance = memberInit?.NewExpression ?? exp as NewExpression;
+            //if (newInstance == null)
+            //    return null;
+            //var contructorMembers = newInstance.GetAllMemberExpressionsMemberInfo().ToArray();
             //MembersModel? classModel;
             //ClassMapping? classConverter;
             //if (IsRequiredOnly)
@@ -140,9 +145,11 @@ namespace Mapster.Adapters
             //}
             var members = arg.TypeConverter.PropertyOrFieldMapping.Members;
 
-            var lines = new List<MemberBinding>();
-            if (memberInit != null)
-                lines.AddRange(memberInit.Bindings);
+            var lines = new List<MemberBinding>(arg.TypeConverter.GetInitExpMemberBindings);
+            
+            //if (memberInit != null)
+            //lines.AddRange(memberInit.Bindings);
+
             foreach (var member in members)
             {
                 if (member.IsNotFoundGetter)
@@ -154,9 +161,11 @@ namespace Mapster.Adapters
                 if (member.UseDestinationValue)
                     return null;
 
-                if (!arg.Settings.Resolvers.Any(r => r.DestinationMemberName == member.DestinationMember.Name)
-                    && contructorMembers.Select(x => x.Name).Contains(member.DestinationMember.Name, new MapsterStringComparer()))
+                if (arg.TypeConverter.IsUsingInInit(member.DestinationMember.Name))
                     continue;
+                //if (!arg.Settings.Resolvers.Any(r => r.DestinationMemberName == member.DestinationMember.Name)
+                //    && contructorMembers.Select(x => x.Name).Contains(member.DestinationMember.Name, new MapsterStringComparer()))
+                //    continue;
 
                 if (member.DestinationMember.SetterModifier == AccessModifier.None)
                     continue;

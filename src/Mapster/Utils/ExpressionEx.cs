@@ -824,11 +824,11 @@ namespace Mapster.Utils
             return adapt;
         }
 
-        public static string[] GetNewExpressionParamsName (this NewExpression newExpression)
+        public static IEnumerable<string> GetNewExpressionParamsName (this NewExpression newExpression)
         {
            return newExpression.Constructor != null ?
-                newExpression.Constructor.GetParameters().Where(x=> x.Name != null).Select(x => x.Name!).ToArray() 
-                : Array.Empty<string>();
+                newExpression.Constructor.GetParameters().Where(x=> x.Name != null).Select(x => x.Name!)
+                : Enumerable.Empty<string>();
         }
 
         public static string[] GetMemberBindingsName(this IEnumerable<MemberBinding> bindings)
@@ -836,17 +836,17 @@ namespace Mapster.Utils
            return bindings.Select(x => x.Member.Name).ToArray();
         }
 
-        public static bool IsNewOrMemberMemberInitExpression(this Expression expression, out (string[] ctorParamsName, MemberBinding[] memberBindings)? members)
+        public static bool IsNewOrMemberMemberInitExpression(this Expression expression, out (NewExpression NewExp, MemberBinding[] memberBindings)? members)
         {
             if (expression is MemberInitExpression memberInit)
             {
-                members = (memberInit.NewExpression.GetNewExpressionParamsName(), memberInit.Bindings.ToArray());
+                members = (memberInit.NewExpression, memberInit.Bindings.ToArray());
                 return true;
             }
 
             if (expression is NewExpression newExp)
             {
-                members = (newExp.GetNewExpressionParamsName(), Array.Empty<MemberBinding>());
+                members = (newExp, Array.Empty<MemberBinding>());
                 return true;
             }
 
