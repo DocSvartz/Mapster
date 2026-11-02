@@ -161,7 +161,9 @@ namespace Mapster.Adapters
                 if (member.UseDestinationValue)
                     return null;
 
-                if (arg.TypeConverter.IsUsingInInit(member.DestinationMember.Name))
+                // By default If Member using in Init expression it is not automation dublicate mapping in iniline MemberInit exp
+                // if need to re-map it Member, you need to create it custom mapping using .Map() or ReMap()
+                if (arg.TypeConverter.IsUsingInInit(member.DestinationMember.Name) && !member.IsMaybeReMapping)
                     continue;
                 //if (!arg.Settings.Resolvers.Any(r => r.DestinationMemberName == member.DestinationMember.Name)
                 //    && contructorMembers.Select(x => x.Name).Contains(member.DestinationMember.Name, new MapsterStringComparer()))
