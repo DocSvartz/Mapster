@@ -491,7 +491,7 @@ namespace Mapster.Adapters
 
         protected virtual TypeConverterModel CreateTypeConverter(Expression source, Expression? destination, CompileArgument arg)
         {
-            Expression customInitExpression = null;
+            Expression? customInitExpression = null;
             ConstructorConveterModel? constructorConverter = null;
 
             var constructUsing = arg.GetConstructUsing();
@@ -505,6 +505,23 @@ namespace Mapster.Adapters
             }    
             else
                 constructorConverter = DestiantionConstructorSelector(source,arg, out customInitExpression);
+
+            if(customInitExpression == null && constructorConverter == null)
+            {
+                if(arg.DestinationType.IsAbstract || arg.DestinationType.IsInterface)
+                {
+                    if (arg.Settings.Includes.Any())
+                        customInitExpression = arg.Settings.CustomDefaultValue ?? Expression.Default(arg.DestinationType);
+                    else
+                        throw new InvalidOperationException($"Type '{arg.DestinationType.Name}' is Non-instantiable type (Abstract or Interface)." +
+                            $"Set up 'Include' to Polymorphic mapping," +
+                            $"or set up a custom initializer for the type use 'ConstructUsing'");
+                }
+                else
+                    throw new InvalidOperationException($"Not found constructor for type '{arg.DestinationType.Name}', please use 'EnableNonPublicConstructors(true)' or 'MapToConstructor(Constructorinfo ctor)'. " +
+                        $"Or set up a custom initializer for the type use 'ConstructUsing'");
+            }    
+                
 
             var propertyOrFieldConverter = CreateSourceToDestinationPropertOrFieldConverter(source, arg);
 
