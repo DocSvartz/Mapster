@@ -185,27 +185,20 @@ namespace Mapster.Adapters
         {
             var transformArg = arg.MapType == MapType.MapToTarget ? arg.CloneWith(MapType.Map) : arg;
 
-            var exp = CreateInstantiationExpression(source, transformArg);
-            if (exp.NodeType == ExpressionType.Throw)
-                return exp;
+            if (arg.TypeConverter.IsNewOrMemberInit == false)
+                return arg.TypeConverter.CustomInitExpression!;
 
-            var memberInit = exp as MemberInitExpression;
-            var newInstance = memberInit?.NewExpression ?? exp as NewExpression;
-            if (newInstance == null)
-                return exp;
+            var newInstance = arg.TypeConverter.GetCustomNewExp ?? CreateInstantiationExpression(source, arg) as NewExpression;
 
-           //var classModel = GetSetterModel(transformArg);
-           var classConverter = CreateSourceToDestinationPropertOrFieldConverter(source, transformArg);
-
-            var members = classConverter.Members;
-
-            var lines = new List<MemberBinding>();
-            if (memberInit != null)
-                lines.AddRange(memberInit.Bindings);
+            var members = arg.TypeConverter.PropertyOrFieldMapping.Members;
+            var lines = new List<MemberBinding>(arg.TypeConverter.GetInitExpMemberBindings);
 
             foreach (var member in members)
             {
                 if (!member.DestinationMember.IsRequired)
+                    continue;
+
+                if (arg.TypeConverter.IsUsingInInit(member.DestinationMember.Name) && !member.IsMaybeReMapping)
                     continue;
 
                 Expression value;
@@ -221,7 +214,7 @@ namespace Mapster.Adapters
                 lines.Add(bind);
             }
 
-            return Expression.MemberInit(newInstance, lines);
+            return Expression.MemberInit(newInstance!, lines);
         }
 
         static Expression CreateIncludeProjectionExpression(Expression source, CompileArgument arg)
