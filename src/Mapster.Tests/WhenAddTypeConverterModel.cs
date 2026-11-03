@@ -103,8 +103,72 @@ namespace Mapster.Tests
             });
         }
 
+        [TestMethod]
+        public void NotInitType_ThrowError_WhenNotCustomInitMappingConfigurate()
+        {
+            Exception? result = null;
+
+            try
+            {
+                var config = new TypeAdapterConfig();
+
+                config.NewConfig<AbstractBase, IBase>().Compile();
+                config.NewConfig<IBase, AbstractBase>().Compile();
+            }
+            catch (Exception error)
+            {
+               result = error;
+
+                result.ShouldSatisfyAllConditions(() =>
+                {
+                    result.ShouldBeOfType<CompileException>();
+                    result.InnerException.Message.Contains("is Non-instantiable type (Abstract or Interface)").ShouldBeTrue();
+                });
+               
+            }
+
+            result.ShouldBeOfType<CompileException>();
+        }
+
+        [TestMethod]
+        public void NotInitType_NotError_WhenCustomInitMappingConfigurate()
+        {
+            Should.NotThrow(() => 
+            {
+                var config = new TypeAdapterConfig();
+
+                config.ForDestinationType<IBase>()
+                    .ConstructUsing(() => new BaseIml());
+                config.ForDestinationType<AbstractBase>()
+                    .ConstructUsing(() => new BaseIml());
+
+
+                config.NewConfig<AbstractBase, IBase>();
+                config.NewConfig<IBase, AbstractBase>();
+
+                config.Compile();
+
+            });
+        }
+
+
 
         #region TestClasses
+
+        internal class BaseIml: AbstractBase, IBase
+        {
+
+        }
+
+        public interface IBase
+        {
+            public string IAmPoco { get; set; }
+        }
+
+        internal abstract class AbstractBase
+        {
+            public string IAmPoco {  get; set; }
+        }
 
         internal class NotPublicCtorType
         {
