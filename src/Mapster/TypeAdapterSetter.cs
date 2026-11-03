@@ -224,6 +224,14 @@ namespace Mapster
             return setter;
         }
 
+        public static TSetter EnableNonPublicConstructors<TSetter>(this TSetter setter, bool value) where TSetter : TypeAdapterSetter
+        {
+            setter.CheckCompiled();
+
+            setter.Settings.EnableNonPublicConstructors = value;
+            return setter;
+        }
+
         public static TSetter EnableNonPublicMembers<TSetter>(this TSetter setter, bool value) where TSetter : TypeAdapterSetter
         {
             setter.CheckCompiled();

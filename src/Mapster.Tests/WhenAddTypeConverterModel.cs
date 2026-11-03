@@ -1,6 +1,7 @@
 ﻿using ExpressionDebugger;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Shouldly;
+using System;
 
 namespace Mapster.Tests
 {
@@ -11,7 +12,8 @@ namespace Mapster.Tests
         public void NotDublicateMemeberInitWhenCtorUsingMembers_WhenTypeActivateUsingConstuctor()
         {
             var config = new TypeAdapterConfig();
-            config.NewConfig<CtorInitMember, CtorInitMember>();
+            config.NewConfig<CtorInitMember, CtorInitMember>()
+                .Ignore(dest=>dest.OtherData);
 
             var src = new CtorInitMember("42","John");
 
@@ -41,9 +43,10 @@ namespace Mapster.Tests
         {
             var config = new TypeAdapterConfig();
             config.NewConfig<CtorInitMember, CtorInitMember>()
-                .ConstructUsing(() => new CtorInitMember("32", "John") { OtherData = "World"})
+                .ConstructUsing(() => new CtorInitMember("32", "John"))
                 .Map(x => x.Value, y => y.Value)
-                .Map(x => x.Name, y => y.Name);
+                .Map(x => x.Name, y => y.Name)
+                .Ignore(dest=>dest.OtherData);
 
             var src = new CtorInitMember("42", "John");
 
@@ -74,11 +77,46 @@ namespace Mapster.Tests
 
         }
 
+        [TestMethod]
+        public void NotPublicCtorType_ThrowError_WhenNotCustomCtorMappingConfigurate()
+        {
+
+            Should.Throw<InvalidOperationException>(() =>
+            {
+                TypeAdapterConfig<NotPublicCtorType, NotPublicCtorType>
+                    .NewConfig().Compile();
+            });
+        }
+
+        [TestMethod]
+        public void NotPublicCtorType_NotError_WhenCustomCtorMappingConfigurate()
+        {
+
+            Should.NotThrow(() =>
+            {
+                TypeAdapterConfig<NotPublicCtorType, NotPublicCtorType>
+                    .NewConfig()
+                    .EnableNonPublicConstructors(true)
+                    .Compile();
+
+                var result = NotPublicCtorType.Init.Adapt<NotPublicCtorType>();
+            });
+        }
 
 
         #region TestClasses
 
+        internal class NotPublicCtorType
+        {
+            private NotPublicCtorType()
+            {
 
+            }
+
+            public bool IsAmPoco { get; set; }
+
+            public static NotPublicCtorType Init => new NotPublicCtorType() { IsAmPoco = true };
+        }
 
         internal class CtorInitMember
         {
