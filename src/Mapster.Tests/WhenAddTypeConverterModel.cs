@@ -26,13 +26,13 @@ namespace Mapster.Tests
         {
             var config = new TypeAdapterConfig();
             config.NewConfig<CtorInitMember, CtorInitMember>()
-                .ConstructUsing(()=> new CtorInitMember("32", "John"));
+                .ConstructUsing(()=> new CtorInitMember("32", "John") { OtherData = "World" });
 
             var src = new CtorInitMember("42", "John");
 
             var str = src.BuildAdapter(config).CreateMapExpression<CtorInitMember>().ToString();
 
-            str.ShouldContain("new CtorInitMember(\"32\", \"John\") {Data = p1.Data}");
+            str.ShouldContain("new CtorInitMember(\"32\", \"John\") {OtherData = \"World\", Data = p1.Data}");
 
         }
 
@@ -41,7 +41,7 @@ namespace Mapster.Tests
         {
             var config = new TypeAdapterConfig();
             config.NewConfig<CtorInitMember, CtorInitMember>()
-                .ConstructUsing(() => new CtorInitMember("32", "John"))
+                .ConstructUsing(() => new CtorInitMember("32", "John") { OtherData = "World"})
                 .Map(x => x.Value, y => y.Value)
                 .Map(x => x.Name, y => y.Name);
 
@@ -78,6 +78,8 @@ namespace Mapster.Tests
 
         #region TestClasses
 
+
+
         internal class CtorInitMember
         {
             public CtorInitMember(string value, string name)
@@ -89,8 +91,8 @@ namespace Mapster.Tests
             public string Value {  get; private set; }
 
             public string Name { get; private set; }
-
-            public string Data { get; private set; }
+            public string OtherData { get; init; }
+            public string Data { get; private set; }   
 
             public static CtorInitMember Init() => new CtorInitMember("34", "Mark");
         }
