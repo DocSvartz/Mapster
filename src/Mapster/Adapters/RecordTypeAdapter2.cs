@@ -11,7 +11,6 @@ namespace Mapster.Adapters
 {
     internal class RecordTypeAdapter2 : ClassAdapter
     {
-       // private ClassMapping? ClassConverterContext;
         protected override int Score => -149;
         protected override bool UseTargetValue => false;
         protected override bool CanMap(PreCompileArgument arg)
@@ -32,29 +31,10 @@ namespace Mapster.Adapters
         }
         protected override Expression CreateInstantiationExpression(Expression source, Expression? destination, CompileArgument arg)
         {
-            //new TDestination(src.Prop1, src.Prop2)
-            Expression installExpr;
+            Expression installExpr = arg.TypeConverter.CustomInitExpression ?? CreateInstantiationExpression(source, arg.TypeConverter.ConstructorMapping!, arg);
 
-            //if (arg.GetConstructUsing() != null || arg.Settings.MapToConstructor != null || arg.DestinationType == null)
-            //    installExpr = base.CreateInstantiationExpression(source, destination, arg);
-            //else
-            //{
-            //    var restorParamModel = GetSetterModel(arg);
-            //    var classConverter = OptimalConstuctorSelector(source, arg);
-
-            //    if (classConverter == null)
-            //        return base.CreateInstantiationExpression(source, destination, arg);
-
-            //    installExpr = CreateInstantiationExpression(source, classConverter, arg, destination, restorParamModel);
-            //}
-
-            if(arg.GetConstructUsing() != null)
-                installExpr = base.CreateInstantiationExpression(source, destination, arg);
-            else
-                installExpr = CreateInstantiationExpression(source, arg.TypeConverter.ConstructorMapping, arg);
-
-                
-
+            if (arg.TypeConverter.IsNewOrMemberInit == false)
+                return installExpr;
 
             return RecordInlineExpression(source, destination, arg, installExpr); // Activator field when not include in public ctor
         }
@@ -69,20 +49,21 @@ namespace Mapster.Adapters
             var exp = installExpr;
             var memberInit = installExpr as MemberInitExpression;
             var newInstance = memberInit?.NewExpression ?? (NewExpression)exp;
-            var contructorMembers = arg.TypeConverter.ConstructorMapping?.Members ?? Array.Empty<MemberMapping>();
+            //var contructorMembers = arg.TypeConverter.ConstructorMapping?.Members ?? Array.Empty<MemberMapping>();
            // var classModel = GetSetterModel(arg);
            // var classConverter = CreateSourceToDestinationConveter(source, classModel, arg);
             var members = arg.TypeConverter.PropertyOrFieldMapping.Members;
 
-           // ClassConverterContext = classConverter;
+            // ClassConverterContext = classConverter;
+            var lines = new List<MemberBinding>(arg.TypeConverter.GetInitExpMemberBindings);
 
-            var lines = new List<MemberBinding>();
-            if (memberInit != null)
-                lines.AddRange(memberInit.Bindings);
             foreach (var member in members)
             {
-                if (!arg.Settings.Resolvers.Any(r => r.DestinationMemberName == member.DestinationMember.Name)
-                    && contructorMembers.Any(x => string.Equals(x.DestinationMember.Name, member.DestinationMember.Name, StringComparison.InvariantCultureIgnoreCase)))
+                //if (!arg.Settings.Resolvers.Any(r => r.DestinationMemberName == member.DestinationMember.Name)
+                //    && contructorMembers.Any(x => string.Equals(x.DestinationMember.Name, member.DestinationMember.Name, StringComparison.InvariantCultureIgnoreCase)))
+                //    continue;
+
+                if (arg.TypeConverter.IsUsingInInit(member.DestinationMember.Name) && !member.IsMaybeReMapping)
                     continue;
 
                 if (member.DestinationMember.SetterModifier == AccessModifier.None)
@@ -101,6 +82,9 @@ namespace Mapster.Adapters
                         continue;
                     }
                 }
+
+                if (arg.MapType == MapType.Map && member.Ignore.WithOutCondition)
+                    continue;
 
                 var adapt = GetMemberInlineAdapter(member, arg);
 

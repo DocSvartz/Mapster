@@ -151,9 +151,39 @@ namespace Mapster.Tests
             });
         }
 
+        [TestMethod]
+        public void NotDublicateMemeberInit_WhenRecordUsingCustomInit()
+        {
+            var config = new TypeAdapterConfig();
+            config.NewConfig<CtorInitMember, RecordWithCustomInit>()
+                .Ignore(dest => dest.OtherData);
 
+            var src = new CtorInitMember("42", "John");
+
+            var str = src.BuildAdapter(config).CreateMapExpression<RecordWithCustomInit>().ToScript();
+
+           // str.ShouldContain("new CtorInitMember(p1.Value, p1.Name) {Data = p1.Data}");
+
+        }
 
         #region TestClasses
+
+        internal record RecordWithCustomInit
+        {
+            public RecordWithCustomInit(string value, string name)
+            {
+                Value = value;
+                Name = name;
+            }
+
+            public string Value { get; private set; }
+
+            public string Name { get; private set; }
+            public string OtherData { get; init; }
+            public string Data { get; private set; }
+
+            public static RecordWithCustomInit Init() => new RecordWithCustomInit("34", "Mark");
+        }
 
         internal class BaseIml: AbstractBase, IBase
         {
