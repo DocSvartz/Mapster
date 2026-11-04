@@ -156,6 +156,7 @@ namespace Mapster.Tests
         public void NotDublicateMemeberInit_WhenRecordUsingCustomInit_WithNewOrMemberinit()
         {
             var config = new TypeAdapterConfig();
+            config.SelfContainedCodeGeneration = true;
             config.NewConfig<RecordWithCustomInit, RecordWithCustomInit>()
                 .Map(dest => dest.DataReMap, src => src.DataReMap)
                 .Ignore(dest=>dest.DataIgnore)
@@ -201,6 +202,7 @@ namespace Mapster.Tests
         public void ValidMapping_WhenRecordUsingCustomInit_WithOutNewOrMemberinit()
         {
             var config = new TypeAdapterConfig();
+            config.SelfContainedCodeGeneration = true;
             config.NewConfig<RecordWithCustomInit, RecordWithCustomInit>()
                 .Map(dest => dest.DataReMap, src => src.DataReMap)
                 .Ignore(dest => dest.DataIgnore)
