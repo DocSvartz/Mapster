@@ -36,10 +36,13 @@ namespace Mapster.Adapters
             if (arg.TypeConverter.IsNewOrMemberInit == false)
                 return installExpr;
 
-            return RecordInlineExpression(source, destination, arg, installExpr); // Activator field when not include in public ctor
+            if (arg.MapType != MapType.MapToTarget)
+                return RecordInlineExpression(source, arg, installExpr);
+            else
+                return RecordInlineMapToTargetExpression(source, arg, installExpr);
         }
 
-        private Expression? RecordInlineExpression(Expression source, Expression? destination, CompileArgument arg, Expression installExpr)
+        private Expression RecordInlineExpression(Expression source, CompileArgument arg, Expression installExpr)
         {
             //new TDestination {
             //  Prop1 = convert(src.Prop1),
@@ -49,41 +52,19 @@ namespace Mapster.Adapters
             var exp = installExpr;
             var memberInit = installExpr as MemberInitExpression;
             var newInstance = memberInit?.NewExpression ?? (NewExpression)exp;
-            //var contructorMembers = arg.TypeConverter.ConstructorMapping?.Members ?? Array.Empty<MemberMapping>();
-           // var classModel = GetSetterModel(arg);
-           // var classConverter = CreateSourceToDestinationConveter(source, classModel, arg);
             var members = arg.TypeConverter.PropertyOrFieldMapping.Members;
 
-            // ClassConverterContext = classConverter;
             var lines = new List<MemberBinding>(arg.TypeConverter.GetInitExpMemberBindings);
 
             foreach (var member in members)
             {
-                //if (!arg.Settings.Resolvers.Any(r => r.DestinationMemberName == member.DestinationMember.Name)
-                //    && contructorMembers.Any(x => string.Equals(x.DestinationMember.Name, member.DestinationMember.Name, StringComparison.InvariantCultureIgnoreCase)))
-                //    continue;
-
                 if (arg.TypeConverter.IsUsingInInit(member.DestinationMember.Name) && !member.IsMaybeReMapping)
                     continue;
 
                 if (member.DestinationMember.SetterModifier == AccessModifier.None)
                     continue;
-                               
-                if (!member.IsMaybeReMapping && member.IsNotFoundGetter)
-                {
-                    if(member.Ignore.WithOutCondition || !member.Ignore.IsValid)
-                    {
-                        if (member.DestinationMember.IsBackField) // not restore Backfields
-                            continue;
-
-                        if (arg.MapType == MapType.MapToTarget && member.RestoreDestinationMemberExp != null)
-                            lines.Add(
-                                Expression.Bind((MemberInfo)member.DestinationMember.Info!, member.RestoreDestinationMemberExp));
-                        continue;
-                    }
-                }
-
-                if (arg.MapType == MapType.Map && member.Ignore.WithOutCondition)
+               
+                if (member.Ignore.WithOutCondition || member.IsNotFoundGetter)
                     continue;
 
                 var adapt = GetMemberInlineAdapter(member, arg);
@@ -94,6 +75,48 @@ namespace Mapster.Adapters
 
             return Expression.MemberInit(newInstance, lines);
         }
+
+        private Expression RecordInlineMapToTargetExpression(Expression source, CompileArgument arg, Expression installExpr)
+        {
+            var exp = installExpr;
+            var memberInit = installExpr as MemberInitExpression;
+            var newInstance = memberInit?.NewExpression ?? (NewExpression)exp;
+            var members = arg.TypeConverter.PropertyOrFieldMapping.Members;
+
+            var lines = new List<MemberBinding>(arg.TypeConverter.GetInitExpMemberBindings);
+
+            foreach (var member in members)
+            {
+                if (arg.TypeConverter.IsUsingInInit(member.DestinationMember.Name))
+                {
+                    var removeMember = lines.FirstOrDefault(x => x.Member.Name == member.DestinationMember.Name);
+                    if(removeMember != null)
+                        lines.Remove(removeMember);
+                }
+
+                if (member.DestinationMember.SetterModifier == AccessModifier.None)
+                    continue;
+
+                Expression? adapt = null;
+
+                if(member.Ignore.WithOutCondition || member.IsNotFoundGetter)
+                {
+                    if(member.RestoreDestinationMemberExp != null)
+                        adapt = member.RestoreDestinationMemberExp;
+                }
+                else
+                    adapt = GetMemberInlineAdapter(member, arg);
+
+                if (adapt is null)
+                    continue;
+
+                var bind = Expression.Bind((MemberInfo)member.DestinationMember.Info!, adapt);
+                lines.Add(bind);
+            }
+
+            return Expression.MemberInit(newInstance, lines);
+        }
+
 
         protected override Expression CreateBlockExpression(Expression source, Expression result, Expression? destination, CompileArgument arg)
         {
@@ -124,6 +147,27 @@ namespace Mapster.Adapters
                         continue;
                         
                     lines.AddRange(GetMemberMapToTargetAdapter(member, destination, result, arg));
+                }
+                else if(arg.TypeConverter.IsNewOrMemberInit == false 
+                    && member.DestinationMember.SetterModifier != AccessModifier.None)
+                {
+                    if(arg.MapType == MapType.MapToTarget)
+                    {
+                        if (member.Ignore.WithOutCondition && !member.IsMaybeReMapping)
+                        {
+                            if (member.RestoreDestinationMemberExp != null)
+                                lines.Add(
+                                    member.DestinationMember.SetExpression(arg.Result, member.RestoreDestinationMemberExp));
+                        }
+                        else
+                            lines.AddRange(GetMemberMapToTargetAdapter(member, destination, result, arg));
+                    }
+                    else
+                    {
+                        if (member.Ignore.WithOutCondition && !member.IsMaybeReMapping)
+                            continue;
+                        lines.AddRange(GetMemberMapToTargetAdapter(member, destination, result, arg));
+                    }
                 }
             }
 
