@@ -152,7 +152,6 @@ namespace Mapster.Tests
             });
         }
 
-        [Ignore("Not pass in Github")]
         [TestMethod]
         public void NotDublicateMemeberInit_WhenRecordUsingCustomInit_WithNewOrMemberinit()
         {
@@ -181,7 +180,14 @@ namespace Mapster.Tests
             //    DataReMap = p1.DataReMap
             //};
 
-            strMap.ShouldContain("WhenAddTypeConverterModel.RecordWithCustomInit result = new WhenAddTypeConverterModel.RecordWithCustomInit(\"32\", \"John\", \"Remap\")\r\n    {\r\n        OtherData = \"World\",\r\n        Data = p1.Data,\r\n        DataReMap = p1.DataReMap\r\n    };");
+            strMap.ShouldSatisfyAllConditions(() =>
+            {
+                strMap.ShouldContain("WhenAddTypeConverterModel.RecordWithCustomInit result = new WhenAddTypeConverterModel.RecordWithCustomInit(\"32\", \"John\", \"Remap\")");
+                strMap.ShouldContain("OtherData = \"World\"");
+                strMap.ShouldContain("Data = p1.Data");
+                strMap.ShouldContain("DataReMap = p1.DataReMap");
+            });
+
 
             // Valid MapToTarget Record mapping pattern
             // All maybe members must obtain values ​​from the source.
@@ -196,7 +202,16 @@ namespace Mapster.Tests
             //    DataReMap = p1.DataReMap
             //};
 
-            strMapToTarget.ShouldContain("WhenAddTypeConverterModel.RecordWithCustomInit result = new WhenAddTypeConverterModel.RecordWithCustomInit(\"32\", \"John\", \"Remap\")\r\n    {\r\n        Value = p1.Value,\r\n        Name = p1.Name,\r\n        OtherData = p1.OtherData,\r\n        Data = p1.Data,\r\n        DataIgnore = p2 == null ? null : p2.DataIgnore,\r\n        DataReMap = p1.DataReMap\r\n    };");
+            strMapToTarget.ShouldSatisfyAllConditions(() =>
+            {
+                strMapToTarget.ShouldContain("WhenAddTypeConverterModel.RecordWithCustomInit result = new WhenAddTypeConverterModel.RecordWithCustomInit(\"32\", \"John\", \"Remap\")");
+                strMapToTarget.ShouldContain("Value = p1.Value");
+                strMapToTarget.ShouldContain("Name = p1.Name");
+                strMapToTarget.ShouldContain("OtherData = p1.OtherData");
+                strMapToTarget.ShouldContain("Data = p1.Data");
+                strMapToTarget.ShouldContain("DataIgnore = p2 == null ? null : p2.DataIgnore");
+                strMapToTarget.ShouldContain("DataReMap = p1.DataReMap");
+            });
         }
 
         [TestMethod]
@@ -227,7 +242,15 @@ namespace Mapster.Tests
             //    result.DataReMap = p1.DataReMap;
             //}
 
-            strMap.ShouldContain("typeof(WhenAddTypeConverterModel.RecordWithCustomInit).GetField(\"<OtherData>k__BackingField\", (BindingFlags)Instance, NonPublic).SetValue(result, p1.OtherData)");
+            strMap.ShouldSatisfyAllConditions(() =>
+            {
+                strMap.ShouldContain("WhenAddTypeConverterModel.RecordWithCustomInit result = WhenAddTypeConverterModel.RecordWithCustomInit.Init()");
+                strMap.ShouldContain("result.Value = p1.Value");
+                strMap.ShouldContain("result.Name = p1.Name");
+                strMap.ShouldContain("typeof(WhenAddTypeConverterModel.RecordWithCustomInit).GetField(\"<OtherData>k__BackingField\", (BindingFlags)Instance, NonPublic).SetValue(result, p1.OtherData)");
+                strMap.ShouldContain("result.Data = p1.Data");
+                strMap.ShouldContain("result.DataReMap = p1.DataReMap");
+            });
 
             // Valid MapToTarget Record mapping pattern
             // All maybe members must obtain values ​​from the source.
@@ -243,7 +266,16 @@ namespace Mapster.Tests
             //    return result;
             //}
 
-            strMapToTarget.ShouldContain("typeof(WhenAddTypeConverterModel.RecordWithCustomInit).GetField(\"<OtherData>k__BackingField\", (BindingFlags)Instance, NonPublic).SetValue(result, p1.OtherData)");
+            strMapToTarget.ShouldSatisfyAllConditions(() =>
+            {
+                strMapToTarget.ShouldContain("WhenAddTypeConverterModel.RecordWithCustomInit result = WhenAddTypeConverterModel.RecordWithCustomInit.Init()");
+                strMapToTarget.ShouldContain("result.Value = p1.Value");
+                strMapToTarget.ShouldContain("result.Name = p1.Name");
+                strMapToTarget.ShouldContain("typeof(WhenAddTypeConverterModel.RecordWithCustomInit).GetField(\"<OtherData>k__BackingField\", (BindingFlags)Instance, NonPublic).SetValue(result, p1.OtherData)");
+                strMapToTarget.ShouldContain("result.Data = p1.Data");
+                strMapToTarget.ShouldContain("result.DataIgnore = p2 == null ? null : p2.DataIgnore");
+                strMapToTarget.ShouldContain("result.DataReMap = p1.DataReMap");
+            });
         }
 
 
