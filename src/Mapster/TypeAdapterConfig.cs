@@ -1,11 +1,11 @@
 ﻿using Mapster.Adapters;
+using Mapster.Cache;
 using Mapster.Models;
 using Mapster.TypeAdapterSetters;
 using Mapster.Utils;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Data.SqlTypes;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -18,7 +18,6 @@ namespace Mapster
         public static List<TypeAdapterRule> RulesTemplate { get; } = CreateRuleTemplate();
         public static TypeAdapterConfig GlobalSettings { get; } = new TypeAdapterConfig();
         public Dictionary<Type, IMemberModelEx[]> TypeMemberModelsCache { get; } = new();
-
         private static List<TypeAdapterRule> CreateRuleTemplate()
         {
             return new List<TypeAdapterRule>
@@ -90,6 +89,8 @@ namespace Mapster
             };
         }
 
+        public readonly SettingsCacheStorage MappingCache; 
+
         public bool RequireDestinationMemberSource { get; set; }
         public bool RequireExplicitMapping { get; set; }
         public bool RequireExplicitMappingPrimitive { get; set; }
@@ -114,6 +115,9 @@ namespace Mapster
                 Priority = arg => -100,
                 Settings = settings,
             });
+
+            MappingCache = new(RulesTemplate.ToList(), this);
+
         }
 
 
