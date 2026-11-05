@@ -8,9 +8,9 @@ using System.Linq.Expressions;
 namespace Mapster
 {
     [AdaptWith(AdaptDirectives.DestinationAsRecord)]
-    public class TypeAdapterSettings : SettingStore
+    public class TypeAdapterSettings : SettingStore, ISourceToDestinationTypeAdapterSettings
     {
-        public Type? SourceType 
+        public Type? SourceType
         {
             get => Get<Type>(nameof(SourceType));
             set => Set(nameof(SourceType), value);
@@ -78,7 +78,7 @@ namespace Mapster
         }
         public int? MaxDepth
         {
-            get => (int?) Get<object>(nameof(MaxDepth));
+            get => (int?)Get<object>(nameof(MaxDepth));
             set => Set(nameof(MaxDepth), value);
         }
         public bool? Unflattening
@@ -125,11 +125,11 @@ namespace Mapster
 
         public ProjectToTypeAutoMapping ProjectToTypeMapConfig
         {
-            get => GetEnum(nameof(ProjectToTypeMapConfig), ()=> default(ProjectToTypeAutoMapping));
+            get => GetEnum(nameof(ProjectToTypeMapConfig), () => default(ProjectToTypeAutoMapping));
             set => Set(nameof(ProjectToTypeMapConfig), value);
         }
 
-        public  Dictionary<string,UnaryExpression> ProjectToTypeResolvers
+        public Dictionary<string, UnaryExpression> ProjectToTypeResolvers
         {
             get => Get(nameof(ProjectToTypeResolvers), () => new Dictionary<string, UnaryExpression>());
             set => Set(nameof(ProjectToTypeResolvers), value);
@@ -208,7 +208,7 @@ namespace Mapster
             get => Get(nameof(UseDestinationMembers), () => new List<string>());
         }
 
-        public Expression? CustomDefaultValue 
+        public Expression? CustomDefaultValue
         {
             get => Get<Expression>(nameof(CustomDefaultValue));
             set => Set(nameof(CustomDefaultValue), value);
@@ -226,6 +226,7 @@ namespace Mapster
         }
 
         internal bool Compiled { get; set; }
+        bool ITypeAdapterSettingsIdentity.Compiled { get => Compiled; set => Compiled = value; }
 
         public TypeAdapterSettings Clone()
         {

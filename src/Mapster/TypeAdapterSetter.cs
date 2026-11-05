@@ -1,5 +1,6 @@
 ﻿using Mapster.Adapters;
 using Mapster.Models;
+using Mapster.TypeAdapterSetters;
 using Mapster.Utils;
 using System;
 using System.Linq;
@@ -9,18 +10,18 @@ using System.Reflection;
 namespace Mapster
 {
     [AdaptWith(AdaptDirectives.DestinationAsRecord)]
-    public class TypeAdapterSetter
+    public class TypeAdapterSetter : DefaultOnlySetter
     {
-        protected const string SourceParameterName = "source";
-        protected const string ResultParameterName = "result";
-        protected const string DestinationParameterName = "destination";
+        //protected const string SourceParameterName = "source";
+        //protected const string ResultParameterName = "result";
+        //protected const string DestinationParameterName = "destination";
 
-        public readonly TypeAdapterSettings Settings;
-        public readonly TypeAdapterConfig Config;
-        public TypeAdapterSetter(TypeAdapterSettings settings, TypeAdapterConfig config)
+        public new readonly ISourceToDestinationTypeAdapterSettings Settings;
+       // public readonly TypeAdapterConfig Config;
+        public TypeAdapterSetter(TypeAdapterSettings settings, TypeAdapterConfig config): base(settings,config)
         {
             Settings = settings;
-            Config = config;
+           // Config = config;
         }
     }
     public static class TypeAdapterSetterExtensions
@@ -672,7 +673,7 @@ namespace Mapster
             this.CheckCompiled();
 
             var invoker = Expression.Lambda(source.Body, Expression.Parameter(typeof(TSource)));
-            TypeAdapterSettings? overrideSettings = null;
+            ISourceToDestinationTypeAdapterSettings? overrideSettings = null;
 
             if (configAction != null)
             {
@@ -708,7 +709,7 @@ namespace Mapster
             
 
             var invoker = Expression.Lambda(source.Body, Expression.Parameter(typeof(TSource)));
-            TypeAdapterSettings? overrideSettings = null;
+            ISourceToDestinationTypeAdapterSettings? overrideSettings = null;
                         
             var Tempsetter = new OverrideTypesSetter<TSourceMember, TDestinationMember>(this.Config);
             overrideSettings = Tempsetter.Settings;

@@ -17,7 +17,7 @@ namespace Mapster.Models
         public ParameterExpression? Destination;
         public ParameterExpression? Result;
         public bool UseDestinationValue;
-        public TypeAdapterSettings? OverrideSettings;
+        public ISourceToDestinationTypeAdapterSettings? OverrideSettings;
 
         public bool HasSettings()
         {
@@ -34,13 +34,13 @@ namespace Mapster.Models
         Expression? Getter { get;}
         bool IsCustomMap { get;}
         Expression? NullPropagationChecker { get;}
-        TypeAdapterSettings? OverrideSettings { get;}
+        ISourceToDestinationTypeAdapterSettings? OverrideSettings { get;}
         Expression Source { get;}
     }
 
     public class GetterLine : IGetterLineConsumer
     {
-        public GetterLine(Expression source, Expression? getter, TypeAdapterSettings? overrideSettings, bool isCustomMap = false)
+        public GetterLine(Expression source, Expression? getter, ISourceToDestinationTypeAdapterSettings? overrideSettings, bool isCustomMap = false)
         {
             Source = source;
             Getter = getter;
@@ -50,7 +50,7 @@ namespace Mapster.Models
 
         public Expression Source { get; init; }
         public Expression? Getter { get; init; }
-        public TypeAdapterSettings? OverrideSettings { get; init; }
+        public ISourceToDestinationTypeAdapterSettings? OverrideSettings { get; init; }
         public Expression? Condition { get; set; }
         public Expression? NullPropagationChecker { get; set; }
         public bool IsCustomMap { get; init; }

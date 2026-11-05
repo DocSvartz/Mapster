@@ -38,7 +38,7 @@ namespace Mapster
             var resolvers = srcInput.Settings != null ? srcInput.Settings.ApplyResolversOnly(config) : config.Resolvers;
             if (resolvers.Count == 0)
                 return false;
-            TypeAdapterSettings? customSettings = null;
+            ISourceToDestinationTypeAdapterSettings? customSettings = null;
             var MatchingGetter = 0;
 
             foreach (var resolver in resolvers)

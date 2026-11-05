@@ -8,12 +8,12 @@ namespace Mapster.MappingModels
 {
     internal class TypeConverterModel
     {
-        public TypeConverterModel(TypeAdapterSettings settings)
+        public TypeConverterModel(ISourceToDestinationTypeAdapterSettings settings)
         {
             _settings = settings ?? throw new ArgumentNullException(nameof(settings));
         }
 
-        private readonly TypeAdapterSettings _settings;
+        private readonly ISourceToDestinationTypeAdapterSettings _settings;
         private Func<string, string> ParameterNameConverter => _settings.NameMatchingStrategy.ParameterNameConverter;
         private bool? _isNewOrMemberInitCustomExp;
         (NewExpression newExp, MemberBinding[] memberBindings)? _customInitInfo;

@@ -42,7 +42,7 @@ namespace Mapster
                 base.ApplyWithSkipSettings(other, SkipSettings);
         }
 
-        public List<InvokerModel> ApplyResolversOnly(TypeAdapterSettings other)
+        public List<InvokerModel> ApplyResolversOnly(ISourceToDestinationTypeAdapterSettings other)
         {
             var result = new List<InvokerModel>(this.Resolvers);
             var seen = new HashSet<InvokerModel>(result,new InvokerModelApplyComparer());

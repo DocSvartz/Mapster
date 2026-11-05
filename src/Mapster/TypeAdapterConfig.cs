@@ -124,7 +124,7 @@ namespace Mapster
                 Settings = new TypeAdapterSettings(),
             };
             Rules.LockAdd(rule);
-            return new TypeAdapterSetter(rule.Settings, this);
+            return new TypeAdapterSetter((TypeAdapterSettings)rule.Settings, this);
         }
 
 
@@ -141,7 +141,7 @@ namespace Mapster
                 Settings = new TypeAdapterSettings(),
             };
             Rules.LockAdd(rule);
-            return new TypeAdapterSetter(rule.Settings, this);
+            return new TypeAdapterSetter((TypeAdapterSettings)rule.Settings, this);
         }
 
 
@@ -238,7 +238,7 @@ namespace Mapster
             rule.Settings.SourceType = key.Source;
             rule.Settings.DestinationType = key.Destination;
 
-            return rule.Settings;
+            return (TypeAdapterSettings)rule.Settings;
         }
 
         private TypeAdapterRule CreateTypeTupleRule(TypeTuple key)

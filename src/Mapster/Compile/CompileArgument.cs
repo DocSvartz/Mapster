@@ -14,7 +14,7 @@ namespace Mapster
         internal TypeConverterModel TypeConverter { get; set; }
         public MapType MapType { get; set; }
         public bool ExplicitMapping { get; set; }
-        public TypeAdapterSettings Settings { get; set; }
+        public ISourceToDestinationTypeAdapterSettings Settings { get; set; }
         public CompileContext Context { get; set; }
         public bool UseDestinationValue { get; set; }
 

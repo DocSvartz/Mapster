@@ -10,7 +10,7 @@ namespace Mapster.Models
         public LambdaExpression? Invoker { get; set; }
         public string? SourceMemberName { get; set; }
         public LambdaExpression? Condition { get; set; }
-        public TypeAdapterSettings? OvverideSettings { get; set; }
+        public ISourceToDestinationTypeAdapterSettings? OvverideSettings { get; set; }
         public bool IsChildPath { get; set; }
 
         public InvokerModel? Next(ParameterExpression source, string destMemberName)
