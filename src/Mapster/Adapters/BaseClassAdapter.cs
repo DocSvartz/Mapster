@@ -420,7 +420,7 @@ namespace Mapster.Adapters
         }
 
 
-        protected List<Expression> GetMemberMapToTargetAdapter(MemberMapping member, Expression? destination, Expression result, CompileArgument arg)
+        protected List<Expression> GetMemberBlockAdapter(MemberMapping member, Expression? destination, Expression result, CompileArgument arg)
         {
             var resultLines = new List<Expression>();
 

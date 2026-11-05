@@ -88,7 +88,7 @@ namespace Mapster.Adapters
                     continue;
 
                 lines.AddRange(
-                    GetMemberMapToTargetAdapter(member, destination, destination, arg));
+                    GetMemberBlockAdapter(member, destination, destination, arg));
             }
 
             return lines.Count > 0 ? (Expression)Expression.Block(lines) : Expression.Empty();

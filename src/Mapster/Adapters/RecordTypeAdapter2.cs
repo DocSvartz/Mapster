@@ -146,7 +146,7 @@ namespace Mapster.Adapters
                     if (member.Ignore.WithOutCondition && !member.IsMaybeReMapping)
                         continue;
                         
-                    lines.AddRange(GetMemberMapToTargetAdapter(member, destination, result, arg));
+                    lines.AddRange(GetMemberBlockAdapter(member, destination, result, arg));
                 }
                 else if(arg.TypeConverter.IsNewOrMemberInit == false 
                     && member.DestinationMember.SetterModifier != AccessModifier.None)
@@ -160,13 +160,13 @@ namespace Mapster.Adapters
                                     member.DestinationMember.SetExpression(arg.Result, member.RestoreDestinationMemberExp));
                         }
                         else
-                            lines.AddRange(GetMemberMapToTargetAdapter(member, destination, result, arg));
+                            lines.AddRange(GetMemberBlockAdapter(member, destination, result, arg));
                     }
                     else
                     {
                         if (member.Ignore.WithOutCondition && !member.IsMaybeReMapping)
                             continue;
-                        lines.AddRange(GetMemberMapToTargetAdapter(member, destination, result, arg));
+                        lines.AddRange(GetMemberBlockAdapter(member, destination, result, arg));
                     }
                 }
             }
