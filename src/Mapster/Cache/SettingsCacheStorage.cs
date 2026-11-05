@@ -195,6 +195,25 @@ namespace Mapster.Cache
                 return new TypeAdapterSetter(GetSettings(tuple), config);
             }
         }
+
+        public TypeAdapterSetter<TDestination> GetForDestinationTypeSetter<TDestination>(TypeTuple tuple, TypeAdapterConfig config)
+        {
+            lock (_lock)
+            {
+                return new TypeAdapterSetter<TDestination>(GetSettings(tuple), config);
+            }
+        }
+
+        public DestinationTypeOnlySetter GetForDestinationTypeSetter(TypeTuple tuple, TypeAdapterConfig config)
+        {
+            lock (_lock)
+            {
+                return new DestinationTypeOnlySetter(GetSettings(tuple), config);
+            }
+        }
+
+
+
         public void AddAdapterRule(BaseAdapter adapter)
         {
             lock (_lock)

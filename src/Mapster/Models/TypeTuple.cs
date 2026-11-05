@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 
 namespace Mapster.Models
 {
@@ -39,5 +40,7 @@ namespace Mapster.Models
             Source = source;
             Destination = destination;
         }
+
+        public static TypeTuple Create<TSource, TDestination>() => new TypeTuple(typeof(TSource), typeof(TDestination));
     }
 }

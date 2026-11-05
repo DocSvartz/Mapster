@@ -102,22 +102,18 @@ namespace Mapster
         public Func<LambdaExpression, Delegate> Compiler { get; set; } = lambda => lambda.Compile();
 
         public List<TypeAdapterRule> Rules { get; internal set; }
-        public DefaultOnlySetter Default { get; internal set; }
+        public DefaultOnlySetter Default  => MappingCache.GetDefaultSetter();
         public ConcurrentDictionary<TypeTuple, TypeAdapterRule> RuleMap { get; internal set; } = new ConcurrentDictionary<TypeTuple, TypeAdapterRule>();
 
         public TypeAdapterConfig()
         {
-            Rules = RulesTemplate.ToList();
-            var settings = TypeAdapterSettings.CreateDefault;
-            Default = new DefaultOnlySetter(settings, this);
-            Rules.Add(new TypeAdapterRule
+            //Rules = RulesTemplate.ToList();
+            MappingCache = new(RulesTemplate.ToList(), this);
+            MappingCache.AddImmutableSettingsRule(new TypeAdapterRule
             {
                 Priority = arg => -100,
-                Settings = settings,
+                Settings = (TypeAdapterSettings)MappingCache.GetDefaultSetter().Settings,
             });
-
-            MappingCache = new(RulesTemplate.ToList(), this);
-
         }
 
 
@@ -133,7 +129,8 @@ namespace Mapster
                 Priority = arg => canMap(arg.SourceType, arg.DestinationType, arg.MapType) ? (int?)25 : null,
                 Settings = new TypeAdapterSettings(),
             };
-            Rules.LockAdd(rule);
+            //Rules.LockAdd(rule);
+            MappingCache.AddImmutableSettingsRule(rule);
             return new TypeAdapterSetter((TypeAdapterSettings)rule.Settings, this);
         }
 
@@ -150,7 +147,8 @@ namespace Mapster
                 Priority = arg => canMap(arg) ? (int?)25 : null,
                 Settings = new TypeAdapterSettings(),
             };
-            Rules.LockAdd(rule);
+            //Rules.LockAdd(rule);
+            MappingCache.AddImmutableSettingsRule(rule);
             return new TypeAdapterSetter((TypeAdapterSettings)rule.Settings, this);
         }
 
@@ -163,8 +161,8 @@ namespace Mapster
 		/// <returns></returns>
 		public TypeAdapterSetter<TSource, TDestination> NewConfig<TSource, TDestination>()
         {
-            Remove(typeof(TSource), typeof(TDestination));
-            return ForType<TSource, TDestination>();
+           // Remove(typeof(TSource), typeof(TDestination));
+            return MappingCache.GetNewConfigSetter<TSource, TDestination>(TypeTuple.Create<TSource,TDestination>(),this);
         }
 
 
@@ -176,8 +174,8 @@ namespace Mapster
 		/// <returns></returns>
 		public TypeAdapterSetter NewConfig(Type sourceType, Type destinationType)
         {
-            Remove(sourceType, destinationType);
-            return ForType(sourceType, destinationType);
+            //Remove(sourceType, destinationType);
+            return MappingCache.GetNewConfigSetter(new TypeTuple(sourceType, destinationType), this);
         }
 
 
@@ -189,9 +187,9 @@ namespace Mapster
 		/// <returns></returns>
 		public TypeAdapterSetter<TSource, TDestination> ForType<TSource, TDestination>()
         {
-            var key = new TypeTuple(typeof(TSource), typeof(TDestination));
-            var settings = GetSettings(key);
-            return new TypeAdapterSetter<TSource, TDestination>(settings, this);
+          //  var key = new TypeTuple(typeof(TSource), typeof(TDestination));
+           // var settings = GetSettings(key);
+            return MappingCache.GetForTypeSetter<TSource, TDestination>(new TypeTuple(typeof(TSource), typeof(TDestination)), this);
         }
 
 
@@ -203,9 +201,9 @@ namespace Mapster
 		/// <returns></returns>
 		public TypeAdapterSetter ForType(Type sourceType, Type destinationType)
         {
-            var key = new TypeTuple(sourceType, destinationType);
-            var settings = GetSettings(key);
-            return new TypeAdapterSetter(settings, this);
+           // var key = new TypeTuple(sourceType, destinationType);
+           // var settings = GetSettings(key);
+            return MappingCache.GetForTypeSetter(new TypeTuple(sourceType, destinationType), this);
         }
 
 
@@ -216,9 +214,9 @@ namespace Mapster
 		/// <returns></returns>
 		public TypeAdapterSetter<TDestination> ForDestinationType<TDestination>()
         {
-            var key = new TypeTuple(typeof(void), typeof(TDestination));
-            var settings = GetSettings(key);
-            return new TypeAdapterSetter<TDestination>(settings, this);
+            //var key = new TypeTuple(typeof(void), typeof(TDestination));
+            //var settings = GetSettings(key);
+            return MappingCache.GetForDestinationTypeSetter<TDestination>(new TypeTuple(typeof(void), typeof(TDestination)), this);
         }
 
 
@@ -229,9 +227,9 @@ namespace Mapster
 		/// <returns></returns>
 		public DestinationTypeOnlySetter ForDestinationType(Type destinationType)
         {
-            var key = new TypeTuple(typeof(void), destinationType);
-            var settings = GetSettings(key);
-            return new DestinationTypeOnlySetter(settings, this);
+            //var key = new TypeTuple(typeof(void), destinationType);
+            //var settings = GetSettings(key);
+            return MappingCache.GetForDestinationTypeSetter(new TypeTuple(typeof(void), destinationType), this);
         }
 
         private TypeAdapterSettings GetSettings(TypeTuple key)
@@ -241,7 +239,7 @@ namespace Mapster
                 var r = types.Source == typeof(void)
                     ? CreateDestinationTypeRule(types)
                     : CreateTypeTupleRule(types);
-                Rules.LockAdd(r);
+               // Rules.LockAdd(r);
                 return r;
             });
 
@@ -943,8 +941,8 @@ namespace Mapster
 
         private void Remove(TypeTuple key)
         {
-            if (RuleMap.TryRemove(key, out var rule))
-                Rules.LockRemove(rule);
+            //if (RuleMap.TryRemove(key, out var rule))
+            //    Rules.LockRemove(rule);
             _mapDict.TryRemove(key, out _);
             _mapToTargetDict.TryRemove(key, out _);
             _projectionDict.TryRemove(key, out _);
