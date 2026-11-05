@@ -86,6 +86,8 @@ namespace Mapster.Adapters
             if (CheckExplicitMapping && arg.Context.Config.RequireExplicitMapping && !arg.ExplicitMapping)
                 throw new InvalidOperationException("Implicit mapping is not allowed (check GlobalSettings.RequireExplicitMapping) and no configuration exists");
 
+            PreparatoryMappingStep(source, destination, arg);
+
             var oldMaxDepth = arg.Context.MaxDepth;
             var oldDepth = arg.Context.Depth;
             try
@@ -581,6 +583,11 @@ namespace Mapster.Adapters
             }
 
             return result; 
+        }
+
+        protected virtual void PreparatoryMappingStep(Expression source, Expression? destination, CompileArgument arg)
+        {
+
         }
     }
 }

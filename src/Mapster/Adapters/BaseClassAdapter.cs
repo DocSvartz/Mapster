@@ -622,12 +622,11 @@ namespace Mapster.Adapters
 
             return constructorMapping;
         }
-
-        protected override Expression CreateExpressionBody(Expression source, Expression? destination, CompileArgument arg)
+                
+        protected override void PreparatoryMappingStep(Expression source, Expression? destination, CompileArgument arg)
         {
-            arg.TypeConverter = CreateTypeConverter(source,destination,arg);
-
-            return base.CreateExpressionBody(source, destination, arg);
+            arg.TypeConverter = CreateTypeConverter(source, destination, arg);
+            base.PreparatoryMappingStep(source, destination, arg);
         }
 
         #endregion
