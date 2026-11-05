@@ -107,7 +107,7 @@ namespace Mapster.Adapters
                 new[] { member.Destination, memberAsObject });
         }
 
-        protected override Expression? CreateInlineExpression(Expression source, CompileArgument arg, bool IsRequiredOnly = false)
+        protected override Expression? CreateInlineExpression(Expression source, CompileArgument arg)
         {
             //new TDestination {
             //  Prop1 = convert(src.Prop1),

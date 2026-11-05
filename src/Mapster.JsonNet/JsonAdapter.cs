@@ -51,7 +51,7 @@ namespace Mapster.JsonNet
             throw new System.NotImplementedException();
         }
 
-        protected override Expression CreateInlineExpression(Expression source, CompileArgument arg, bool IsRequiredOnly = false)
+        protected override Expression CreateInlineExpression(Expression source, CompileArgument arg)
         {
             throw new System.NotImplementedException();
         }

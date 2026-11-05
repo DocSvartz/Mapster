@@ -84,18 +84,7 @@ namespace Mapster.Adapters
                 propertyModel.
                     UseDestinationValue = IsCanUsingDestinationValue(arg, destinationMember);
 
-
-                if(arg.MapType == MapType.ApplyNullPropagation &&
-                    propertyModel.IsNotFoundGetter  
-                    && !arg.DestinationType.IsRecordType()  
-                    && destinationMember.Info is PropertyInfo propinfo)
-                {
-                    if (propinfo.GetCustomAttributes()
-                        .Any(y => y.GetType().FullName == "System.Runtime.CompilerServices.RequiredMemberAttribute"))
-                    {
-                        propertyModel.GetterLines.Add(new GetterLine(source, destinationMember.Type.CreateDefault(arg), null));
-                    }
-                }
+                                
                 //maybe refactoring to always create record restored member
                 if (arg.DestinationType.IsRecordType())
                 {

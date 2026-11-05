@@ -94,7 +94,7 @@ namespace Mapster.Adapters
             throw new NotImplementedException();
         }
 
-        protected override Expression CreateInlineExpression(Expression source, CompileArgument arg, bool IsRequiredOnly = false)
+        protected override Expression CreateInlineExpression(Expression source, CompileArgument arg)
         {
             throw new NotImplementedException();
         }

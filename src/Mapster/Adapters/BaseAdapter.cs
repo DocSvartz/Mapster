@@ -342,9 +342,6 @@ namespace Mapster.Adapters
             if (exp == null)
                 return null;
 
-            if(arg.MapType == MapType.CtorParam)
-                return exp;
-
             //projection null is handled by EF
             if (arg.MapType != MapType.Projection)
                 exp = source.NotNullReturn(exp,arg);
@@ -365,7 +362,7 @@ namespace Mapster.Adapters
             return CreateBlockExpression(source,result,arg);
         }
         protected abstract Expression CreateBlockExpression(Expression source, Expression destination, CompileArgument arg);
-        protected abstract Expression? CreateInlineExpression(Expression source, CompileArgument arg, bool IsRequiredOnly = false);
+        protected abstract Expression? CreateInlineExpression(Expression source, CompileArgument arg);
 
         protected virtual Expression CreateInlineWithRequiredMemberOnly(Expression source, CompileArgument arg)
         {

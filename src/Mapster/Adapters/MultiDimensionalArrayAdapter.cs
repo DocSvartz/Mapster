@@ -91,7 +91,7 @@ namespace Mapster.Adapters
             return CreateArraySet(source, destination, arg);
         }
 
-        protected override Expression CreateInlineExpression(Expression source, CompileArgument arg, bool IsRequiredOnly = false)
+        protected override Expression CreateInlineExpression(Expression source, CompileArgument arg)
         {
             throw new NotImplementedException();
         }

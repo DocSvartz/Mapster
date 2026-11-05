@@ -20,7 +20,7 @@ namespace Mapster.Adapters
             return true;
         }
 
-        protected override Expression? CreateInlineExpression(Expression source, CompileArgument arg, bool IsRequiredOnly = false)
+        protected override Expression? CreateInlineExpression(Expression source, CompileArgument arg)
         {
             var _source = source.Type.IsNullable() 
                 ? Expression.Convert(source, source.Type.GetGenericArguments()[0]) 

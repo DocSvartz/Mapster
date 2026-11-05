@@ -70,7 +70,7 @@ namespace Mapster.Adapters
             return CreateArraySet(source, destination, arg);
         }
 
-        protected override Expression CreateInlineExpression(Expression source, CompileArgument arg, bool IsRequiredOnly = false)
+        protected override Expression CreateInlineExpression(Expression source, CompileArgument arg)
         {
             if (arg.DestinationType.GetTypeInfo().IsAssignableFrom(source.Type.GetTypeInfo()))
                 return source;

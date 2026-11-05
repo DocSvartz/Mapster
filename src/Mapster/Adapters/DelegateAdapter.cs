@@ -30,7 +30,7 @@ namespace Mapster.Adapters
             return Expression.Empty();
         }
 
-        protected override Expression CreateInlineExpression(Expression source, CompileArgument arg, bool IsRequiredOnly = false)
+        protected override Expression CreateInlineExpression(Expression source, CompileArgument arg)
         {
             return CreateInstantiationExpression(source, arg);
         }

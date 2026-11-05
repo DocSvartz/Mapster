@@ -187,7 +187,7 @@ namespace Mapster.Adapters
             return destSetFn(destination, key, value);
         }
 
-        protected override Expression CreateInlineExpression(Expression source, CompileArgument arg, bool IsRequiredOnly = false)
+        protected override Expression CreateInlineExpression(Expression source, CompileArgument arg)
         {
             //new TDestination {
             //  { "Prop1", convert(src.Prop1) },
