@@ -10,7 +10,7 @@ namespace Mapster
         bool? ApplyCustomConverterFactoryNullPropagation { get; set; }
         bool? MapToTargetPrimitive { get; set; }
         Action<TypeAdapterConfig>? Fork { get; set; }
-        List<ResolverSourceInput> ExtraSources { get; }
+        
         List<TypeTuple> Includes { get; }
         Func<CompileArgument, LambdaExpression>? ConverterFactory { get; set; }
         Func<CompileArgument, LambdaExpression>? ConverterToTargetFactory { get; set; }

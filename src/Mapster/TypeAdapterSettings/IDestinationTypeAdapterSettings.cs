@@ -15,5 +15,7 @@ namespace Mapster
         List<Func<CompileArgument, LambdaExpression>> BeforeMappingFactories { get; }
         List<string> UseDestinationMembers { get; }
         List<InvokerModel> Resolvers { get; }
+
+        List<ResolverSourceInput> ExtraSources { get; }
     }
 }

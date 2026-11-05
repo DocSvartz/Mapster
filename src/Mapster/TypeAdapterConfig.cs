@@ -218,11 +218,11 @@ namespace Mapster
 		/// </summary>
 		/// <param name="destinationType">Destination type.</param>
 		/// <returns></returns>
-		public TypeAdapterSetter ForDestinationType(Type destinationType)
+		public DestinationTypeOnlySetter ForDestinationType(Type destinationType)
         {
             var key = new TypeTuple(typeof(void), destinationType);
             var settings = GetSettings(key);
-            return new TypeAdapterSetter(settings, this);
+            return new DestinationTypeOnlySetter(settings, this);
         }
 
         private TypeAdapterSettings GetSettings(TypeTuple key)

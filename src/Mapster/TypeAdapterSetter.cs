@@ -264,7 +264,7 @@ namespace Mapster
             return setter;
         }
 
-        public static TSetter RequireDestinationMemberSource<TSetter>(this TSetter setter, Enums.DestinationMemebers value) where TSetter : TypeAdapterSetter
+        public static TSetter RequireDestinationMemberSource<TSetter>(this TSetter setter, Enums.DestinationMemebers value) where TSetter : DefaultOnlySetter
         {
             setter.CheckCompiled();
 
@@ -422,7 +422,7 @@ namespace Mapster
 
     }
 
-    public class TypeAdapterSetter<TDestination> : TypeAdapterSetter
+    public class TypeAdapterSetter<TDestination> : DestinationTypeOnlySetter
     {
         internal TypeAdapterSetter(TypeAdapterSettings settings, TypeAdapterConfig parentConfig)
             : base(settings, parentConfig)
@@ -444,7 +444,7 @@ namespace Mapster
             this.CheckCompiled();
 
             Settings.CustomDefaultValue = defaultValue.Body;
-            
+
             return this;
         }
 
@@ -454,7 +454,7 @@ namespace Mapster
         {
             this.CheckCompiled();
 
-            var invoker = Expression.Lambda(source.Body, Expression.Parameter(typeof (object)));
+            var invoker = Expression.Lambda(source.Body, Expression.Parameter(typeof(object)));
             if (member.IsIdentity())
             {
                 Settings.ExtraSources.Add((ResolverSourceInput)invoker);
@@ -566,7 +566,7 @@ namespace Mapster
         {
             this.CheckCompiled();
 
-            var lambda = Expression.Lambda(action.Body, 
+            var lambda = Expression.Lambda(action.Body,
                 Expression.Parameter(typeof(object), SourceParameterName),
                 action.Parameters[0]);
             Settings.AfterMappingFactories.Add(arg => lambda);
@@ -588,6 +588,8 @@ namespace Mapster
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Minor Code Smell", "S4136:Method overloads should be grouped together", Justification = "<Pending>")]
     public class TypeAdapterSetter<TSource, TDestination> : TypeAdapterSetter<TDestination>
     {
+        public new ISourceToDestinationTypeAdapterSettings Settings => OriginSettings;
+
         internal TypeAdapterSetter(TypeAdapterSettings settings, TypeAdapterConfig parentConfig)
             : base(settings, parentConfig)
         { }
@@ -1032,15 +1034,77 @@ namespace Mapster
             where TDerivedSource: class, TSource
             where TDerivedDestination: class, TDestination
         {
-            return this.Include(typeof(TDerivedSource), typeof(TDerivedDestination));
+            this.CheckCompiled();
+
+            Type baseSourceType = Settings.SourceType ?? typeof(void);
+            Type baseDestinationType = Settings.DestinationType ?? typeof(void);
+
+            var sourceType = typeof(TDerivedSource);
+            var destType = typeof(TDerivedDestination);
+
+            if (baseSourceType.IsOpenGenericType() && baseDestinationType.IsOpenGenericType())
+            {
+                if (!sourceType.IsAssignableToGenericType(baseSourceType))
+                    throw new InvalidCastException("In order to use inherits, TSource must be inherited from TBaseSource.");
+                if (!destType.IsAssignableToGenericType(baseDestinationType))
+                    throw new InvalidCastException("In order to use inherits, TDestination must be inherited from TBaseDestination.");
+            }
+            else
+            {
+                if (!baseSourceType.GetTypeInfo().IsAssignableFrom(sourceType.GetTypeInfo()))
+                    throw new InvalidCastException("In order to use inherits, TSource must be inherited from TBaseSource.");
+
+                if (!baseDestinationType.GetTypeInfo().IsAssignableFrom(destType.GetTypeInfo()))
+                    throw new InvalidCastException("In order to use inherits, TDestination must be inherited from TBaseDestination.");
+            }
+
+            Config.Rules.LockAdd(new TypeAdapterRule
+            {
+                Priority = arg =>
+                    arg.SourceType == sourceType &&
+                    arg.DestinationType == destType ? (int?)100 : null,
+                Settings = (TypeAdapterSettings)Settings
+            });
+
+            Settings.Includes.Add(new TypeTuple(sourceType, destType));
+
+            return this;
         }
 
         public TypeAdapterSetter<TSource, TDestination> Inherits<TBaseSource, TBaseDestination>()
         {
             this.CheckCompiled();
 
-            return this.Inherits(typeof(TBaseSource), typeof(TBaseDestination));
+           // return this.Inherits(typeof(TBaseSource), typeof(TBaseDestination));
 
+            Type derivedSourceType = Settings.SourceType ?? typeof(void);
+            Type derivedDestinationType = Settings.DestinationType ?? typeof(void);
+
+            var baseSourceType = typeof(TBaseSource);
+            var baseDestinationType = typeof(TBaseDestination);
+
+            if (baseSourceType.IsOpenGenericType() && baseDestinationType.IsOpenGenericType())
+            {
+                if (!derivedSourceType.IsAssignableToGenericType(baseSourceType))
+                    throw new InvalidCastException("In order to use inherits, TSource must be inherited from TBaseSource.");
+                if (!derivedDestinationType.IsAssignableToGenericType(baseDestinationType))
+                    throw new InvalidCastException("In order to use inherits, TDestination must be inherited from TBaseDestination.");
+            }
+            else
+            {
+                if (!baseSourceType.GetTypeInfo().IsAssignableFrom(derivedSourceType.GetTypeInfo()))
+                    throw new InvalidCastException("In order to use inherits, TSource must be inherited from TBaseSource.");
+
+                if (!baseDestinationType.GetTypeInfo().IsAssignableFrom(derivedDestinationType.GetTypeInfo()))
+                    throw new InvalidCastException("In order to use inherits, TDestination must be inherited from TBaseDestination.");
+            }
+
+            if (Config.RuleMap.TryGetValue(new TypeTuple(baseSourceType, baseDestinationType), out var rule))
+            {
+                Settings.Apply(rule.Settings);
+            }
+
+            return this;
         }
 
         public TypeAdapterSetter<TSource, TDestination> Fork(Action<TypeAdapterConfig> action)
