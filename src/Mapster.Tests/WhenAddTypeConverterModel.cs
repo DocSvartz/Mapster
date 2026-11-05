@@ -173,7 +173,7 @@ namespace Mapster.Tests
             // and Custom memeber mapping using .Map() ovveride  member using in custom init.
             // (ctor param dataRemap ovveride when using .Map())
             // (property OtherData use custom init definition because not using .Map())
-            //WhenAddTypeConverterModel.RecordWithCustomInit result = new WhenAddTypeConverterModel.RecordWithCustomInit("32", "John", "Remap")
+            //new WhenAddTypeConverterModel.RecordWithCustomInit("32", "John", "Remap")
             //{
             //    OtherData = "World",
             //    Data = p1.Data,
@@ -182,7 +182,7 @@ namespace Mapster.Tests
 
             strMap.ShouldSatisfyAllConditions(() =>
             {
-                strMap.ShouldContain("WhenAddTypeConverterModel.RecordWithCustomInit result = new WhenAddTypeConverterModel.RecordWithCustomInit(\"32\", \"John\", \"Remap\")");
+                strMap.ShouldContain("new WhenAddTypeConverterModel.RecordWithCustomInit(\"32\", \"John\", \"Remap\")");
                 strMap.ShouldContain("OtherData = \"World\"");
                 strMap.ShouldContain("Data = p1.Data");
                 strMap.ShouldContain("DataReMap = p1.DataReMap");

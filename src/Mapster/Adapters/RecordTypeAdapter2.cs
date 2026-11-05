@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using static Mapster.IgnoreDictionary;
 
 namespace Mapster.Adapters
 {
@@ -20,38 +19,32 @@ namespace Mapster.Adapters
 
         protected override bool CanInline(Expression source, Expression? destination, CompileArgument arg)
         {
+            if(arg.MapType == MapType.Projection && arg.TypeConverter.IsNewOrMemberInit == false)
+                throw new InvalidOperationException("ConstructUsing for projection is support only New and MemberInit expression.");
+
             if (arg.MapType == MapType.Projection)
                 return true;
-            return false;
+            if (arg.MapType == MapType.MapToTarget)
+                return false;
+            if (arg.TypeConverter.IsNewOrMemberInit == false)
+                return false;
+            if(arg.TypeConverter.PropertyOrFieldMapping.Members.Any(x=> x.UseDestinationValue))
+                return false;
+
+            return true;
         }
 
         protected override Expression CreateInlineExpression(Expression source, CompileArgument arg, bool IsRequiredOnly = false)
-        {
-            return CreateInstantiationExpression(source, arg);
-        }
-        protected override Expression CreateInstantiationExpression(Expression source, Expression? destination, CompileArgument arg)
-        {
-            Expression installExpr = arg.TypeConverter.CustomInitExpression ?? CreateInstantiationExpression(source, arg.TypeConverter.ConstructorMapping!, arg);
-
-            if (arg.TypeConverter.IsNewOrMemberInit == false)
-                return installExpr;
-
-            if (arg.MapType != MapType.MapToTarget)
-                return RecordInlineExpression(source, arg, installExpr);
-            else
-                return RecordInlineMapToTargetExpression(source, arg, installExpr);
-        }
-
-        private Expression RecordInlineExpression(Expression source, CompileArgument arg, Expression installExpr)
         {
             //new TDestination {
             //  Prop1 = convert(src.Prop1),
             //  Prop2 = convert(src.Prop2),
             //}
 
-            var exp = installExpr;
-            var memberInit = installExpr as MemberInitExpression;
-            var newInstance = memberInit?.NewExpression ?? (NewExpression)exp;
+            if (arg.TypeConverter.IsNewOrMemberInit == false)
+                return null;
+                        
+            var newInstance = arg.TypeConverter.GetCustomNewExp ?? CreateInstantiationExpression(source, arg) as NewExpression;
             var members = arg.TypeConverter.PropertyOrFieldMapping.Members;
 
             var lines = new List<MemberBinding>(arg.TypeConverter.GetInitExpMemberBindings);
@@ -63,7 +56,7 @@ namespace Mapster.Adapters
 
                 if (member.DestinationMember.SetterModifier == AccessModifier.None)
                     continue;
-               
+
                 if (member.Ignore.WithOutCondition || member.IsNotFoundGetter)
                     continue;
 
@@ -73,14 +66,25 @@ namespace Mapster.Adapters
                 lines.Add(bind);
             }
 
-            return Expression.MemberInit(newInstance, lines);
+            return Expression.MemberInit(newInstance!, lines);
         }
 
-        private Expression RecordInlineMapToTargetExpression(Expression source, CompileArgument arg, Expression installExpr)
+        protected override Expression CreateBlockInstantiationExpression(Expression source, Expression? destination, CompileArgument arg)
         {
-            var exp = installExpr;
-            var memberInit = installExpr as MemberInitExpression;
-            var newInstance = memberInit?.NewExpression ?? (NewExpression)exp;
+            if (arg.TypeConverter.IsNewOrMemberInit == false)
+                return arg.TypeConverter.CustomInitExpression!;
+
+
+            if (arg.MapType == MapType.MapToTarget)
+                return RecordInlineMapToTargetExpression(source, arg);
+            else
+                return CreateInlineExpression(source, arg);
+        }
+
+        private Expression RecordInlineMapToTargetExpression(Expression source, CompileArgument arg)
+        {
+           
+            var newInstance = arg.TypeConverter.GetCustomNewExp ?? CreateInstantiationExpression(source, arg) as NewExpression;
             var members = arg.TypeConverter.PropertyOrFieldMapping.Members;
 
             var lines = new List<MemberBinding>(arg.TypeConverter.GetInitExpMemberBindings);
@@ -114,7 +118,7 @@ namespace Mapster.Adapters
                 lines.Add(bind);
             }
 
-            return Expression.MemberInit(newInstance, lines);
+            return Expression.MemberInit(newInstance!, lines);
         }
 
 

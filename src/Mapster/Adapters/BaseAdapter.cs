@@ -169,7 +169,7 @@ namespace Mapster.Adapters
                     transformedSource = src;
                 }
 
-                var set = CreateInstantiationExpression(transformedSource, destination, arg);
+                var set = CreateBlockInstantiationExpression(transformedSource, destination, arg);
 
                 if (destination != null && (UseTargetValue || arg.UseDestinationValue) && arg.GetConstructUsing()?.Parameters.Count != 2)
                 {
@@ -588,6 +588,11 @@ namespace Mapster.Adapters
         protected virtual void PreparatoryMappingStep(Expression source, Expression? destination, CompileArgument arg)
         {
 
+        }
+
+        protected virtual Expression CreateBlockInstantiationExpression(Expression source, Expression? destination, CompileArgument arg)
+        {
+            return CreateInstantiationExpression(source, destination, arg);
         }
     }
 }
