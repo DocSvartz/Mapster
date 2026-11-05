@@ -1,5 +1,6 @@
 ﻿using Mapster.Adapters;
 using Mapster.Models;
+using Mapster.TypeAdapterSetters;
 using Mapster.Utils;
 using System;
 using System.Collections.Concurrent;
@@ -95,14 +96,14 @@ namespace Mapster
         public Func<LambdaExpression, Delegate> Compiler { get; set; } = lambda => lambda.Compile();
 
         public List<TypeAdapterRule> Rules { get; internal set; }
-        public TypeAdapterSetter Default { get; internal set; }
+        public DefaultOnlySetter Default { get; internal set; }
         public ConcurrentDictionary<TypeTuple, TypeAdapterRule> RuleMap { get; internal set; } = new ConcurrentDictionary<TypeTuple, TypeAdapterRule>();
 
         public TypeAdapterConfig()
         {
             Rules = RulesTemplate.ToList();
             var settings = new TypeAdapterSettings();
-            Default = new TypeAdapterSetter(settings, this);
+            Default = new DefaultOnlySetter(settings, this);
             Rules.Add(new TypeAdapterRule
             {
                 Priority = arg => -100,

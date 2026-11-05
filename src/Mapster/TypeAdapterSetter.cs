@@ -25,13 +25,13 @@ namespace Mapster
     }
     public static class TypeAdapterSetterExtensions
     {
-        internal static void CheckCompiled<TSetter>(this TSetter setter) where TSetter : TypeAdapterSetter
+        internal static void CheckCompiled<TSetter>(this TSetter setter) where TSetter : DefaultOnlySetter
         {
             if (setter.Settings.Compiled)
                 throw new InvalidOperationException("TypeAdapter.Adapt was already called, please clone or create new TypeAdapterConfig.");
         }
 
-        public static TSetter IsLegasyIgnoreParameterNameMatching<TSetter>(this TSetter setter, bool value) where TSetter : TypeAdapterSetter
+        public static TSetter IsLegasyIgnoreParameterNameMatching<TSetter>(this TSetter setter, bool value) where TSetter : DefaultOnlySetter
         {
             setter.CheckCompiled();
 
@@ -39,7 +39,7 @@ namespace Mapster
             return setter;
         }
 
-        public static TSetter AddDestinationTransform<TSetter, TDestinationMember>(this TSetter setter, Expression<Func<TDestinationMember, TDestinationMember>> transform) where TSetter : TypeAdapterSetter
+        public static TSetter AddDestinationTransform<TSetter, TDestinationMember>(this TSetter setter, Expression<Func<TDestinationMember, TDestinationMember>> transform) where TSetter : DefaultOnlySetter
         {
             setter.CheckCompiled();
 
@@ -51,7 +51,7 @@ namespace Mapster
             return setter;
         }
 
-        public static TSetter AddDestinationTransform<TSetter>(this TSetter setter, DestinationTransform transform) where TSetter : TypeAdapterSetter
+        public static TSetter AddDestinationTransform<TSetter>(this TSetter setter, DestinationTransform transform) where TSetter : DefaultOnlySetter
         {
             setter.CheckCompiled();
 
@@ -59,7 +59,7 @@ namespace Mapster
             return setter;
         }
 
-        public static TSetter Ignore<TSetter>(this TSetter setter, params string[] names) where TSetter : TypeAdapterSetter
+        public static TSetter Ignore<TSetter>(this TSetter setter, params string[] names) where TSetter : DestinationTypeOnlySetter
         {
             setter.CheckCompiled();
 
@@ -70,7 +70,7 @@ namespace Mapster
             return setter;
         }
 
-        public static TSetter IgnoreAttribute<TSetter>(this TSetter setter, params Type[] types) where TSetter : TypeAdapterSetter
+        public static TSetter IgnoreAttribute<TSetter>(this TSetter setter, params Type[] types) where TSetter : DefaultOnlySetter
         {
             setter.CheckCompiled();
 
@@ -81,7 +81,7 @@ namespace Mapster
             return setter;
         }
 
-        public static TSetter IgnoredClear<TSetter>(this TSetter setter) where TSetter : TypeAdapterSetter
+        public static TSetter IgnoredClear<TSetter>(this TSetter setter) where TSetter : DestinationTypeOnlySetter
         {
             setter.CheckCompiled();
             setter.Settings.Ignore.Clear();
@@ -89,7 +89,7 @@ namespace Mapster
             return setter;
         }
 
-        public static TSetter IgnoredRemove<TSetter>(this TSetter setter, params string[] names) where TSetter : TypeAdapterSetter
+        public static TSetter IgnoredRemove<TSetter>(this TSetter setter, params string[] names) where TSetter : DestinationTypeOnlySetter
         {
             setter.CheckCompiled();
 
@@ -100,7 +100,7 @@ namespace Mapster
             return setter;
         }
 
-        public static TSetter IncludeAttribute<TSetter>(this TSetter setter, params Type[] types) where TSetter : TypeAdapterSetter
+        public static TSetter IncludeAttribute<TSetter>(this TSetter setter, params Type[] types) where TSetter : DefaultOnlySetter
         {
             setter.CheckCompiled();
 
@@ -111,7 +111,7 @@ namespace Mapster
             return setter;
         }
 
-        public static TSetter IgnoreMember<TSetter>(this TSetter setter, Func<IMemberModel, MemberSide, bool> predicate) where TSetter : TypeAdapterSetter
+        public static TSetter IgnoreMember<TSetter>(this TSetter setter, Func<IMemberModel, MemberSide, bool> predicate) where TSetter : DefaultOnlySetter
         {
             setter.CheckCompiled();
 
@@ -119,7 +119,7 @@ namespace Mapster
             return setter;
         }
 
-        public static TSetter IncludeMember<TSetter>(this TSetter setter, Func<IMemberModel, MemberSide, bool> predicate) where TSetter : TypeAdapterSetter
+        public static TSetter IncludeMember<TSetter>(this TSetter setter, Func<IMemberModel, MemberSide, bool> predicate) where TSetter : DefaultOnlySetter
         {
             setter.CheckCompiled();
 
@@ -127,7 +127,7 @@ namespace Mapster
             return setter;
         }
 
-        public static TSetter ShallowCopyForSameType<TSetter>(this TSetter setter, bool value) where TSetter : TypeAdapterSetter
+        public static TSetter ShallowCopyForSameType<TSetter>(this TSetter setter, bool value) where TSetter : DefaultOnlySetter
         {
             setter.CheckCompiled();
 
@@ -135,7 +135,7 @@ namespace Mapster
             return setter;
         }
 
-        public static TSetter DirectAssignmentForSameType<TSetter>(this TSetter setter, bool value) where TSetter : TypeAdapterSetter
+        public static TSetter DirectAssignmentForSameType<TSetter>(this TSetter setter, bool value) where TSetter : DefaultOnlySetter
         {
             setter.CheckCompiled();
 
@@ -143,7 +143,7 @@ namespace Mapster
             return setter;
         }
 
-        public static TSetter EnumMappingStrategy<TSetter>(this TSetter setter, EnumMappingStrategy strategy) where TSetter : TypeAdapterSetter
+        public static TSetter EnumMappingStrategy<TSetter>(this TSetter setter, EnumMappingStrategy strategy) where TSetter : DefaultOnlySetter
         {
             setter.CheckCompiled();
 
@@ -151,7 +151,7 @@ namespace Mapster
             return setter;
         }
 
-        public static TSetter IgnoreNullValues<TSetter>(this TSetter setter, bool value) where TSetter : TypeAdapterSetter
+        public static TSetter IgnoreNullValues<TSetter>(this TSetter setter, bool value) where TSetter : DefaultOnlySetter
         {
             setter.CheckCompiled();
 
@@ -159,7 +159,7 @@ namespace Mapster
             return setter;
         }
 
-        public static TSetter PreserveReference<TSetter>(this TSetter setter, bool value) where TSetter : TypeAdapterSetter
+        public static TSetter PreserveReference<TSetter>(this TSetter setter, bool value) where TSetter : DefaultOnlySetter
         {
             setter.CheckCompiled();
 
@@ -167,7 +167,7 @@ namespace Mapster
             return setter;
         }
 
-        public static TSetter NameMatchingStrategy<TSetter>(this TSetter setter, NameMatchingStrategy value) where TSetter : TypeAdapterSetter
+        public static TSetter NameMatchingStrategy<TSetter>(this TSetter setter, NameMatchingStrategy value) where TSetter : DefaultOnlySetter
         {
             setter.CheckCompiled();
 
@@ -210,7 +210,7 @@ namespace Mapster
         }
 
         public static TSetter Map<TSetter>(
-            this TSetter setter, string destinationMemberName, string sourceMemberName) where TSetter : TypeAdapterSetter
+            this TSetter setter, string destinationMemberName, string sourceMemberName) where TSetter : DestinationTypeOnlySetter
         {
             setter.CheckCompiled();
 
@@ -224,7 +224,7 @@ namespace Mapster
             return setter;
         }
 
-        public static TSetter EnableNonPublicConstructors<TSetter>(this TSetter setter, bool value) where TSetter : TypeAdapterSetter
+        public static TSetter EnableNonPublicConstructors<TSetter>(this TSetter setter, bool value) where TSetter : DefaultOnlySetter
         {
             setter.CheckCompiled();
 
@@ -232,7 +232,7 @@ namespace Mapster
             return setter;
         }
 
-        public static TSetter EnableNonPublicMembers<TSetter>(this TSetter setter, bool value) where TSetter : TypeAdapterSetter
+        public static TSetter EnableNonPublicMembers<TSetter>(this TSetter setter, bool value) where TSetter : DefaultOnlySetter
         {
             setter.CheckCompiled();
 
@@ -240,7 +240,7 @@ namespace Mapster
             return setter;
         }
 
-        public static TSetter IgnoreNonMapped<TSetter>(this TSetter setter, bool value) where TSetter : TypeAdapterSetter
+        public static TSetter IgnoreNonMapped<TSetter>(this TSetter setter, bool value) where TSetter : DefaultOnlySetter
         {
             setter.CheckCompiled();
 
@@ -248,7 +248,7 @@ namespace Mapster
             return setter;
         }
 
-        public static TSetter AvoidInlineMapping<TSetter>(this TSetter setter, bool value) where TSetter : TypeAdapterSetter
+        public static TSetter AvoidInlineMapping<TSetter>(this TSetter setter, bool value) where TSetter : DefaultOnlySetter
         {
             setter.CheckCompiled();
 
@@ -256,7 +256,7 @@ namespace Mapster
             return setter;
         }
 
-        public static TSetter RequireDestinationMemberSource<TSetter>(this TSetter setter, bool value) where TSetter : TypeAdapterSetter
+        public static TSetter RequireDestinationMemberSource<TSetter>(this TSetter setter, bool value) where TSetter : DefaultOnlySetter
         {
             setter.CheckCompiled();
 
@@ -272,7 +272,7 @@ namespace Mapster
             return setter;
         }
 
-        public static TSetter GetMemberName<TSetter>(this TSetter setter, Func<IMemberModel, string?> func) where TSetter : TypeAdapterSetter
+        public static TSetter GetMemberName<TSetter>(this TSetter setter, Func<IMemberModel, string?> func) where TSetter : DefaultOnlySetter
         {
             setter.CheckCompiled();
 
@@ -280,7 +280,7 @@ namespace Mapster
             return setter;
         }
 
-        public static TSetter GetMemberName<TSetter>(this TSetter setter, Func<IMemberModel, MemberSide, string?> func) where TSetter : TypeAdapterSetter
+        public static TSetter GetMemberName<TSetter>(this TSetter setter, Func<IMemberModel, MemberSide, string?> func) where TSetter : DefaultOnlySetter
         {
             setter.CheckCompiled();
 
@@ -288,7 +288,7 @@ namespace Mapster
             return setter;
         }
 
-        public static TSetter MapToConstructor<TSetter>(this TSetter setter, bool value) where TSetter : TypeAdapterSetter
+        public static TSetter MapToConstructor<TSetter>(this TSetter setter, bool value) where TSetter : DefaultOnlySetter
         {
             setter.CheckCompiled();
 
@@ -296,7 +296,7 @@ namespace Mapster
             return setter;
         }
 
-        public static TSetter MaxDepth<TSetter>(this TSetter setter, int? value) where TSetter : TypeAdapterSetter
+        public static TSetter MaxDepth<TSetter>(this TSetter setter, int? value) where TSetter : DefaultOnlySetter
         {
             setter.CheckCompiled();
 
@@ -304,7 +304,7 @@ namespace Mapster
             return setter;
         }
 
-        public static TSetter Unflattening<TSetter>(this TSetter setter, bool value) where TSetter : TypeAdapterSetter
+        public static TSetter Unflattening<TSetter>(this TSetter setter, bool value) where TSetter : DefaultOnlySetter
         {
             setter.CheckCompiled();
 
@@ -312,7 +312,7 @@ namespace Mapster
             return setter;
         }
 
-        public static TSetter UseDestinationValue<TSetter>(this TSetter setter, Func<IMemberModel, bool> func) where TSetter : TypeAdapterSetter
+        public static TSetter UseDestinationValue<TSetter>(this TSetter setter, Func<IMemberModel, bool> func) where TSetter : DefaultOnlySetter
         {
             setter.CheckCompiled();
 
@@ -583,15 +583,6 @@ namespace Mapster
 
             return this;
         }
-
-        public TypeAdapterSetter UseDestinationValue(string destinationMemberName)
-        {
-            this.CheckCompiled();
-            Settings.UseDestinationMembers.Add(destinationMemberName);
-
-            return this;
-        }
-
     }
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Minor Code Smell", "S4136:Method overloads should be grouped together", Justification = "<Pending>")]

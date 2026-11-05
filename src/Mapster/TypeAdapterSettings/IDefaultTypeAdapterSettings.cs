@@ -8,9 +8,8 @@ namespace Mapster
     /// <summary>
     /// Settings that can be safely modified, regardless of the Source or Destination types
     /// </summary>
-    public interface IDefaultTypeAdapterSettings : ITypeAdapterSettingsIdentity
+    public interface IDefaultTypeAdapterSettings : ITypeAdapterSettingsIdentity, INotSetterModify
     {
-        bool? ApplyCustomConverterFactoryNullPropagation { get; set; }
         bool? AvoidInlineMapping { get; set; }
         bool? DirectAssignmentForSameType { get; set; }
         bool? EnableNonPublicConstructors { get; set; }
@@ -19,18 +18,17 @@ namespace Mapster
         bool? IgnoreNullValues { get; set; }
         bool? IsLegasyIgnoreParameterNameMatching { get; set; }
         bool? MapEnumByName { get; set; }
-        object? MapToConstructor { get; set; }
-        bool? MapToPrimitive { get; set; }
-        bool? MapToTargetPrimitive { get; set; }
-        int? MaxDepth { get; set; }
         bool? PreserveReference { get; set; }
-        bool? ShallowCopyForSameType { get; set; }
-        bool? Unflattening { get; set; }
-
+        bool? ShallowCopyForSameType { get; set; } // maybe start with destination setter level ?
+        bool? Unflattening { get; set; } // maybe start with  destination setter level ?
+        
+        object? MapToConstructor { get; set; }
+        int? MaxDepth { get; set; }
         DestinationMemebers RequireDestinationMemberSource { get; set; }
         NameMatchingStrategy NameMatchingStrategy { get; set; }
+        List<Func<IMemberModel, bool>> UseDestinationValues { get; }
+        List<Func<IMemberModel, MemberSide, string?>> GetMemberNames { get; }
         List<Func<IMemberModel, MemberSide, bool?>> ShouldMapMember { get; }
         List<DestinationTransform> DestinationTransforms { get; }
-        List<Func<ResolverSourceInput, IMemberModel, MemberMapping, CompileArgument, bool>> ValueAccessingStrategies { get; }
     }
 }
