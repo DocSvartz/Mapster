@@ -49,6 +49,8 @@ namespace Mapster.Adapters
                 Priority = Priority,
                 Settings = new TypeAdapterSettings
                 {
+                    SourceType = this.GetType(),
+                    DestinationType = this.GetType(),
                     ConverterFactory = CreateAdaptFunc,
                     ConverterToTargetFactory = CreateAdaptToTargetFunc,
                 }

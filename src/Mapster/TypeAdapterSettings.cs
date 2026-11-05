@@ -234,5 +234,7 @@ namespace Mapster
             settings.Apply(this);
             return settings;
         }
+
+        public static TypeAdapterSettings CreateDefault => new TypeAdapterSettings() { SourceType = typeof(void), DestinationType = typeof(void) };
     }
 }

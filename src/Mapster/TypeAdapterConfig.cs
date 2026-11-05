@@ -42,7 +42,10 @@ namespace Mapster
                 {
                     Priority = arg => -200,
                     Settings = new TypeAdapterSettings
-                    {
+                    {   
+                        SourceType = typeof(void),
+                        DestinationType = typeof(void),
+
                         //match exact name
                         NameMatchingStrategy = NameMatchingStrategy.Exact,
                         ShouldMapMember =
@@ -75,6 +78,8 @@ namespace Mapster
                     Priority = arg => arg.SourceType.GetDictionaryType()?.GetGenericArguments()[0] == typeof(string) ? DictionaryAdapter.DefaultScore : (int?)null,
                     Settings = new TypeAdapterSettings
                     {
+                        SourceType = typeof(DictionaryAdapter),
+                        DestinationType = typeof(DictionaryAdapter),
                         ValueAccessingStrategies =
                         {
                             ValueAccessingStrategy.CustomResolverForDictionary,
@@ -102,7 +107,7 @@ namespace Mapster
         public TypeAdapterConfig()
         {
             Rules = RulesTemplate.ToList();
-            var settings = new TypeAdapterSettings();
+            var settings = TypeAdapterSettings.CreateDefault;
             Default = new DefaultOnlySetter(settings, this);
             Rules.Add(new TypeAdapterRule
             {
