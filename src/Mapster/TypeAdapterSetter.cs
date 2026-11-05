@@ -10,18 +10,17 @@ using System.Reflection;
 namespace Mapster
 {
     [AdaptWith(AdaptDirectives.DestinationAsRecord)]
-    public class TypeAdapterSetter : DefaultOnlySetter
+    public class TypeAdapterSetter : DestinationTypeOnlySetter
     {
         //protected const string SourceParameterName = "source";
         //protected const string ResultParameterName = "result";
         //protected const string DestinationParameterName = "destination";
 
-        public new readonly ISourceToDestinationTypeAdapterSettings Settings;
+        public new ISourceToDestinationTypeAdapterSettings Settings => OriginSettings;
        // public readonly TypeAdapterConfig Config;
-        public TypeAdapterSetter(TypeAdapterSettings settings, TypeAdapterConfig config): base(settings,config)
+        public TypeAdapterSetter(TypeAdapterSettings OriginSettings, TypeAdapterConfig config): base(OriginSettings,config)
         {
-            Settings = settings;
-           // Config = config;
+           
         }
     }
     public static class TypeAdapterSetterExtensions
@@ -349,7 +348,7 @@ namespace Mapster
                 Priority = arg =>
                     arg.SourceType == sourceType &&
                     arg.DestinationType == destType ? (int?)100 : null,
-                Settings = setter.Settings
+                Settings = (TypeAdapterSettings)setter.Settings
             });
 
             setter.Settings.Includes.Add(new TypeTuple(sourceType, destType));

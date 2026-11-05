@@ -1,18 +1,29 @@
 ﻿namespace Mapster.TypeAdapterSetters
 {
     [AdaptWith(AdaptDirectives.DestinationAsRecord)]
-    public class DefaultOnlySetter
+    public class DefaultOnlySetter: BaseSetter
     {
         protected const string SourceParameterName = "source";
         protected const string ResultParameterName = "result";
         protected const string DestinationParameterName = "destination";
 
-        public readonly IDefaultTypeAdapterSettings Settings;
-        public readonly TypeAdapterConfig Config;
-        public DefaultOnlySetter(TypeAdapterSettings settings, TypeAdapterConfig config)
+        public IDefaultTypeAdapterSettings Settings => OriginSettings;
+        public DefaultOnlySetter(TypeAdapterSettings originSettings, TypeAdapterConfig config):base(originSettings, config)
         {
-            Settings = settings;
+        }
+    }
+
+
+    public abstract class BaseSetter
+    {
+        public readonly TypeAdapterSettings OriginSettings;
+        public readonly TypeAdapterConfig Config;
+        public BaseSetter(TypeAdapterSettings originSettings, TypeAdapterConfig config)
+        {
+            OriginSettings = originSettings;
             Config = config;
         }
     }
+
+
 }

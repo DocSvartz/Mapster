@@ -3,10 +3,9 @@
     [AdaptWith(AdaptDirectives.DestinationAsRecord)]
     public class DestinationTypeOnlySetter : DefaultOnlySetter
     {
-        public new readonly IDestinationTypeAdapterSettings Settings;
-        public DestinationTypeOnlySetter(TypeAdapterSettings settings, TypeAdapterConfig config): base(settings, config)
+        public new IDestinationTypeAdapterSettings Settings => OriginSettings;
+        public DestinationTypeOnlySetter(TypeAdapterSettings originSettings, TypeAdapterConfig config): base(originSettings, config)
         {
-            Settings = settings;
         }
     }
 }
