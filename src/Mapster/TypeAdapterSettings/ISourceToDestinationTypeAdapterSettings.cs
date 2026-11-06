@@ -12,6 +12,7 @@ namespace Mapster
         Action<TypeAdapterConfig>? Fork { get; set; }
         
         List<TypeTuple> Includes { get; }
+        List<TypeTuple> Inherits { get; }
         Func<CompileArgument, LambdaExpression>? ConverterFactory { get; set; }
         Func<CompileArgument, LambdaExpression>? ConverterToTargetFactory { get; set; }
         object? GenerateMapper { get; set; }

@@ -167,6 +167,11 @@ namespace Mapster
         {
             get => Get(nameof(Includes), () => new List<TypeTuple>());
         }
+
+        public List<TypeTuple> Inherits
+        {
+            get => Get(nameof(Inherits), () => new List<TypeTuple>());
+        }
         public List<Func<IMemberModel, MemberSide, string?>> GetMemberNames
         {
             get => Get(nameof(GetMemberNames), () => new List<Func<IMemberModel, MemberSide, string?>>());

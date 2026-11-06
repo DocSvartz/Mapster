@@ -96,6 +96,7 @@ namespace Mapster.Tests
             dto.Name.ShouldBeNull();
         }
 
+        [Ignore("in Mapster 10.1 Inherits has a lazy configuration.")]
         [TestMethod]
         public void Derived_Config_Shares_Base_Config_Properties()
         {

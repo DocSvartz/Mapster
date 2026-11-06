@@ -379,10 +379,13 @@ namespace Mapster
                     throw new InvalidCastException("In order to use inherits, TDestination must be inherited from TBaseDestination.");
             }
 
-            if (setter.Config.RuleMap.TryGetValue(new TypeTuple(baseSourceType, baseDestinationType), out var rule))
-            {
-                setter.Settings.Apply(rule.Settings);
-            }
+            ////if (setter.Config.RuleMap.TryGetValue(new TypeTuple(baseSourceType, baseDestinationType), out var rule))
+            //{
+            //    setter.Settings.Apply(rule.Settings);
+            //}
+
+            setter.Settings.Inherits.Add(new TypeTuple(baseSourceType, baseDestinationType));
+
             return setter;
         }
 
@@ -1099,10 +1102,12 @@ namespace Mapster
                     throw new InvalidCastException("In order to use inherits, TDestination must be inherited from TBaseDestination.");
             }
 
-            if (Config.RuleMap.TryGetValue(new TypeTuple(baseSourceType, baseDestinationType), out var rule))
-            {
-                Settings.Apply(rule.Settings);
-            }
+            Settings.Inherits.Add(TypeTuple.Create<TBaseSource, TBaseDestination>());
+
+            //if (Config.RuleMap.TryGetValue(new TypeTuple(baseSourceType, baseDestinationType), out var rule))
+            //{
+            //    Settings.Apply(rule.Settings);
+            //}
 
             return this;
         }
