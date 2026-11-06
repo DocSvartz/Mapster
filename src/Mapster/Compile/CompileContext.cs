@@ -14,7 +14,7 @@ namespace Mapster
         public Stack<TypeAdapterConfig> Configs { get; } = new();
         public TypeAdapterConfig Config => Configs.Peek();
         public SettingsCacheStorage MappingCache => Config.MappingCache;
-        public List<TypeAdapterRule> CompiledRules { get; } = new();
+        public List<TypeAdapterRule> CompiledRules { get; private set; } = new();
         public int? MaxDepth { get; set; }
         public int Depth { get; set; }
         public HashSet<ParameterExpression> ExtraParameters { get; } = new();
@@ -33,12 +33,15 @@ namespace Mapster
 
         internal TypeAdapterSettings GetMergedSettings(TypeTuple tuple, MapType mapType)
         {
+
+            var bundle = MappingCache.GetFromMergedSettingsBundle(tuple);
+
             var arg = new PreCompileArgument
             {
                 SourceType = tuple.Source,
                 DestinationType = tuple.Destination,
                 MapType = mapType,
-                ExplicitMapping = MappingCache.GetRuleMap.ContainsKey(tuple),
+                ExplicitMapping = bundle.RuleMap.ContainsKey(tuple),
                 TypeMemberModelsCache = MappingCache.GetTypeMemberModelsCache
 
             };
@@ -51,9 +54,9 @@ namespace Mapster
                 arg.ExplicitMapping = true;
             }
 
-            var result = new TypeAdapterSettings();
+            var result = new CompiledTypesSettings(tuple);
              
-            var rules = MappingCache.GetRules.Reverse().ToList().Concat(attrSettings); // need refactoring
+            var rules = bundle.Rules.Reverse().ToList().Concat(attrSettings); // need refactoring
                 
             var settings = from rule in rules
                                let priority = rule.Priority(arg)
@@ -71,6 +74,9 @@ namespace Mapster
                 result.Includes.Remove(tuple);
             else
                 result.Includes.RemoveAll(t => t.Source == tuple.Source);
+
+            CompiledRules.Add(MappingCache.GetCompiledRule(tuple,result));
+
             return result;
         }
 

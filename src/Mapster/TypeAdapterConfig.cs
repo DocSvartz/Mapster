@@ -416,6 +416,9 @@ namespace Mapster
                     context.Configs.Push(cloned);
                     arg.Settings = context.GetMergedSettings(tuple, mapType); // rebuild
                 }
+
+                this.MappingCache.CollectCompileRules(context.CompiledRules);
+
                 return CreateMapExpression(arg);
             }
             finally
@@ -573,8 +576,10 @@ namespace Mapster
                        
                         arg.Settings = mapping.OverrideSettings;
                     }
-                        
+                   
                 }
+
+                context.MappingCache.CollectCompileRules(context.CompiledRules);
 
                 return CreateMapExpression(arg);
             }
