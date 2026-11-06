@@ -18,7 +18,7 @@ namespace Mapster.Tests
             IList<IRegister> registers = config.Scan(Assembly.GetExecutingAssembly());
             registers.Count.ShouldBe(2);
 
-            var typeTuples = config.RuleMap.Keys.ToList();
+            var typeTuples = config.MappingCache.GetRuleMap.Keys.ToList();
 
             typeTuples.Any(x => x.Equals(new TypeTuple(typeof (Customer), typeof (CustomerDTO)))).ShouldBeTrue();
             typeTuples.Any(x => x.Equals(new TypeTuple(typeof (Product), typeof (ProductDTO)))).ShouldBeTrue();

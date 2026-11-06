@@ -466,7 +466,7 @@ namespace Mapster.Adapters
 
             TypeAdapterRule? rule;
             var tuple = new TypeTuple(_source.Type, destinationType);
-            arg.Context.Config.RuleMap.TryGetValue(tuple, out rule);
+            arg.Context.MappingCache.GetRuleMap.TryGetValue(tuple, out rule);
 
             //adapt(_source);
             var notUsingDestinationValue = mapping is not { UseDestinationValue: true };

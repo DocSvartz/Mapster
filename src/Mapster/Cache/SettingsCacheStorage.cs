@@ -26,10 +26,9 @@ namespace Mapster.Cache
         private readonly Dictionary<TypeTuple, Delegate> _mapToTargetCache = new();
         private readonly Dictionary<TypeTuple, Delegate> _ProjectionCache = new();
         private readonly Dictionary<TypeTuple, Delegate> _dynamicMapCache = new();
-
-        private bool _AllowImplicitDestinationInheritance;
-        private bool _AllowImplicitSourceInheritance;
-
+        private bool allowImplicitDestinationInheritance;
+        private bool allowImplicitSourceInheritance;
+               
         private static TypeAdapterRule CreateDestinationTypeRule(TypeTuple key, TypeAdapterSettings? settings = null)
         {
             return new TypeAdapterRule
@@ -44,10 +43,10 @@ namespace Mapster.Cache
             {
                 Priority = arg =>
                 {
-                    var score1 = arg.DestinationType.GetSubclassDistance(key.Destination, _AllowImplicitDestinationInheritance);
+                    var score1 = arg.DestinationType.GetSubclassDistance(key.Destination, AllowImplicitDestinationInheritance);
                     if (score1 == null)
                         return null;
-                    var score2 = arg.SourceType.GetSubclassDistance(key.Source, _AllowImplicitSourceInheritance);
+                    var score2 = arg.SourceType.GetSubclassDistance(key.Source, AllowImplicitSourceInheritance);
                     if (score2 == null)
                         return null;
                     return score1.Value + score2.Value;
@@ -73,6 +72,9 @@ namespace Mapster.Cache
             else
                 ruleMap.Settings.Version += 1;
 
+            ruleMap.Settings.SourceType = types.Source;
+            ruleMap.Settings.DestinationType = types.Destination;
+
             return ruleMap.Settings;
         }
 
@@ -88,6 +90,30 @@ namespace Mapster.Cache
             _mapToTargetCache.Remove(key);
             _ProjectionCache.Remove(key);
             _dynamicMapCache.Remove(key);
+        }
+
+        public bool AllowImplicitDestinationInheritance
+        {
+            get => allowImplicitDestinationInheritance;
+            set
+            {
+                lock (_lock)
+                {
+                    allowImplicitDestinationInheritance = value;
+                }
+            }
+        }
+        public bool AllowImplicitSourceInheritance 
+        { 
+            get => allowImplicitSourceInheritance; 
+            set
+            {
+                lock(_lock)
+                {
+                    allowImplicitSourceInheritance = value;
+                }
+            }
+        
         }
 
         public SettingsCacheStorage(IList<TypeAdapterRule> ruleTemplates, TypeAdapterConfig config)
@@ -107,21 +133,7 @@ namespace Mapster.Cache
             }
         }
 
-        public void AllowImplicitDestinationInheritance(bool value)
-        {
-            lock (_lock)
-            {
-                _AllowImplicitDestinationInheritance = value;
-            }
-        }
-        public void AllowImplicitSourceInheritance(bool value)
-        {
-            lock (_lock)
-            {
-                _AllowImplicitSourceInheritance = value;
-            }
-        }
-
+       
         public TypeAdapterSetter<TSource, TDestination> GetNewConfigSetter<TSource, TDestination>(TypeTuple tuple, TypeAdapterConfig config)
         {
             lock (_lock)
@@ -247,7 +259,7 @@ namespace Mapster.Cache
 
         internal (ImmutableList<TypeAdapterRule> Rules, 
                 ImmutableDictionary<TypeTuple, TypeAdapterRule> RuleMap,
-                ImmutableDictionary<CompiledTypesSettings, TypeAdapterRule> CompiledRule) GetFromMergedSettingsBundle(TypeTuple types)
+                ImmutableDictionary<CompiledTypesSettings, TypeAdapterRule> CompiledRule) GetFromMergedSettingsBundle()
         {
             lock ( _lock)
             {

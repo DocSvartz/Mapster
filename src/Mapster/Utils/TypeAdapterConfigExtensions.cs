@@ -30,5 +30,5 @@ public static class TypeAdapterConfigExtensions
     }
 
     public static bool HasRuleFor(this TypeAdapterConfig config, Type srcType, Type dstType) =>
-        config.RuleMap.ContainsKey(new TypeTuple(srcType, dstType));
+        config.MappingCache.GetRuleMap.ContainsKey(new TypeTuple(srcType, dstType));
 }

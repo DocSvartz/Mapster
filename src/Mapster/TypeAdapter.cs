@@ -231,7 +231,7 @@ namespace Mapster
             var selectorProperties = new HashSet<string>(selectorType.GetProperties().Select(p=> p.Name));
 
             // Get the rule map for the current types
-            var ruleMap = config.RuleMap;
+            var ruleMap = config.MappingCache.GetRuleMap;
             var typeTuple = new TypeTuple(sourceType, selectorType);
             ruleMap.TryGetValue(typeTuple, out var rule);
 

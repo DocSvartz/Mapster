@@ -251,7 +251,7 @@ namespace Mapster.Adapters
         {
             TypeAdapterRule? rule;
             var tuple = new TypeTuple(source.Type, arg.DestinationType);
-            arg.Context.Config.RuleMap.TryGetValue(tuple, out rule);
+            arg.Context.MappingCache.GetRuleMap.TryGetValue(tuple, out rule);
 
             if (source.Type == arg.DestinationType && !arg.UseDestinationValue
                 && arg.Settings.DirectAssignmentForSameType.GetValueOrDefault() && arg.IsNotCustomConverterFactory(rule))

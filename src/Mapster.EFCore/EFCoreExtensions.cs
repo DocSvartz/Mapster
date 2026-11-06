@@ -26,7 +26,10 @@ namespace Mapster.EFCore
                 var mapTuple = new TypeTuple(source.ElementType, typeof(TDestination));
 
                 TypeAdapterRule rule;
-                config.RuleMap.TryGetValue(mapTuple, out rule);
+
+                var ruleMap = config.MappingCache.GetRuleMap;
+
+                ruleMap.TryGetValue(mapTuple, out rule);
 
                 if(rule != null)
                 {

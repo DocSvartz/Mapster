@@ -526,7 +526,10 @@ namespace Mapster.Tool
             var types = assemblies.SelectMany(it => it.GetLoadableTypes()).ToHashSet();
 
             // assemblies defines open generic only, so we have to add specialised types used in mappings
-            foreach (var (key, _) in config.RuleMap)
+
+            var ruleMap = config.MappingCache.GetRuleMap;
+
+            foreach (var (key, _) in ruleMap)
                 types.Add(key.Source);
             var configDict = new Dictionary<BaseAdaptAttribute, TypeAdapterConfig>();
             foreach (var builder in codeGenConfig.AdaptAttributeBuilders)
@@ -550,7 +553,7 @@ namespace Mapster.Tool
             foreach (var type in types)
             {
                 var mapperAttr = type.GetGenerateMapperAttributes(codeGenConfig).FirstOrDefault();
-                var ruleMaps = config.RuleMap
+                var ruleMaps = ruleMap
                     .Where(
                         it => it.Key.Source == type && it.Value.Settings.GenerateMapper is MapType
                     )

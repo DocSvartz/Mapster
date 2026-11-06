@@ -94,8 +94,8 @@ namespace Mapster
         public bool RequireDestinationMemberSource { get; set; }
         public bool RequireExplicitMapping { get; set; }
         public bool RequireExplicitMappingPrimitive { get; set; }
-        public bool AllowImplicitDestinationInheritance { get; set; }
-        public bool AllowImplicitSourceInheritance { get; set; } = true;
+        public bool AllowImplicitDestinationInheritance { get => MappingCache.AllowImplicitDestinationInheritance; set => MappingCache.AllowImplicitDestinationInheritance = value; }
+        public bool AllowImplicitSourceInheritance { get => MappingCache.AllowImplicitSourceInheritance; set => MappingCache.AllowImplicitSourceInheritance = value; }
         public bool SelfContainedCodeGeneration { get; set; }
         public bool ActivateCustomConvertersSrcNullPropagation { get; set; } = false;
 
@@ -107,6 +107,7 @@ namespace Mapster
 
         public TypeAdapterConfig()
         {
+            
             //Rules = RulesTemplate.ToList();
             MappingCache = new(RulesTemplate.ToList(), this);
             MappingCache.AddImmutableSettingsRule(new TypeAdapterRule
@@ -114,6 +115,8 @@ namespace Mapster
                 Priority = arg => -100,
                 Settings = (TypeAdapterSettings)MappingCache.GetDefaultSetter().Settings,
             });
+
+            AllowImplicitSourceInheritance = true;
         }
 
 
@@ -325,7 +328,7 @@ namespace Mapster
                 var del = func(types);
                 hash[types] = del;
 
-                if (RuleMap.TryGetValue(types, out var rule))
+                if (MappingCache.GetRuleMap.TryGetValue(types, out var rule))
                     rule.Settings.Compiled = true;
                 return del;
 
@@ -771,7 +774,7 @@ namespace Mapster
             {
                 SourceType = tuple.Source,
                 DestinationType = tuple.Destination,
-                ExplicitMapping = RuleMap.ContainsKey(tuple),
+                ExplicitMapping = context.IsExplicitMapping(tuple),
                 MapType = mapType,
                 Context = context,
                 Settings = setting,
@@ -791,7 +794,7 @@ namespace Mapster
 		public void Compile(bool failFast = true)
         {
             var exceptions = new List<Exception>();
-            var keys = RuleMap.Keys.ToList();
+            var keys = MappingCache.GetRuleMap.Keys.ToList();
 
             foreach (var key in keys)
             {
@@ -847,7 +850,7 @@ namespace Mapster
 		/// </summary>
 		public void CompileProjection()
         {
-            var keys = RuleMap.Keys.ToList();
+            var keys = MappingCache.GetRuleMap.Keys.ToList(); ;
             foreach (var key in keys)
             {
                 _projectionDict[key] = CreateProjectionCallExpression(key);
@@ -925,7 +928,7 @@ namespace Mapster
 		/// </summary>
 		internal void Clear()
         {
-            var keys = RuleMap.Keys.ToList();
+            var keys = MappingCache.GetRuleMap.Keys.ToList();
             foreach (var key in keys)
             {
                 Remove(key);

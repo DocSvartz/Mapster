@@ -1,6 +1,7 @@
 ﻿using Mapster.Cache;
 using Mapster.Models;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
@@ -10,6 +11,11 @@ namespace Mapster
 {
     public class CompileContext
     {
+        private (ImmutableList<TypeAdapterRule> Rules,
+                ImmutableDictionary<TypeTuple, TypeAdapterRule> RuleMap,
+                ImmutableDictionary<CompiledTypesSettings, TypeAdapterRule> CompiledRule) SettingSlice; 
+
+        public bool IsExplicitMapping (TypeTuple types) => SettingSlice.RuleMap.ContainsKey (types);
         public HashSet<TypeTuple> Running { get; } = new();
         public Stack<TypeAdapterConfig> Configs { get; } = new();
         public TypeAdapterConfig Config => Configs.Peek();
@@ -29,19 +35,17 @@ namespace Mapster
         public CompileContext(TypeAdapterConfig config)
         {
             Configs.Push(config);
+            SettingSlice = MappingCache.GetFromMergedSettingsBundle();
         }
 
         internal TypeAdapterSettings GetMergedSettings(TypeTuple tuple, MapType mapType)
         {
-
-            var bundle = MappingCache.GetFromMergedSettingsBundle(tuple);
-
             var arg = new PreCompileArgument
             {
                 SourceType = tuple.Source,
                 DestinationType = tuple.Destination,
                 MapType = mapType,
-                ExplicitMapping = bundle.RuleMap.ContainsKey(tuple),
+                ExplicitMapping = SettingSlice.RuleMap.ContainsKey(tuple),
                 TypeMemberModelsCache = MappingCache.GetTypeMemberModelsCache
 
             };
@@ -56,7 +60,7 @@ namespace Mapster
 
             var result = new CompiledTypesSettings(tuple);
              
-            var rules = bundle.Rules.Reverse().ToList().Concat(attrSettings); // need refactoring
+            var rules = SettingSlice.Rules.Reverse().ToList().Concat(attrSettings); // need refactoring
                 
             var settings = from rule in rules
                                let priority = rule.Priority(arg)
@@ -67,7 +71,28 @@ namespace Mapster
                 {
                     result.Apply(setting);
                 }
-           
+
+            // Apply Inherits settings
+
+            if (result.Inherits.Any())
+            {
+                List<TypeAdapterRule> inherits = new(result.Inherits.Count);
+                
+                foreach (var types in result.Inherits)
+                {
+                    SettingSlice.RuleMap.TryGetValue(types, out var rule);
+
+                    if (rule != null)
+                        inherits.Add(rule);
+                }
+
+                foreach (var item in inherits)
+                {
+                    result.Apply(item.Settings);
+                }
+            }
+
+            
 
             //remove recursive include types
             if (mapType == MapType.MapToTarget)
