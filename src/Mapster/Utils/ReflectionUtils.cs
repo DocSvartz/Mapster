@@ -583,5 +583,47 @@ namespace Mapster
 
             return inputType;
         }
+
+        internal static int? GetSubclassDistance(this Type type1, Type type2, bool allowInheritance)
+        {
+            //Support for using ValueType mapping configurations of types, for mapping cases on Nulllable ValueType values
+            if (type2.IsInterface && type1.IsNullable() && !type1.ContainsGenericParameters)
+                type1 = type1.GetGenericArguments().FirstOrDefault();
+
+            if (type1 == type2)
+                return 50;
+
+            //generic type definition
+            int score = 35;
+            if (type2.GetTypeInfo().IsGenericTypeDefinition)
+            {
+                while (type1 != null && type1.GetTypeInfo().IsGenericType && type1.GetGenericTypeDefinition() != type2)
+                {
+                    score--;
+                    type1 = type1.GetTypeInfo().BaseType;
+                }
+                return type1 != null && type1.GetTypeInfo().IsGenericType && type1.GetGenericTypeDefinition() == type2
+                    ? (int?)score
+                    : null;
+            }
+            if (!allowInheritance)
+                return null;
+
+            if (!type2.GetTypeInfo().IsAssignableFrom(type1.GetTypeInfo()))
+                return null;
+
+            //interface
+            if (type2.GetTypeInfo().IsInterface)
+                return 25;
+
+            //base type
+            score = 50;
+            while (type1 != null && type1 != type2)
+            {
+                score--;
+                type1 = type1.GetTypeInfo().BaseType;
+            }
+            return score;
+        }
     }
 }

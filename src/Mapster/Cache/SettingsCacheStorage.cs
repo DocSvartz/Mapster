@@ -3,6 +3,7 @@ using Mapster.Models;
 using Mapster.TypeAdapterSetters;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 
@@ -32,7 +33,7 @@ namespace Mapster.Cache
         {
             return new TypeAdapterRule
             {
-                Priority = arg => GetSubclassDistance(arg.DestinationType, key.Destination, true),
+                Priority = arg => arg.DestinationType.GetSubclassDistance(key.Destination, true),
                 Settings = new TypeAdapterSettings(),
             };
         }
@@ -42,58 +43,16 @@ namespace Mapster.Cache
             {
                 Priority = arg =>
                 {
-                    var score1 = GetSubclassDistance(arg.DestinationType, key.Destination, _AllowImplicitDestinationInheritance);
+                    var score1 = arg.DestinationType.GetSubclassDistance(key.Destination, _AllowImplicitDestinationInheritance);
                     if (score1 == null)
                         return null;
-                    var score2 = GetSubclassDistance(arg.SourceType, key.Source, _AllowImplicitSourceInheritance);
+                    var score2 = arg.SourceType.GetSubclassDistance(key.Source, _AllowImplicitSourceInheritance);
                     if (score2 == null)
                         return null;
                     return score1.Value + score2.Value;
                 },
                 Settings = new TypeAdapterSettings(),
             };
-        }
-
-        private static int? GetSubclassDistance(Type type1, Type type2, bool allowInheritance)
-        {
-            //Support for using ValueType mapping configurations of types, for mapping cases on Nulllable ValueType values
-            if (type2.IsInterface && type1.IsNullable() && !type1.ContainsGenericParameters)
-                type1 = type1.GetGenericArguments().FirstOrDefault();
-
-            if (type1 == type2)
-                return 50;
-
-            //generic type definition
-            int score = 35;
-            if (type2.GetTypeInfo().IsGenericTypeDefinition)
-            {
-                while (type1 != null && type1.GetTypeInfo().IsGenericType && type1.GetGenericTypeDefinition() != type2)
-                {
-                    score--;
-                    type1 = type1.GetTypeInfo().BaseType;
-                }
-                return type1 != null && type1.GetTypeInfo().IsGenericType && type1.GetGenericTypeDefinition() == type2
-                    ? (int?)score
-                    : null;
-            }
-            if (!allowInheritance)
-                return null;
-
-            if (!type2.GetTypeInfo().IsAssignableFrom(type1.GetTypeInfo()))
-                return null;
-
-            //interface
-            if (type2.GetTypeInfo().IsInterface)
-                return 25;
-
-            //base type
-            score = 50;
-            while (type1 != null && type1 != type2)
-            {
-                score--;
-                type1 = type1.GetTypeInfo().BaseType;
-            }
-            return score;
         }
 
         private TypeAdapterSettings GetSettings(TypeTuple types)
@@ -119,7 +78,7 @@ namespace Mapster.Cache
         private void Remove(TypeTuple key)
         {
             RuleMap.TryGetValue(key, out var rule);
-            if(rule != null)
+            if (rule != null)
             {
                 Rules.Remove(rule);
                 RuleMap.Remove(key);
@@ -164,7 +123,7 @@ namespace Mapster.Cache
 
         public TypeAdapterSetter<TSource, TDestination> GetNewConfigSetter<TSource, TDestination>(TypeTuple tuple, TypeAdapterConfig config)
         {
-            lock (_lock) 
+            lock (_lock)
             {
                 Remove(tuple);
                 return new TypeAdapterSetter<TSource, TDestination>(GetSettings(tuple), config);
@@ -237,5 +196,31 @@ namespace Mapster.Cache
                 Rules.Add(rule);
             }
         }
+
+        public ImmutableList<TypeAdapterRule> GetRules
+        {
+            get
+            {
+                lock (_lock)
+                {
+                    // need cache 
+                    return ImmutableList.CreateRange<TypeAdapterRule>(ImmutableRules.Concat(Rules));
+                }
+            }
+        }
+
+        public ImmutableDictionary<TypeTuple, TypeAdapterRule> GetRuleMap
+        {
+            get
+            {
+                lock (_lock)
+                {
+                    // need cache 
+                    return ImmutableDictionary.CreateRange<TypeTuple, TypeAdapterRule>(RuleMap);
+                }
+            }
+        }
+
+        public Dictionary<Type, IMemberModelEx[]> GetTypeMemberModelsCache => TypeMemberModelsCache; 
     }
 }

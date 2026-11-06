@@ -232,91 +232,91 @@ namespace Mapster
             return MappingCache.GetForDestinationTypeSetter(new TypeTuple(typeof(void), destinationType), this);
         }
 
-        private TypeAdapterSettings GetSettings(TypeTuple key)
-        {
-            var rule = RuleMap.GetOrAdd(key, types =>
-            {
-                var r = types.Source == typeof(void)
-                    ? CreateDestinationTypeRule(types)
-                    : CreateTypeTupleRule(types);
-               // Rules.LockAdd(r);
-                return r;
-            });
+        //private TypeAdapterSettings GetSettings(TypeTuple key)
+        //{
+        //    var rule = RuleMap.GetOrAdd(key, types =>
+        //    {
+        //        var r = types.Source == typeof(void)
+        //            ? CreateDestinationTypeRule(types)
+        //            : CreateTypeTupleRule(types);
+        //       // Rules.LockAdd(r);
+        //        return r;
+        //    });
 
-            rule.Settings.SourceType = key.Source;
-            rule.Settings.DestinationType = key.Destination;
+        //    rule.Settings.SourceType = key.Source;
+        //    rule.Settings.DestinationType = key.Destination;
 
-            return (TypeAdapterSettings)rule.Settings;
-        }
+        //    return (TypeAdapterSettings)rule.Settings;
+        //}
 
-        private TypeAdapterRule CreateTypeTupleRule(TypeTuple key)
-        {
-            return new TypeAdapterRule
-            {
-                Priority = arg =>
-                {
-                    var score1 = GetSubclassDistance(arg.DestinationType, key.Destination, AllowImplicitDestinationInheritance);
-                    if (score1 == null)
-                        return null;
-                    var score2 = GetSubclassDistance(arg.SourceType, key.Source, AllowImplicitSourceInheritance);
-                    if (score2 == null)
-                        return null;
-                    return score1.Value + score2.Value;
-                },
-                Settings = new TypeAdapterSettings(),
-            };
-        }
+        //private TypeAdapterRule CreateTypeTupleRule(TypeTuple key)
+        //{
+        //    return new TypeAdapterRule
+        //    {
+        //        Priority = arg =>
+        //        {
+        //            var score1 = GetSubclassDistance(arg.DestinationType, key.Destination, AllowImplicitDestinationInheritance);
+        //            if (score1 == null)
+        //                return null;
+        //            var score2 = GetSubclassDistance(arg.SourceType, key.Source, AllowImplicitSourceInheritance);
+        //            if (score2 == null)
+        //                return null;
+        //            return score1.Value + score2.Value;
+        //        },
+        //        Settings = new TypeAdapterSettings(),
+        //    };
+        //}
 
-        private static TypeAdapterRule CreateDestinationTypeRule(TypeTuple key)
-        {
-            return new TypeAdapterRule
-            {
-                Priority = arg => GetSubclassDistance(arg.DestinationType, key.Destination, true),
-                Settings = new TypeAdapterSettings(),
-            };
-        }
+        //private static TypeAdapterRule CreateDestinationTypeRule(TypeTuple key)
+        //{
+        //    return new TypeAdapterRule
+        //    {
+        //        Priority = arg => GetSubclassDistance(arg.DestinationType, key.Destination, true),
+        //        Settings = new TypeAdapterSettings(),
+        //    };
+        //}
 
-        private static int? GetSubclassDistance(Type type1, Type type2, bool allowInheritance)
-        {
-            //Support for using ValueType mapping configurations of types, for mapping cases on Nulllable ValueType values
-            if (type2.IsInterface && type1.IsNullable() && !type1.ContainsGenericParameters)
-                type1 = type1.GetGenericArguments().FirstOrDefault();
+        //private static int? GetSubclassDistance(Type type1, Type type2, bool allowInheritance)
+        //{
+        //    //Support for using ValueType mapping configurations of types, for mapping cases on Nulllable ValueType values
+        //    if (type2.IsInterface && type1.IsNullable() && !type1.ContainsGenericParameters)
+        //        type1 = type1.GetGenericArguments().FirstOrDefault();
 
-            if (type1 == type2)
-                return 50;
+        //    if (type1 == type2)
+        //        return 50;
 
-            //generic type definition
-            int score = 35;
-            if (type2.GetTypeInfo().IsGenericTypeDefinition)
-            {
-                while (type1 != null && type1.GetTypeInfo().IsGenericType && type1.GetGenericTypeDefinition() != type2)
-                {
-                    score--;
-                    type1 = type1.GetTypeInfo().BaseType;
-                }
-                return type1 != null && type1.GetTypeInfo().IsGenericType && type1.GetGenericTypeDefinition() == type2
-                    ? (int?)score
-                    : null;
-            }
-            if (!allowInheritance)
-                return null;
+        //    //generic type definition
+        //    int score = 35;
+        //    if (type2.GetTypeInfo().IsGenericTypeDefinition)
+        //    {
+        //        while (type1 != null && type1.GetTypeInfo().IsGenericType && type1.GetGenericTypeDefinition() != type2)
+        //        {
+        //            score--;
+        //            type1 = type1.GetTypeInfo().BaseType;
+        //        }
+        //        return type1 != null && type1.GetTypeInfo().IsGenericType && type1.GetGenericTypeDefinition() == type2
+        //            ? (int?)score
+        //            : null;
+        //    }
+        //    if (!allowInheritance)
+        //        return null;
 
-            if (!type2.GetTypeInfo().IsAssignableFrom(type1.GetTypeInfo()))
-                return null;
+        //    if (!type2.GetTypeInfo().IsAssignableFrom(type1.GetTypeInfo()))
+        //        return null;
 
-            //interface
-            if (type2.GetTypeInfo().IsInterface)
-                return 25;
+        //    //interface
+        //    if (type2.GetTypeInfo().IsInterface)
+        //        return 25;
 
-            //base type
-            score = 50;
-            while (type1 != null && type1 != type2)
-            {
-                score--;
-                type1 = type1.GetTypeInfo().BaseType;
-            }
-            return score;
-        }
+        //    //base type
+        //    score = 50;
+        //    while (type1 != null && type1 != type2)
+        //    {
+        //        score--;
+        //        type1 = type1.GetTypeInfo().BaseType;
+        //    }
+        //    return score;
+        //}
 
         private T AddToHash<T>(ConcurrentDictionary<TypeTuple, T> hash, TypeTuple key, Func<TypeTuple, T> func)
         {
@@ -414,7 +414,7 @@ namespace Mapster
                     var cloned = Clone();
                     fork(cloned);
                     context.Configs.Push(cloned);
-                    arg.Settings = cloned.GetMergedSettings(tuple, mapType);
+                    arg.Settings = context.GetMergedSettings(tuple, mapType); // rebuild
                 }
                 return CreateMapExpression(arg);
             }
@@ -644,90 +644,90 @@ namespace Mapster
             return Expression.Lambda(invoke, p1, p2);
         }
 
-        private IEnumerable<TypeAdapterRule> GetAttributeSettings(TypeTuple tuple, MapType mapType)
-        {
-            var rules1 = from type in tuple.Source.GetAllTypes()
-                from o in type.GetTypeInfo().GetCustomAttributesData()
-                where typeof(AdaptToAttribute).IsAssignableFrom(o.GetAttributeType())
-                let attr = o.CreateCustomAttribute<AdaptToAttribute>()
-                where attr != null && (attr.MapType & mapType) != 0
-                where attr.Type == null || attr.Type == tuple.Destination
-                where attr.Name == null || attr.Name.Replace("[name]", type.Name) == tuple.Destination.Name
-                let distance = GetSubclassDistance(tuple.Source, type, true)
-                select new TypeAdapterRule
-                {
-                    Priority = arg => distance + 50,
-                    Settings = CreateSettings(attr)
-                };
-            if (tuple.Source == tuple.Destination)
-                return rules1;
-            var rules2 = from type in tuple.Destination.GetAllTypes()
-                from o in type.GetTypeInfo().GetCustomAttributesData()
-                where typeof(AdaptFromAttribute).IsAssignableFrom(o.GetAttributeType()) ||
-                      typeof(AdaptTwoWaysAttribute).IsAssignableFrom(o.GetAttributeType())
-                let attr = o.CreateCustomAttribute<BaseAdaptAttribute>()
-                where attr != null && (attr.MapType & mapType) != 0
-                where attr.Type == null || attr.Type == tuple.Source
-                where attr.Name == null || attr.Name.Replace("[name]", type.Name) == tuple.Source.Name
-                let distance = GetSubclassDistance(tuple.Destination, type, true)
-                select new TypeAdapterRule
-                {
-                    Priority = arg => distance + 50,
-                    Settings = CreateSettings(attr)
-                };
-            return rules1.Concat(rules2);
-        }
+        //private IEnumerable<TypeAdapterRule> GetAttributeSettings(TypeTuple tuple, MapType mapType)
+        //{
+        //    var rules1 = from type in tuple.Source.GetAllTypes()
+        //        from o in type.GetTypeInfo().GetCustomAttributesData()
+        //        where typeof(AdaptToAttribute).IsAssignableFrom(o.GetAttributeType())
+        //        let attr = o.CreateCustomAttribute<AdaptToAttribute>()
+        //        where attr != null && (attr.MapType & mapType) != 0
+        //        where attr.Type == null || attr.Type == tuple.Destination
+        //        where attr.Name == null || attr.Name.Replace("[name]", type.Name) == tuple.Destination.Name
+        //        let distance = GetSubclassDistance(tuple.Source, type, true)
+        //        select new TypeAdapterRule
+        //        {
+        //            Priority = arg => distance + 50,
+        //            Settings = CreateSettings(attr)
+        //        };
+        //    if (tuple.Source == tuple.Destination)
+        //        return rules1;
+        //    var rules2 = from type in tuple.Destination.GetAllTypes()
+        //        from o in type.GetTypeInfo().GetCustomAttributesData()
+        //        where typeof(AdaptFromAttribute).IsAssignableFrom(o.GetAttributeType()) ||
+        //              typeof(AdaptTwoWaysAttribute).IsAssignableFrom(o.GetAttributeType())
+        //        let attr = o.CreateCustomAttribute<BaseAdaptAttribute>()
+        //        where attr != null && (attr.MapType & mapType) != 0
+        //        where attr.Type == null || attr.Type == tuple.Source
+        //        where attr.Name == null || attr.Name.Replace("[name]", type.Name) == tuple.Source.Name
+        //        let distance = GetSubclassDistance(tuple.Destination, type, true)
+        //        select new TypeAdapterRule
+        //        {
+        //            Priority = arg => distance + 50,
+        //            Settings = CreateSettings(attr)
+        //        };
+        //    return rules1.Concat(rules2);
+        //}
 
-        private TypeAdapterSettings CreateSettings(BaseAdaptAttribute attr)
-        {
-            var settings = new TypeAdapterSettings();
-            var setter = new TypeAdapterSetter(settings, this);
-            setter.ApplyAdaptAttribute(attr);
-            return settings;
-        }
+        //private TypeAdapterSettings CreateSettings(BaseAdaptAttribute attr)
+        //{
+        //    var settings = new TypeAdapterSettings();
+        //    var setter = new TypeAdapterSetter(settings, this);
+        //    setter.ApplyAdaptAttribute(attr);
+        //    return settings;
+        //}
 
-        internal TypeAdapterSettings GetMergedSettings(TypeTuple tuple, MapType mapType)
-        {
-            var arg = new PreCompileArgument
-            {
-                SourceType = tuple.Source,
-                DestinationType = tuple.Destination,
-                MapType = mapType,
-                ExplicitMapping = RuleMap.ContainsKey(tuple),
-                TypeMemberModelsCache = this.TypeMemberModelsCache
+        //internal TypeAdapterSettings GetMergedSettings(TypeTuple tuple, MapType mapType)
+        //{
+        //    var arg = new PreCompileArgument
+        //    {
+        //        SourceType = tuple.Source,
+        //        DestinationType = tuple.Destination,
+        //        MapType = mapType,
+        //        ExplicitMapping = RuleMap.ContainsKey(tuple),
+        //        TypeMemberModelsCache = this.TypeMemberModelsCache
 
-            };
+        //    };
 
-            //auto add setting if there is attr setting
-            var attrSettings = GetAttributeSettings(tuple, mapType).ToList();
-            if (!arg.ExplicitMapping && attrSettings.Any(rule => rule.Priority(arg) == 100))
-            {
-                GetSettings(tuple);
-                arg.ExplicitMapping = true;
-            }
+        //    //auto add setting if there is attr setting
+        //    var attrSettings = GetAttributeSettings(tuple, mapType).ToList();
+        //    if (!arg.ExplicitMapping && attrSettings.Any(rule => rule.Priority(arg) == 100))
+        //    {
+        //        GetSettings(tuple);
+        //        arg.ExplicitMapping = true;
+        //    }
 
-            var result = new TypeAdapterSettings();
-            lock (Rules)
-            {
-                var rules = Rules.Reverse<TypeAdapterRule>().Concat(attrSettings);
-                var settings = from rule in rules
-                    let priority = rule.Priority(arg)
-                    where priority != null
-                    orderby priority.Value descending
-                    select rule.Settings;
-                foreach (var setting in settings)
-                {
-                    result.Apply(setting);
-                }
-            }
+        //    var result = new TypeAdapterSettings();
+        //    lock (Rules)
+        //    {
+        //        var rules = Rules.Reverse<TypeAdapterRule>().Concat(attrSettings);
+        //        var settings = from rule in rules
+        //            let priority = rule.Priority(arg)
+        //            where priority != null
+        //            orderby priority.Value descending
+        //            select rule.Settings;
+        //        foreach (var setting in settings)
+        //        {
+        //            result.Apply(setting);
+        //        }
+        //    }
 
-            //remove recursive include types
-            if (mapType == MapType.MapToTarget)
-                result.Includes.Remove(tuple);
-            else
-                result.Includes.RemoveAll(t => t.Source == tuple.Source);
-            return result;
-        }
+        //    //remove recursive include types
+        //    if (mapType == MapType.MapToTarget)
+        //        result.Includes.Remove(tuple);
+        //    else
+        //        result.Includes.RemoveAll(t => t.Source == tuple.Source);
+        //    return result;
+        //}
 
         internal TypeAdapterSettings GetOvverideDefaultSettings(TypeTuple tuple, MapType mapType)
         {
@@ -761,7 +761,7 @@ namespace Mapster
         }
         private CompileArgument GetCompileArgument(TypeTuple tuple, MapType mapType, CompileContext context)
         {
-            var setting = GetMergedSettings(tuple, mapType);
+            var setting = context.GetMergedSettings(tuple, mapType);
             return new CompileArgument
             {
                 SourceType = tuple.Source,
