@@ -88,6 +88,7 @@ namespace Mapster
                 }
             };
         }
+        private readonly TypeTuple _defaultSetterTuple = TypeTuple.Create<MapsterCacheMarker, DefaultOnlySetter>();
 
         public readonly SettingsCacheStorage MappingCache; 
 
@@ -102,19 +103,13 @@ namespace Mapster
         public Func<LambdaExpression, Delegate> Compiler { get; set; } = lambda => lambda.Compile();
 
         public List<TypeAdapterRule> Rules { get; internal set; }
-        public DefaultOnlySetter Default  => MappingCache.GetDefaultSetter();
+        public DefaultOnlySetter Default => MappingCache.GetForTypeSetter(_defaultSetterTuple,this);
         public ConcurrentDictionary<TypeTuple, TypeAdapterRule> RuleMap { get; internal set; } = new ConcurrentDictionary<TypeTuple, TypeAdapterRule>();
 
         public TypeAdapterConfig()
         {
-            
-            //Rules = RulesTemplate.ToList();
             MappingCache = new(RulesTemplate.ToList(), this);
-            MappingCache.AddImmutableSettingsRule(new TypeAdapterRule
-            {
-                Priority = arg => -100,
-                Settings = (TypeAdapterSettings)MappingCache.GetDefaultSetter().Settings,
-            });
+            MappingCache.GetNewConfigSetter(_defaultSetterTuple, this);
 
             AllowImplicitSourceInheritance = true;
         }

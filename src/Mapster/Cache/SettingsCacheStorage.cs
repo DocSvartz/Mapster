@@ -14,8 +14,6 @@ namespace Mapster.Cache
         private readonly object _lock = new();
         private ulong _Id = 0;
         private readonly List<TypeAdapterRule> ImmutableRules;
-        private IDefaultTypeAdapterSettings DefaultSettings;
-        private DefaultOnlySetter DefaultSetter;
         private readonly List<TypeAdapterRule> Rules = new();
         private readonly Dictionary<TypeTuple, TypeAdapterRule> RuleMap = new();
         private readonly Dictionary<Type, IMemberModelEx[]> TypeMemberModelsCache = new();
@@ -29,6 +27,16 @@ namespace Mapster.Cache
         private bool allowImplicitDestinationInheritance;
         private bool allowImplicitSourceInheritance;
                
+        private static TypeAdapterRule CreateDefaultRule(TypeAdapterSettings? settings = null)
+        {
+          return  new TypeAdapterRule
+            {
+                Priority = arg => -100,
+                Settings = settings ?? new TypeAdapterSettings()
+            };
+        }
+
+
         private static TypeAdapterRule CreateDestinationTypeRule(TypeTuple key, TypeAdapterSettings? settings = null)
         {
             return new TypeAdapterRule
@@ -59,19 +67,22 @@ namespace Mapster.Cache
         {
             RuleMap.TryGetValue(types, out var ruleMap);
 
-            if (ruleMap == null)
+            var clonedConfig = ruleMap?.Settings.Clone();
+
+            if (types.Source == typeof(MapsterCacheMarker) 
+                && types.Destination == typeof(DefaultOnlySetter))
+                    ruleMap = CreateDefaultRule(clonedConfig);
+            else
             {
                 ruleMap = types.Source == typeof(void)
-                ? CreateDestinationTypeRule(types)
-                : CreateTypeTupleRule(types);
-
-                ruleMap.Settings.Id = ++_Id;
-                Rules.Add(ruleMap);
-                RuleMap[types] = ruleMap;
+                   ? CreateDestinationTypeRule(types, clonedConfig)
+                   : CreateTypeTupleRule(types, clonedConfig);
             }
-            else
-                ruleMap.Settings.Version += 1;
 
+            ruleMap.Settings.Id = ++_Id;
+            //Rules.Add(ruleMap);
+            RuleMap[types] = ruleMap;
+            
             ruleMap.Settings.SourceType = types.Source;
             ruleMap.Settings.DestinationType = types.Destination;
 
@@ -83,7 +94,7 @@ namespace Mapster.Cache
             RuleMap.TryGetValue(key, out var rule);
             if (rule != null)
             {
-                Rules.Remove(rule);
+               // Rules.Remove(rule);
                 RuleMap.Remove(key);
             }
             _mapCache.Remove(key);
@@ -120,20 +131,8 @@ namespace Mapster.Cache
         {
             ImmutableRules = new List<TypeAdapterRule>(ruleTemplates);
             var setting = TypeAdapterSettings.CreateDefault;
-            DefaultSettings = setting;
-            DefaultSetter = new DefaultOnlySetter(setting, config);
         }
 
-        public DefaultOnlySetter GetDefaultSetter()
-        {
-            lock (_lock)
-            {
-                DefaultSettings.Version = ++DefaultSettings.Version;
-                return DefaultSetter;
-            }
-        }
-
-       
         public TypeAdapterSetter<TSource, TDestination> GetNewConfigSetter<TSource, TDestination>(TypeTuple tuple, TypeAdapterConfig config)
         {
             lock (_lock)
@@ -217,7 +216,7 @@ namespace Mapster.Cache
                 lock (_lock)
                 {
                     // need cache 
-                    return ImmutableList.CreateRange<TypeAdapterRule>(ImmutableRules.Concat(Rules));
+                    return ImmutableList.CreateRange<TypeAdapterRule>(ImmutableRules.Concat(Rules).Concat(RuleMap.Select(x=> x.Value)));
                 }
             }
         }
@@ -263,7 +262,7 @@ namespace Mapster.Cache
         {
             lock ( _lock)
             {
-              return  (ImmutableList.CreateRange<TypeAdapterRule>(ImmutableRules.Concat(Rules)),
+              return  (ImmutableList.CreateRange<TypeAdapterRule>(ImmutableRules.Concat(Rules).Concat(RuleMap.Select(x => x.Value))),
                     ImmutableDictionary.CreateRange<TypeTuple, TypeAdapterRule>(RuleMap),
                     ImmutableDictionary.CreateRange<CompiledTypesSettings, TypeAdapterRule>(CompiledRule));
             }
