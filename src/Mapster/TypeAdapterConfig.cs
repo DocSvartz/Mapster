@@ -137,7 +137,7 @@ namespace Mapster
                 Settings = new TypeAdapterSettings(),
             };
             //Rules.LockAdd(rule);
-            MappingCache.AddImmutableSettingsRule(rule);
+            MappingCache.AddRule(rule);
             return new TypeAdapterSetter((TypeAdapterSettings)rule.Settings, this);
         }
 
@@ -155,7 +155,7 @@ namespace Mapster
                 Settings = new TypeAdapterSettings(),
             };
             //Rules.LockAdd(rule);
-            MappingCache.AddImmutableSettingsRule(rule);
+            MappingCache.AddRule(rule);
             return new TypeAdapterSetter((TypeAdapterSettings)rule.Settings, this);
         }
 
