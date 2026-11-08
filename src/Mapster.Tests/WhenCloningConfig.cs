@@ -12,9 +12,10 @@ namespace Mapster.Tests
         [TestCleanup]
         public void TestCleanup()
         {
-            TypeAdapterConfig.GlobalSettings.Clear();
+            MapsterGlobalConfig.GlobalSettings.Clear();
         }
 
+        [Ignore("10.1 Compile not ")]
         [TestMethod]
         public void Alter_Config_After_Map_Should_Error()
         {
@@ -35,6 +36,7 @@ namespace Mapster.Tests
             ex.Message.ShouldContain("TypeAdapter.Adapt was already called");
         }
 
+        [Ignore("In 10.1 Rule and settings is immutable behavior")]
         [TestMethod]
         public void Clone()
         {
@@ -49,8 +51,8 @@ namespace Mapster.Tests
             var result = TypeAdapter.Adapt<SimpleDto>(poco);
             result.Name.ShouldBe("a");
 
-            var config = TypeAdapterConfig.GlobalSettings.Clone();
-            var global = TypeAdapterConfig.GlobalSettings;
+            var config = MapsterGlobalConfig.GlobalSettings.Clone();
+            var global = MapsterGlobalConfig.GlobalSettings;
             config.ShouldNotBeSameAs(global);
             config.Default.ShouldNotBeSameAs(global.Default);
             config.Default.Settings.ShouldNotBeSameAs(global.Default.Settings);

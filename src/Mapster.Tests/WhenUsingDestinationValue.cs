@@ -12,8 +12,8 @@ namespace Mapster.Tests
         [TestMethod]
         public void MapUsingDestinationValue()
         {
-            TypeAdapterConfig.GlobalSettings.Compiler = exp => exp.CompileWithDebugInfo();
-            TypeAdapterConfig.GlobalSettings.Default.ShallowCopyForSameType(true);
+            MapsterGlobalConfig.GlobalSettings.Compiler = exp => exp.CompileWithDebugInfo();
+            MapsterGlobalConfig.GlobalSettings.Default.ShallowCopyForSameType(true);
             TypeAdapterConfig<Invoice, InvoiceDto>.NewConfig().TwoWays();
 
             var strings = new[] { "One, Two, Three" };

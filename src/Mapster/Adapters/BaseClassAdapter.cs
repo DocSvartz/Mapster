@@ -85,14 +85,21 @@ namespace Mapster.Adapters
                     UseDestinationValue = IsCanUsingDestinationValue(arg, destinationMember);
 
                                 
-                //maybe refactoring to always create record restored member
+                
                 if (arg.DestinationType.IsRecordType())
                 {
                     propertyModel
                         .RestoreDestinationMemberExp = TryRestoreRecordMember(destinationMember, arg);
+
+                    if (propertyModel.GetterLines.Count != 0 || propertyModel.Ignore.IsValid
+                        || propertyModel.RestoreDestinationMemberExp != null)
+                    {
+                        propertyModel.CreateNullPropagationChecker(arg);
+                        members.Add(propertyModel);
+                    }
+
                 }
-                if (propertyModel.GetterLines.Count != 0 || propertyModel.Ignore.IsValid
-                    || propertyModel.RestoreDestinationMemberExp != null)
+                else if (propertyModel.GetterLines.Count != 0 || propertyModel.Ignore.IsValid)
                 {
                     propertyModel.CreateNullPropagationChecker(arg);
                     members.Add(propertyModel);
@@ -236,7 +243,7 @@ namespace Mapster.Adapters
                     getter = defaultConst;
 
                     if (arg.MapType == MapType.MapToTarget && arg.DestinationType.IsRecordType())
-                        getter = TryRestoreRecordMember(member.DestinationMember, arg) ?? getter;
+                        getter = member.RestoreDestinationMemberExp ?? getter;
                 }
                 else
                 {
@@ -245,7 +252,7 @@ namespace Mapster.Adapters
                         getter = defaultConst;
 
                         if (arg.MapType == MapType.MapToTarget && arg.DestinationType.IsRecordType())
-                            getter = TryRestoreRecordMember(member.DestinationMember, arg) ?? getter;
+                            getter = member.RestoreDestinationMemberExp ?? getter;
                     }
                     else
                         getter = GetMemberInlineAdapter(member, arg);
@@ -310,11 +317,20 @@ namespace Mapster.Adapters
 
         protected Expression? TryRestoreRecordMember(IMemberModelEx member, CompileArgument arg)
         {
-            arg.Context.Config.TypeMemberModelsCache.TryGetValue(arg.DestinationType, out var members);
+            #region SupportingСurrentBehavior for Config Clone and Fork  
 
-            if (members != null && arg.MapType == MapType.MapToTarget)
+            // may be removed once the behavior of Clone and Fork is changed
+
+            if (arg.DestinationType.IsGenericType && arg.DestinationType.GetGenericTypeDefinition() == typeof(KeyValuePair<,>))
+                return null;
+
+            #endregion SupportingСurrentBehavior for Config Clone and Fork 
+
+            arg.Context.ConfigSnapshot.TypeMemberModelsCache.TryGetValue(arg.DestinationType, out var typeModel);
+
+            if (typeModel != null)
             {
-                var find = members
+                var find = typeModel.Members
                                .Where(x => string.Equals(x.Name, member.Name, StringComparison.InvariantCultureIgnoreCase)).FirstOrDefault();
 
                 if (find != null)
@@ -389,8 +405,14 @@ namespace Mapster.Adapters
             }
 
             if(defaultcase == null)
-                defaultcase = member.RestoreDestinationMemberExp 
-                    ?? modGetterLine.Where(x => x.modCondition == null).FirstOrDefault().TransformFunc ?? member.DestinationMember.Type.CreateDefault();
+                defaultcase = 
+                    arg.MapType == MapType.MapToTarget 
+                        ? member.RestoreDestinationMemberExp 
+                                ?? modGetterLine.Where(x => x.modCondition == null).FirstOrDefault().TransformFunc 
+                                    ?? member.DestinationMember.Type.CreateDefault()
+
+                    : modGetterLine.Where(x => x.modCondition == null).FirstOrDefault().TransformFunc 
+                            ?? member.DestinationMember.Type.CreateDefault();
 
             foreach (var item in modGetterLine.Where(x => x.modCondition != null).Reverse())
             {
@@ -519,7 +541,7 @@ namespace Mapster.Adapters
 
             var requireDestMemberSource = arg.Settings.RequireDestinationMemberSource;
 
-            if (arg.Context.Config.RequireDestinationMemberSource == true
+            if (arg.Context.ConfigSnapshot.GetBoolSetting(nameof(TypeAdapterConfig.RequireDestinationMemberSource)) == true
                 && requireDestMemberSource == DestinationMemebers.None)
                 requireDestMemberSource = DestinationMemebers.AllMembers;
 
@@ -614,7 +636,9 @@ namespace Mapster.Adapters
                 
         protected override void PreparatoryMappingStep(Expression source, Expression? destination, CompileArgument arg)
         {
-            arg.TypeConverter = CreateTypeConverter(source, destination, arg);
+            if(arg.Settings.TypeConverter == null)
+                arg.Settings.TypeConverter = CreateTypeConverter(source, destination, arg);
+ 
             base.PreparatoryMappingStep(source, destination, arg);
         }
 

@@ -1,4 +1,5 @@
 ﻿using Mapster.Enums;
+using Mapster.MappingModels;
 using Mapster.Models;
 using System;
 using System.Collections.Generic;
@@ -10,12 +11,53 @@ namespace Mapster
     [AdaptWith(AdaptDirectives.DestinationAsRecord)]
     public class TypeAdapterSettings : SettingStore, ISourceToDestinationTypeAdapterSettings
     {
-        private volatile bool _IsFinalized;
+        public ulong StorageVersion { get; set; } = 1;
+        public ulong QuickHash { get; set; }
 
-        public ulong Id { get; set; }
-        public ulong Version { get; set; }
 
-        public bool IsFinalized { get => _IsFinalized;  set => _IsFinalized = value; }
+        internal TypeConverterModel TypeConverter { get; set; }
+        public ParameterExpression Source { get; set; }
+        public ParameterExpression Destination { get; set; }
+        public ParameterExpression Result { get; set; }
+
+        TypeConverterModel ISourceToDestinationTypeAdapterSettings.TypeConverter
+        {
+            get => TypeConverter; set => TypeConverter = value;
+        }
+
+        /// <summary>
+        /// Creates a clone of the current instance 
+        /// <see cref="TypeAdapterSettings"/>
+        /// in ReadOnly state.<br/>
+        /// Use this if you need to preserve the current instance.
+        /// </summary>
+        /// <returns>Return new instanse <see cref="TypeAdapterSettings"/> in ReadOnly state.</returns>
+        public TypeAdapterSettings ToReadOnly()
+        {
+            var clone = this.Clone();
+            clone.IsReadOnly = true;
+
+            return clone;
+        }
+
+        /// <summary>
+        /// Creates a new instance <see cref="TypeAdapterSettings"/> in ReadOnly state.
+        /// Using the internal state of the current instance.<br/>
+        /// Use this if there is no need to preserve the current instance.
+        /// </summary>
+        /// <returns>Return new instanse <see cref="TypeAdapterSettings"/> and Dispose internal state of current instanse!</returns>
+        public TypeAdapterSettings ToReadOnlyAndDisposeThis()
+        {
+            var result = new TypeAdapterSettings();
+            
+            this.MoveState(result);
+            this.DropState();
+
+            result.IsReadOnly = true;
+
+            return result;
+        }
+
         public Type? SourceType
         {
             get => Get<Type>(nameof(SourceType));
@@ -247,5 +289,6 @@ namespace Mapster
         }
 
         public static TypeAdapterSettings CreateDefault => new TypeAdapterSettings() { SourceType = typeof(void), DestinationType = typeof(void) };
+
     }
 }

@@ -8,11 +8,39 @@ namespace Mapster
 {
     public class SettingStore: IApplyable<SettingStore>
     {
-        private readonly ConcurrentDictionary<string, object> _objectStore = new ConcurrentDictionary<string, object>();
-        private readonly ConcurrentDictionary<string, bool?> _booleanStore = new ConcurrentDictionary<string, bool?>();
+        private volatile bool _IsReadOnly;
+        private ConcurrentDictionary<string, object> _objectStore = new ConcurrentDictionary<string, object>();
+        private ConcurrentDictionary<string, bool?> _booleanStore = new ConcurrentDictionary<string, bool?>();
+
+        internal void DropState()
+        {
+            _booleanStore = null;
+            _objectStore = null;
+            IsDisposed = true;
+        }
+
+        protected void MoveState(SettingStore sender) 
+        { 
+            sender._booleanStore = _booleanStore;
+            sender._objectStore = _objectStore;
+        }
+        
+        public bool IsDisposed { get; private set; }
+        public bool IsReadOnly
+        {
+            get => _IsReadOnly;
+
+            set
+            {
+                if (!_IsReadOnly)
+                    _IsReadOnly = value;
+            }
+        }
 
         public void Set(string key, bool? value)
         {
+            if (_IsReadOnly) return;
+
             if (value == null)
                 _booleanStore.TryRemove(key, out _);
             else
@@ -21,6 +49,8 @@ namespace Mapster
 
         public void Set(string key, object? value)
         {
+            if (_IsReadOnly) return;
+
             if (value == null)
                 _objectStore.TryRemove(key, out _);
             else
@@ -51,6 +81,8 @@ namespace Mapster
 
         private void ApplyBoolSettings (IEnumerable<KeyValuePair<string, bool?>> otherBoolStore)
         {
+            if (_IsReadOnly) return;
+
             foreach (var kvp in otherBoolStore)
             {
                 _booleanStore.TryAdd(kvp.Key, kvp.Value);
@@ -59,6 +91,8 @@ namespace Mapster
 
         private void ApplyObjectSettings(IEnumerable<KeyValuePair<string, object?>> otherBoolStore)
         {
+            if (_IsReadOnly) return;
+
             foreach (var kvp in otherBoolStore)
             {
                 var self = _objectStore.GetOrAdd(kvp.Key, key =>
@@ -85,6 +119,8 @@ namespace Mapster
 
         public virtual void Apply(object other)
         {
+            if (_IsReadOnly) return;
+
             if (other is SettingStore settingStore)
                 Apply(settingStore);
         }
@@ -92,12 +128,16 @@ namespace Mapster
 
         public virtual void Apply(SettingStore other)
         {
+            if (_IsReadOnly) return;
+
             ApplyBoolSettings(other._booleanStore);
             ApplyObjectSettings(other._objectStore);
         }
 
         public virtual void ApplyWithSkipSettings(SettingStore other, List<String> skipSettingNames)
         {
+            if (_IsReadOnly) return;
+
             ApplyBoolSettings(other._booleanStore.Where(x => !skipSettingNames.Contains(x.Key)));
             ApplyObjectSettings(other._objectStore.Where(x => !skipSettingNames.Contains(x.Key)));
         }

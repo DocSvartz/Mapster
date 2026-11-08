@@ -17,8 +17,11 @@ namespace Mapster
         {
             if(other is TypeAdapterSettings settings)
             {
-                Id += settings.Id;
-                Version += settings.Version;
+                if (settings.SourceType == Types.Source 
+                    && settings.DestinationType == Types.Destination)
+                    StorageVersion = settings.StorageVersion;
+
+                QuickHash += settings.StorageVersion;
             }
             base.Apply(other);
         }
@@ -31,16 +34,16 @@ namespace Mapster
         public bool Equals(CompiledTypesSettings? other)
         {
             return other is not null &&
-                   Id == other.Id &&
-                   Version == other.Version &&
+                   StorageVersion == other.StorageVersion &&
+                   QuickHash == other.QuickHash &&
                    Types.Equals(other.Types);
         }
 
         public override int GetHashCode()
         {
             int hashCode = 707580169;
-            hashCode = hashCode * -1521134295 + Id.GetHashCode();
-            hashCode = hashCode * -1521134295 + Version.GetHashCode();
+            hashCode = hashCode * -1521134295 + StorageVersion.GetHashCode();
+            hashCode = hashCode * -1521134295 + QuickHash.GetHashCode();
             hashCode = hashCode * -1521134295 + Types.GetHashCode();
             return hashCode;
         }

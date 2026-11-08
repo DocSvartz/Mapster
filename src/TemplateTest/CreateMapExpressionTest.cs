@@ -18,7 +18,7 @@ namespace TemplateTest
         [TestMethod]
         public void TestCreateMapExpression()
         {
-            TypeAdapterConfig.GlobalSettings.SelfContainedCodeGeneration = true;
+            MapsterGlobalConfig.GlobalSettings.SelfContainedCodeGeneration = true;
             var foo = default(Customer);
             var def = new ExpressionDefinitions
             {
@@ -37,7 +37,7 @@ namespace TemplateTest
         [TestMethod]
         public void TestCreateMapToTargetExpression()
         {
-            TypeAdapterConfig.GlobalSettings.SelfContainedCodeGeneration = true;
+            MapsterGlobalConfig.GlobalSettings.SelfContainedCodeGeneration = true;
             var foo = default(Customer);
             var def = new ExpressionDefinitions
             {
@@ -56,7 +56,7 @@ namespace TemplateTest
         [TestMethod]
         public void TestCreateProjectionExpression()
         {
-            TypeAdapterConfig.GlobalSettings.SelfContainedCodeGeneration = true;
+            MapsterGlobalConfig.GlobalSettings.SelfContainedCodeGeneration = true;
             var foo = default(Customer);
             var def = new ExpressionDefinitions
             {
@@ -234,7 +234,7 @@ namespace TemplateTest
                     if (methodArgs.Length < 1 || methodArgs.Length > 2)
                         continue;
                     var tuple = new TypeTuple(methodArgs[0].ParameterType, method.ReturnType);
-                    var expr = config.CreateMapExpression(
+                    var expr = config.GetSnapshot.CreateMapExpression(
                         tuple,
                         methodArgs.Length == 1 ? MapType.Map : MapType.MapToTarget
                     );
@@ -262,7 +262,7 @@ namespace TemplateTest
                         continue;
                     var funcArgs = propArgs.GetGenericArguments();
                     var tuple = new TypeTuple(funcArgs[0], funcArgs[1]);
-                    var expr = config.CreateMapExpression(tuple, MapType.Projection);
+                    var expr = config.GetSnapshot.CreateMapExpression(tuple, MapType.Projection);
                     translator.VisitLambdaForGenerateMappers(
                         expr,
                         ExpressionTranslator.LambdaType.PublicLambda,

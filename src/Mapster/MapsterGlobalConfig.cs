@@ -28,60 +28,21 @@ namespace Mapster
             result.Add(new NullableAdapter().CreateRule());                 // 0
 
             //fallback rules
-            result.Add(
-                        new TypeAdapterRule
-                        {
-                            Priority = arg => -200,
-                            Settings = new TypeAdapterSettings
-                            {
-                                SourceType = typeof(void),
-                                DestinationType = typeof(void),
-
-                                //match exact name
-                                NameMatchingStrategy = NameMatchingStrategy.Exact,
-                                ShouldMapMember =
-                        {
-                            ShouldMapMember.IgnoreAdaptIgnore,      //ignore AdaptIgnore attribute
-                            ShouldMapMember.AllowPublic,            //match public prop
-                            ShouldMapMember.AllowAdaptMember,       //match AdaptMember attribute
-                        },
-                                GetMemberNames =
-                        {
-                            GetMemberName.AdaptMember,              //get name using AdaptMember attribute
-                        },
-                                UseDestinationValues =
-                        {
-                            UseDestinationValue.Attribute,
-                        },
-                                ValueAccessingStrategies =
-                        {
-                            ValueAccessingStrategy.CustomResolver,  //get value from Map
-                            ValueAccessingStrategy.PropertyOrField, //get value from properties/fields
-                            ValueAccessingStrategy.GetMethod,       //get value from get method
-                            ValueAccessingStrategy.FlattenMember,   //get value from chain of properties
-                        }
-                            }
-                        }
-
-                );
+            result.Add(new ReadOnlyTypeAdapterRule((arg => -200), TypeAdapterSettingsFactory.GetFallBackReadOnlySettings));
 
             //dictionary accessor
+            var dSettings = TypeAdapterSettingsFactory.GetSettings;
+            dSettings.SourceType = typeof(DictionaryAdapter);
+            dSettings.DestinationType = typeof(DictionaryAdapter);
+            dSettings.ValueAccessingStrategies.Add(ValueAccessingStrategy.CustomResolverForDictionary);
+            dSettings.ValueAccessingStrategies.Add(ValueAccessingStrategy.Dictionary);
+
+            
             result.Add(
-                    new TypeAdapterRule
-                    {
-                        Priority = arg => arg.SourceType.GetDictionaryType()?.GetGenericArguments()[0] == typeof(string) ? DictionaryAdapter.DefaultScore : (int?)null,
-                        Settings = new TypeAdapterSettings
-                        {
-                            SourceType = typeof(DictionaryAdapter),
-                            DestinationType = typeof(DictionaryAdapter),
-                            ValueAccessingStrategies =
-                        {
-                            ValueAccessingStrategy.CustomResolverForDictionary,
-                            ValueAccessingStrategy.Dictionary,
-                        },
-                        }
-                    }
-                );
+                    new ReadOnlyTypeAdapterRule(
+                        (arg => arg.SourceType.GetDictionaryType()?.GetGenericArguments()[0] == typeof(string) ? DictionaryAdapter.DefaultScore : (int?)null),
+                        dSettings)
+                    );
 
            return result;
         }

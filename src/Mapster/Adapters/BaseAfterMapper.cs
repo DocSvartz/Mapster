@@ -27,10 +27,9 @@ namespace Mapster.Adapters
         {
             var settings = new TypeAdapterSettings();
             settings.AfterMappingFactories.Add(CreateAfterMapFunc);
-            var rule = new TypeAdapterRule
+            var rule = new ReadOnlyTypeAdapterRule
             {
-                Priority = Priority,
-                Settings = settings,
+                Priority = Priority
             };
             DecorateRule(rule);
             return rule;

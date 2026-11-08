@@ -24,7 +24,7 @@ namespace Mapster.Benchmark
         public const string MapperlyVersion = "4.3.1";
 
         private static readonly Func<LambdaExpression, Delegate> DefaultMapsterCompiler =
-            TypeAdapterConfig.GlobalSettings.Compiler;
+            MapsterGlobalConfig.GlobalSettings.Compiler;
 
         public static readonly IMapper AutoMapper = new MapperConfiguration(cfg =>
         {
@@ -98,7 +98,7 @@ namespace Mapster.Benchmark
         /// </summary>
         public static void UseMapsterCompiler(MapsterCompilerType type)
         {
-            TypeAdapterConfig.GlobalSettings.Compiler = type switch
+            MapsterGlobalConfig.GlobalSettings.Compiler = type switch
             {
                 MapsterCompilerType.Default => DefaultMapsterCompiler,
                 MapsterCompilerType.Roslyn => e => e.CompileWithDebugInfo(),

@@ -31,9 +31,9 @@ namespace Mapster.Cache
             busyCacheItem++;
         }
 
-        public TypeAdapterRule GetLastRule => cacheItems.OrderByDescending(x=>x.Settings.Id).First();
+        public TypeAdapterRule GetLastRule => cacheItems.OrderByDescending(x=>x.Settings.StorageVersion).First();
 
-        internal TypeAdapterRule GetPreLastOrLastRule => cacheItems.OrderByDescending(x => x.Settings.Id).Take(2).First();
+        internal TypeAdapterRule GetPreLastOrLastRule => cacheItems.OrderByDescending(x => x.Settings.StorageVersion).Take(2).First();
 
     }
 }

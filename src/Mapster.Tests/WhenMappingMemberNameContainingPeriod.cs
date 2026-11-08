@@ -106,11 +106,11 @@ public class WhenMappingMemberNameContainingPeriod
             .CreateType();
 
         // Create the config, both ways
-        TypeAdapterConfig
+        MapsterGlobalConfig
             .GlobalSettings
             .NewConfig(typeof(Source), targetType)
             .Map(MemberName, nameof(Source.Value));
-        TypeAdapterConfig
+        MapsterGlobalConfig
             .GlobalSettings
             .NewConfig(targetType, typeof(Source))
             .Map(nameof(Source.Value), MemberName);

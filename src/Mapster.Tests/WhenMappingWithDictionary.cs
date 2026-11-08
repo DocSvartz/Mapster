@@ -12,13 +12,13 @@ namespace Mapster.Tests
         [TestInitialize]
         public void Setup()
         {
-            TypeAdapterConfig.GlobalSettings.Clear();
+            MapsterGlobalConfig.GlobalSettings.Clear();
         }
 
         [TestCleanup]
         public void TestCleanup()
         {
-            TypeAdapterConfig.GlobalSettings.Default.NameMatchingStrategy(NameMatchingStrategy.Exact);
+            MapsterGlobalConfig.GlobalSettings.Default.NameMatchingStrategy(NameMatchingStrategy.Exact);
         }
 
         [TestMethod]
@@ -103,7 +103,7 @@ namespace Mapster.Tests
         [TestMethod]
         public void Object_To_Dictionary_Flexible()
         {
-            TypeAdapterConfig.GlobalSettings.Default.NameMatchingStrategy(NameMatchingStrategy.Flexible);
+            MapsterGlobalConfig.GlobalSettings.Default.NameMatchingStrategy(NameMatchingStrategy.Flexible);
             var poco = new SimplePoco
             {
                 Id = Guid.NewGuid(),
@@ -192,7 +192,7 @@ namespace Mapster.Tests
         [TestMethod]
         public void Dictionary_To_Object_CamelCase()
         {
-            TypeAdapterConfig.GlobalSettings.Default.NameMatchingStrategy(NameMatchingStrategy.FromCamelCase);
+            MapsterGlobalConfig.GlobalSettings.Default.NameMatchingStrategy(NameMatchingStrategy.FromCamelCase);
             var dict = new Dictionary<string, object>
             {
                 ["id"] = Guid.NewGuid(),

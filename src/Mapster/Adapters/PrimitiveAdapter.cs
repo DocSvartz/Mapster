@@ -18,7 +18,7 @@ namespace Mapster.Adapters
 
         protected override Expression CreateExpressionBody(Expression source, Expression? destination, CompileArgument arg)
         {
-            if (arg.SourceType != arg.DestinationType && arg.Context.Config.RequireExplicitMappingPrimitive && !arg.ExplicitMapping)
+            if (arg.SourceType != arg.DestinationType && arg.Context.ConfigSnapshot.GetBoolSetting(nameof(TypeAdapterConfig.RequireExplicitMappingPrimitive)) && !arg.ExplicitMapping)
                 throw new InvalidOperationException("Implicit mapping is not allowed (check GlobalSettings.RequireExplicitMapping) and no configuration exists");
 
             if (arg.Settings.MapToTargetPrimitive == true)
@@ -32,7 +32,7 @@ namespace Mapster.Adapters
                 else
                     dest = destination;
 
-                var customConvert = arg.Context.Config.CreateMapToTargetInvokeExpressionBody(source.Type, arg.DestinationType, source, dest);
+                var customConvert = arg.Context.ConfigSnapshot.CreateMapToTargetInvokeExpressionBody(source.Type, arg.DestinationType, source, dest);
 
                 arg.MapType = MapType.MapToTarget;
                 return customConvert;

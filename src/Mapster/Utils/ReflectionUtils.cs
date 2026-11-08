@@ -72,40 +72,45 @@ namespace Mapster
             return members.Any(it => (it.SetterModifier & (AccessModifier.Public | AccessModifier.NonPublic)) != 0);
         }
 
-        public static IEnumerable<IMemberModelEx> GetFieldsAndProperties(this Type type, PreCompileArgument arg, bool includeNonPublic = false, AttributeMetadataCache? attributeMetadata = null)
+        public static MappingTypeModel GetMappingTypeModel(this Type type)
+        {
+            return new(type, type.GetAllFieldsAndProperties());
+        }
+
+        public static IEnumerable<IMemberModelEx> GetFieldsAndProperties(this Type type, PreCompileArgument arg, bool includeNonPublic = false)
         {
            arg.TypeMemberModelsCache.TryGetValue(type, out var model);
 
             if(model is null)
             {
-                model = type.GetAllFieldsAndProperties(attributeMetadata).ToArray();
+                model = new(type, type.GetAllFieldsAndProperties());
                 arg.TypeMemberModelsCache[type] = model;
             }
 
             if(includeNonPublic)
-                return model;
+                return model.Members;
 
-            return model.Where(member => ((member.Info as MemberInfo)?.IsPublicPropertyOrField()).GetValueOrDefault());
+            return model.Members.Where(member => ((member.Info as MemberInfo)?.IsPublicPropertyOrField()).GetValueOrDefault());
 
         }
 
-        public static IEnumerable<IMemberModelEx> GetFieldsAndProperties(this Type type, CompileArgument arg, bool includeNonPublic = false, AttributeMetadataCache? attributeMetadata = null)
+        public static IEnumerable<IMemberModelEx> GetFieldsAndProperties(this Type type, CompileArgument arg, bool includeNonPublic = false)
         {
-            arg.Context.Config.TypeMemberModelsCache.TryGetValue(type, out var model);
+            arg.Context.ConfigSnapshot.TypeMemberModelsCache.TryGetValue(type, out var model);
 
             if (model is null)
             {
-                model = type.GetAllFieldsAndProperties(attributeMetadata).ToArray();
-                arg.Context.Config.TypeMemberModelsCache[type] = model;
+                model = new(type, type.GetAllFieldsAndProperties());
+                arg.Context.ConfigSnapshot.TypeMemberModelsCache[type] = model;
             }
 
             if (includeNonPublic)
-                return model;
+                return model.Members;
 
-            return model.Where(member => ((member.Info as MemberInfo)?.IsPublicPropertyOrField()).GetValueOrDefault());
+            return model.Members.Where(member => ((member.Info as MemberInfo)?.IsPublicPropertyOrField()).GetValueOrDefault());
         }
 
-        private static IEnumerable<IMemberModelEx> GetAllFieldsAndProperties(this Type type, AttributeMetadataCache? attributeMetadata = null)
+        private static IEnumerable<IMemberModelEx> GetAllFieldsAndProperties(this Type type)
         {
             IEnumerable<MemberInfo> members = type.GetTypeInfo().IsInterface 
                 ? GetAllInterfaces(type).SelectMany(type => type.GetPropertiesOrFields())
@@ -123,12 +128,12 @@ namespace Mapster
             IEnumerable<IMemberModelEx> GetPropertiesFunc(IEnumerable<MemberInfo> t) =>
                 t.OfType<PropertyInfo>()
                 .Where(x => x.GetIndexParameters().Length == 0).DropHiddenMembers(firstMembersByName)
-                .Select(x => new PropertyModel(x, attributeMetadata));
+                .Select(x => new PropertyModel(x));
 
             IEnumerable<IMemberModelEx> GetFieldsFunc(IEnumerable<MemberInfo> t) =>
                 t.OfType<FieldInfo>()
                 .DropHiddenMembers(firstMembersByName)
-                .Select(x => new FieldModel(x, attributeMetadata));
+                .Select(x => new FieldModel(x));
         }
 
         public static MemberInfo[] GetPropertiesOrFields(this Type type)
@@ -624,6 +629,14 @@ namespace Mapster
                 type1 = type1.GetTypeInfo().BaseType;
             }
             return score;
+        }
+
+        internal static bool IsAutoBackingField(this FieldInfo field)
+        {
+            var name = field.Name;
+            return name.Length > 17
+                && name[0] == '<'
+                && name.EndsWith(">k__BackingField", StringComparison.Ordinal);
         }
     }
 }

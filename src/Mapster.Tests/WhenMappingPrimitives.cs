@@ -66,7 +66,7 @@ namespace Mapster.Tests
         {
             try
             {
-                TypeAdapterConfig.GlobalSettings.Clear();
+                MapsterGlobalConfig.GlobalSettings.Clear();
                 TypeAdapterConfig<ImmutableA, ImmutableB>.NewConfig().Compile();
                 Assert.Fail();
             }
@@ -79,7 +79,7 @@ namespace Mapster.Tests
         [TestMethod]
         public void Able_To_Map_Immutable_Class_With_MapWith()
         {
-            TypeAdapterConfig.GlobalSettings.Clear();
+            MapsterGlobalConfig.GlobalSettings.Clear();
             TypeAdapterConfig<ImmutableA, ImmutableB>.NewConfig()
                 .MapWith(src => new ImmutableB(src.Name))
                 .Compile();

@@ -10,7 +10,7 @@ namespace MapsterMapper
     {
         public TypeAdapterConfig Config { get; }
 
-        public Mapper() : this(TypeAdapterConfig.GlobalSettings) { }
+        public Mapper() : this(MapsterGlobalConfig.GlobalSettings) { }
 
         public Mapper(TypeAdapterConfig config)
         {
@@ -41,7 +41,7 @@ namespace MapsterMapper
             if (source == null)
                 return default!;
             var type = source.GetType();
-            var fn = Config.GetDynamicMapFunction<TDestination>(type);
+            var fn = Config.GetSnapshot.GetDynamicMapFunction<TDestination>(type);
             return fn(source);
         }
 
@@ -55,7 +55,7 @@ namespace MapsterMapper
 		/// <returns>type of destination mapping result</returns>
 		public virtual TDestination Map<TSource, TDestination>(TSource source)
         {
-            var fn = Config.GetMapFunction<TSource, TDestination>();
+            var fn = Config.GetSnapshot.GetMapFunction<TSource, TDestination>();
             return fn(source);
         }
 
@@ -70,7 +70,7 @@ namespace MapsterMapper
 		/// <returns>type of destination mapping result</returns>
 		public virtual TDestination Map<TSource, TDestination>(TSource source, TDestination destination)
         {
-            var fn = Config.GetMapToTargetFunction<TSource, TDestination>();
+            var fn = Config.GetSnapshot.GetMapToTargetFunction<TSource, TDestination>();
             return fn(source, destination);
         }
 
@@ -84,7 +84,7 @@ namespace MapsterMapper
         /// <returns>mapped result object</returns>
         public virtual object Map(object source, Type sourceType, Type destinationType)
         {
-            var del = Config.GetMapFunction(sourceType, destinationType);
+            var del = Config.GetSnapshot.GetMapFunction(sourceType, destinationType);
             var canUseDynamic = sourceType.GetTypeInfo().IsVisible && destinationType.GetTypeInfo().IsVisible;
             //NOTE: if type is non-public, we cannot use dynamic
             //DynamicInvoke is slow, but works with non-public
@@ -102,7 +102,7 @@ namespace MapsterMapper
 		/// <returns>mapped result object</returns>
         public virtual object Map(object source, object destination, Type sourceType, Type destinationType)
         {
-            var del = Config.GetMapToTargetFunction(sourceType, destinationType);
+            var del = Config.GetSnapshot.GetMapToTargetFunction(sourceType, destinationType);
             var canUseDynamic = sourceType.GetTypeInfo().IsVisible && destinationType.GetTypeInfo().IsVisible;
             //NOTE: if type is non-public, we cannot use dynamic
             //DynamicInvoke is slow, but works with non-public

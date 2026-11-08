@@ -3,142 +3,179 @@ using Mapster.Models;
 using Mapster.TypeAdapterSetters;
 using Mapster.Utils;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 
 namespace Mapster.Cache
 {
-    public class SettingsCacheStorage
+    public partial class SettingsCacheStorage
     {
+        #region PrivateMembers 
+        private readonly TypeAdapterConfig _config;
         private readonly object _lock = new();
-        private ulong _Id = 0;
-        private readonly ImmutableArray<TypeAdapterRule> ImmutableRules;
-        private readonly List<TypeAdapterRule> Rules = new();
-        private readonly Dictionary<TypeTuple, TypeAdapterRule> RuleMap = new();
-        private readonly Dictionary<Type, IMemberModelEx[]> TypeMemberModelsCache = new();
-
-
+        private ulong _Version = 0;
+        private TypeAdapterRule DefaultSettingsRule;
+        private ImmutableArray<TypeAdapterRule> AdapterRules;
+        private ImmutableDictionary<TypeTuple, TypeAdapterRule> RuleMap = ImmutableDictionary<TypeTuple, TypeAdapterRule>.Empty;
+        private ImmutableDictionary<string, bool> BoolSettings = ImmutableDictionary<string, bool>.Empty;
         private readonly Dictionary<CompiledTypesSettings, TypeAdapterRule> CompiledRule = new();
+
+        private readonly ConcurrentDictionary<Type, MappingTypeModel> TypeMemberModelsCache = new();
+
+        private TypeAdapterConfigSnapshot? _cachedSnapShot;
+        
         private readonly Dictionary<TypeTuple, Delegate> _mapCache = new();
         private readonly Dictionary<TypeTuple, Delegate> _mapToTargetCache = new();
         private readonly Dictionary<TypeTuple, Delegate> _ProjectionCache = new();
         private readonly Dictionary<TypeTuple, Delegate> _dynamicMapCache = new();
-        private bool allowImplicitDestinationInheritance;
-        private bool allowImplicitSourceInheritance;
-               
+
+        private ulong UpdateAndGetVersion() { _Version = ++_Version; return _Version; }
+        private void UpdateVersion() { _Version = ++_Version; }
+
         private static TypeAdapterRule CreateDefaultRule(TypeAdapterSettings? settings = null)
         {
-          return  new TypeAdapterRule
-            {
-                Priority = arg => -100,
-                Settings = settings ?? new TypeAdapterSettings()
-            };
+            Func<PreCompileArgument, int?> priority = arg => -100;
+
+            return settings == null
+                ? new TypeAdapterRule(priority)
+                : new TypeAdapterRule(priority, settings);
         }
 
 
         private static TypeAdapterRule CreateDestinationTypeRule(TypeTuple key, TypeAdapterSettings? settings = null)
         {
-            return new TypeAdapterRule
-            {
-                Priority = arg => arg.DestinationType.GetSubclassDistance(key.Destination, true),
-                Settings = settings ?? new TypeAdapterSettings(),
-            };
+            Func<PreCompileArgument, int?> priority = arg => arg.DestinationType.GetSubclassDistance(key.Destination, true);
+
+            return settings == null
+                ? new TypeAdapterRule(priority)
+                : new TypeAdapterRule(priority, settings);
         }
         private TypeAdapterRule CreateTypeTupleRule(TypeTuple key, TypeAdapterSettings? settings = null)
         {
-            return new TypeAdapterRule
-            {
-                Priority = arg =>
+            Func<PreCompileArgument, int?> priority =
+                arg =>
                 {
-                    var score1 = arg.DestinationType.GetSubclassDistance(key.Destination, AllowImplicitDestinationInheritance);
+                    var score1 = arg.DestinationType.GetSubclassDistance(key.Destination, GetBoolSetting(nameof(TypeAdapterConfig.AllowImplicitDestinationInheritance)));
                     if (score1 == null)
                         return null;
-                    var score2 = arg.SourceType.GetSubclassDistance(key.Source, AllowImplicitSourceInheritance);
+                    var score2 = arg.SourceType.GetSubclassDistance(key.Source, GetBoolSetting(nameof(TypeAdapterConfig.AllowImplicitSourceInheritance)));
                     if (score2 == null)
                         return null;
                     return score1.Value + score2.Value;
-                },
-                Settings = settings ?? new TypeAdapterSettings(),
-            };
+                };
+
+            return settings == null
+                ? new TypeAdapterRule(priority)
+                : new TypeAdapterRule(priority, settings);
         }
 
-        private TypeAdapterSettings GetSettings(TypeTuple types)
+        private TypeAdapterSettings GetSettings(TypeTuple types, bool isForceNewConfig = false)
         {
-            RuleMap.TryGetValue(types, out var ruleMap);
+            TypeAdapterSettings? clonedConfig = null;
+            TypeAdapterRule? ruleMap = null;
 
-            var clonedConfig = ruleMap?.Settings.Clone();
-
-            if (types.Source == typeof(MapsterCacheMarker) 
+            if (types.Source == typeof(MapsterCacheMarker)
                 && types.Destination == typeof(DefaultOnlySetter))
-                    ruleMap = CreateDefaultRule(clonedConfig);
-            else
-            {
-                ruleMap = types.Source == typeof(void)
-                   ? CreateDestinationTypeRule(types, clonedConfig)
-                   : CreateTypeTupleRule(types, clonedConfig);
-            }
+                return GetDefaultSetterSettings(types, isForceNewConfig);
 
-            ruleMap.Settings.Id = ++_Id;
+            RuleMap.TryGetValue(types, out ruleMap);
+
+            if (!isForceNewConfig)
+                clonedConfig = ruleMap?.Settings.Clone();
+                   
+            ruleMap = types.Source == typeof(void)
+                ? CreateDestinationTypeRule(types, clonedConfig)
+                : CreateTypeTupleRule(types, clonedConfig);
+
+
+            ruleMap.Settings.StorageVersion = UpdateAndGetVersion();
             //Rules.Add(ruleMap);
-            RuleMap[types] = ruleMap;
-            
+
+            RuleMap = RuleMap.SetItem(types, ruleMap);
+                      
             ruleMap.Settings.SourceType = types.Source;
             ruleMap.Settings.DestinationType = types.Destination;
 
             return ruleMap.Settings;
         }
 
-        private void Remove(TypeTuple key)
+        private TypeAdapterSettings GetDefaultSetterSettings(TypeTuple types, bool isForceNewConfig = false)
         {
-            RuleMap.TryGetValue(key, out var rule);
-            if (rule != null)
-            {
-               // Rules.Remove(rule);
-                RuleMap.Remove(key);
-            }
-            _mapCache.Remove(key);
-            _mapToTargetCache.Remove(key);
-            _ProjectionCache.Remove(key);
-            _dynamicMapCache.Remove(key);
+            var clonedConfig = isForceNewConfig ? null :
+                DefaultSettingsRule?.Settings.Clone();
+
+            var ruleMap = CreateDefaultRule(clonedConfig);
+
+            ruleMap.Settings.StorageVersion = UpdateAndGetVersion();
+            ruleMap.Settings.SourceType = types.Source;
+            ruleMap.Settings.DestinationType = types.Destination;
+
+            DefaultSettingsRule = ruleMap;
+
+            return ruleMap.Settings;
         }
 
-        public bool AllowImplicitDestinationInheritance
-        {
-            get => allowImplicitDestinationInheritance;
-            set
-            {
-                lock (_lock)
-                {
-                    allowImplicitDestinationInheritance = value;
-                }
-            }
-        }
-        public bool AllowImplicitSourceInheritance 
-        { 
-            get => allowImplicitSourceInheritance; 
-            set
-            {
-                lock(_lock)
-                {
-                    allowImplicitSourceInheritance = value;
-                }
-            }
-        
-        }
+        //private void Remove(TypeTuple key)
+        //{
+        //    RuleMap.TryGetValue(key, out var rule);
+        //    if (rule != null)
+        //    {
+        //       // Rules.Remove(rule);
+        //       // RuleMap.Remove(key);
+        //    }
+        //  //  _mapCache.Remove(key);
+        //  //  _mapToTargetCache.Remove(key);
+        //  //  _ProjectionCache.Remove(key);
+        //  //  _dynamicMapCache.Remove(key);
+        //}
 
+        #endregion PrivateMembers
+
+
+        public IReadOnlyCollection<TypeAdapterRule> Rules => this;
         public SettingsCacheStorage(ImmutableArray<TypeAdapterRule> ruleTemplates, TypeAdapterConfig config)
         {
-            ImmutableRules = ruleTemplates;
+            AdapterRules = ruleTemplates;
             var setting = TypeAdapterSettings.CreateDefault;
+            _config = config;
         }
 
+        internal SettingsCacheStorage(TypeAdapterConfigSnapshot configSnapshot, TypeAdapterConfig config)
+        {
+            _Version = configSnapshot.Version;
+            DefaultSettingsRule = configSnapshot.DefaultSettingsRule;
+            AdapterRules = configSnapshot.AdapterRules;
+            RuleMap = configSnapshot.RuleMap;
+            BoolSettings = configSnapshot.BoolSettings;
+            CompiledRule = configSnapshot.CompiledRule;
+            TypeMemberModelsCache = configSnapshot.TypeMemberModelsCache;
+            _config = config;
+        }
+
+        public void SetBoolSetting(string name, bool value)
+        {
+            lock (_lock)
+            {
+                BoolSettings.TryGetValue(name, out var data);
+
+                if(value != data)
+                {
+                    BoolSettings = BoolSettings.SetItem(name, value);
+                    UpdateVersion();
+                }
+            }
+        }
+ 
+
+        public bool GetBoolSetting(string name) { BoolSettings.TryGetValue(name, out var data); return data; }
+                
         public TypeAdapterSetter<TSource, TDestination> GetNewConfigSetter<TSource, TDestination>(TypeTuple tuple, TypeAdapterConfig config)
         {
             lock (_lock)
             {
                 Remove(tuple);
-                return new TypeAdapterSetter<TSource, TDestination>(GetSettings(tuple), config);
+                return new TypeAdapterSetter<TSource, TDestination>(GetSettings(tuple,true), config);
             }
         }
 
@@ -147,7 +184,7 @@ namespace Mapster.Cache
             lock (_lock)
             {
                 Remove(tuple);
-                return new TypeAdapterSetter(GetSettings(tuple), config);
+                return new TypeAdapterSetter(GetSettings(tuple,true), config);
             }
         }
 
@@ -189,7 +226,8 @@ namespace Mapster.Cache
         {
             lock (_lock)
             {
-                Rules.Add(adapter.CreateRule());
+                AdapterRules = AdapterRules.Add(adapter.CreateRule());
+                UpdateVersion();
             }
         }
 
@@ -197,20 +235,8 @@ namespace Mapster.Cache
         {
             lock (_lock)
             {
-                Rules.Add(rule);
-            }
-        }
-
-
-        public ImmutableList<TypeAdapterRule> GetRules
-        {
-            get
-            {
-                lock (_lock)
-                {
-                    // need cache 
-                    return ImmutableList.CreateRange<TypeAdapterRule>(ImmutableRules.Concat(Rules).Concat(RuleMap.Select(x=> x.Value)));
-                }
+                AdapterRules = AdapterRules.Add(rule);
+                UpdateVersion();
             }
         }
 
@@ -226,7 +252,7 @@ namespace Mapster.Cache
             }
         }
 
-        public Dictionary<Type, IMemberModelEx[]> GetTypeMemberModelsCache => TypeMemberModelsCache;
+        public ConcurrentDictionary<Type, MappingTypeModel> GetTypeMemberModelsCache => TypeMemberModelsCache;
 
         public TypeAdapterRule GetCompiledRule(TypeTuple types, TypeAdapterSettings settings)
         {
@@ -249,16 +275,48 @@ namespace Mapster.Cache
             }
         }
 
-        internal (ImmutableList<TypeAdapterRule> Rules, 
-                ImmutableDictionary<TypeTuple, TypeAdapterRule> RuleMap,
-                ImmutableDictionary<CompiledTypesSettings, TypeAdapterRule> CompiledRule) GetFromMergedSettingsBundle()
+        public void Clear()
+        {
+            lock (_lock)
+            {
+                RuleMap = RuleMap.Clear();
+                UpdateVersion();
+            }
+        }
+
+        public void Remove(TypeTuple types)
+        {
+            lock (_lock)
+            {
+                RuleMap = RuleMap.Remove(types);
+                UpdateVersion();
+            }
+        }
+
+        private TypeAdapterConfigSnapshot GetSnapShot() 
         {
             lock ( _lock)
             {
-              return  (ImmutableList.CreateRange<TypeAdapterRule>(ImmutableRules.Concat(Rules).Concat(RuleMap.Select(x => x.Value))),
-                    ImmutableDictionary.CreateRange<TypeTuple, TypeAdapterRule>(RuleMap),
-                    ImmutableDictionary.CreateRange<CompiledTypesSettings, TypeAdapterRule>(CompiledRule));
+                if (_cachedSnapShot == null || _cachedSnapShot?.Version != _Version)
+                    _cachedSnapShot = new TypeAdapterConfigSnapshot()
+                    {
+                        Version = this._Version,
+                        BoolSettings = this.BoolSettings,
+                        AdapterRules = this.AdapterRules,
+                        DefaultSettingsRule = this.DefaultSettingsRule,
+                        RuleMap = this.RuleMap,
+                        CompiledRule = this.CompiledRule, // need refactoring
+                        Compiler = _config.Compiler,
+                        Config = _config,
+                        TypeMemberModelsCache = this.TypeMemberModelsCache,
+                    };
+
+                return _cachedSnapShot;
             }
         }
+
+         
+
+        public TypeAdapterConfigSnapshot CurrentSnapshot => GetSnapShot();
     }
 }

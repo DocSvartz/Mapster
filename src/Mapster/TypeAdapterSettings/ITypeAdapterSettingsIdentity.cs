@@ -4,9 +4,9 @@ namespace Mapster
 {
     public interface ITypeAdapterSettingsIdentity: IApplyable<SettingStore>
     {
-        public ulong Id { get; set; }
-        public ulong Version { get; set; }
-        public bool IsFinalized { get; set; }
+        public ulong StorageVersion { get; set; }
+        public ulong QuickHash { get; set; }
+        public bool IsReadOnly { get; set; }
         Type? SourceType { get; set; }
         Type? DestinationType { get; set; }
         TypeAdapterSettings Clone();

@@ -11,16 +11,16 @@ namespace Mapster
     {
         public Type SourceType { get; set; }
         public Type DestinationType { get; set; }
-        internal TypeConverterModel TypeConverter { get; set; }
+        internal TypeConverterModel TypeConverter => Settings.TypeConverter;
         public MapType MapType { get; set; }
         public bool ExplicitMapping { get; set; }
         public ISourceToDestinationTypeAdapterSettings Settings { get; set; }
         public CompileContext Context { get; set; }
         public bool UseDestinationValue { get; set; }
 
-        public ParameterExpression Source { get; init; }
-        public ParameterExpression Destination { get; init; }
-        public ParameterExpression Result { get; init; }
+        public ParameterExpression Source => Settings.Source;
+        public ParameterExpression Destination => Settings.Destination;
+        public ParameterExpression Result => Settings.Result;
 
         private HashSet<string>? _srcNames;
         internal HashSet<string> GetSourceNames()
@@ -70,13 +70,6 @@ namespace Mapster
                 _fetchConstructUsing = this._fetchConstructUsing,
                 _constructUsing = this._constructUsing,
 
-                Source = this.Source,
-                Destination = this.Destination,
-                Result = this.Result,
-
-                TypeConverter = this.TypeConverter,
-
-               
             };
 
             if (mapType != null)

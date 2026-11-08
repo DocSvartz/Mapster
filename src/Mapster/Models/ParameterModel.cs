@@ -10,12 +10,13 @@ namespace Mapster.Models
     public class ParameterModel : IMemberModelEx
     {
         private readonly ParameterInfo _parameterInfo;
-        private readonly CustomAttributeData[] _customAttributeData;
+        private readonly IReadOnlyList<CustomAttributeData> _customAttributeData;
 
         public ParameterModel(ParameterInfo parameterInfo)
         {
             _parameterInfo = parameterInfo;
             IsRequired = !parameterInfo.IsOptional;
+
             _customAttributeData = _parameterInfo.GetCustomAttributesData().ToArray();
         }
 
