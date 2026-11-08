@@ -13,7 +13,7 @@ namespace Mapster.Cache
     {
         private readonly object _lock = new();
         private ulong _Id = 0;
-        private readonly List<TypeAdapterRule> ImmutableRules;
+        private readonly ImmutableArray<TypeAdapterRule> ImmutableRules;
         private readonly List<TypeAdapterRule> Rules = new();
         private readonly Dictionary<TypeTuple, TypeAdapterRule> RuleMap = new();
         private readonly Dictionary<Type, IMemberModelEx[]> TypeMemberModelsCache = new();
@@ -127,9 +127,9 @@ namespace Mapster.Cache
         
         }
 
-        public SettingsCacheStorage(IList<TypeAdapterRule> ruleTemplates, TypeAdapterConfig config)
+        public SettingsCacheStorage(ImmutableArray<TypeAdapterRule> ruleTemplates, TypeAdapterConfig config)
         {
-            ImmutableRules = new List<TypeAdapterRule>(ruleTemplates);
+            ImmutableRules = ruleTemplates;
             var setting = TypeAdapterSettings.CreateDefault;
         }
 
@@ -189,15 +189,7 @@ namespace Mapster.Cache
         {
             lock (_lock)
             {
-                ImmutableRules.Add(adapter.CreateRule());
-            }
-        }
-
-        public void AddImmutableSettingsRule(TypeAdapterRule rule)
-        {
-            lock (_lock)
-            {
-                ImmutableRules.Add(rule);
+                Rules.Add(adapter.CreateRule());
             }
         }
 
@@ -208,6 +200,7 @@ namespace Mapster.Cache
                 Rules.Add(rule);
             }
         }
+
 
         public ImmutableList<TypeAdapterRule> GetRules
         {
