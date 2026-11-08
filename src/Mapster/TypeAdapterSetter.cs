@@ -422,7 +422,13 @@ namespace Mapster
             return setter;
         }
 
+        public static TSetter IsFinalized<TSetter>(this TSetter setter) where TSetter : DefaultOnlySetter
+        {
+            setter.CheckCompiled();
 
+            setter.Settings.IsFinalized = true;
+            return setter;
+        }
     }
 
     public class TypeAdapterSetter<TDestination> : DestinationTypeOnlySetter

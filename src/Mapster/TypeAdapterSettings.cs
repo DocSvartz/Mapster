@@ -10,9 +10,12 @@ namespace Mapster
     [AdaptWith(AdaptDirectives.DestinationAsRecord)]
     public class TypeAdapterSettings : SettingStore, ISourceToDestinationTypeAdapterSettings
     {
+        private volatile bool _IsFinalized;
+
         public ulong Id { get; set; }
         public ulong Version { get; set; }
 
+        public bool IsFinalized { get => _IsFinalized;  set => _IsFinalized = value; }
         public Type? SourceType
         {
             get => Get<Type>(nameof(SourceType));
