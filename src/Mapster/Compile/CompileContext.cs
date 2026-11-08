@@ -31,7 +31,11 @@ namespace Mapster
         {
             return MaxDepth.HasValue || ExtraParameters.Count > 0;
         }
-
+        public CompileContext(TypeAdapterConfigSnapshot snapshot)
+        {
+           // Configs.Push(config);
+           // SettingSlice = MappingCache.GetFromMergedSettingsBundle();
+        }
         public CompileContext(TypeAdapterConfig config)
         {
             Configs.Push(config);
