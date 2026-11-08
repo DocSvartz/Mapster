@@ -6,6 +6,7 @@ using Mapster.Utils;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -15,8 +16,11 @@ namespace Mapster
 {
     public class TypeAdapterConfig
     {
-        public static List<TypeAdapterRule> RulesTemplate { get; } = CreateRuleTemplate();
-        public static TypeAdapterConfig GlobalSettings { get; } = new TypeAdapterConfig();
+        [Obsolete($"This will be removed in version 11. Use {nameof(MapsterGlobalConfig)}.RulesTemplate")]
+        public static ImmutableArray<TypeAdapterRule> RulesTemplate { get; } = MapsterGlobalConfig.RulesTemplate;
+
+        [Obsolete($"This will be removed in version 11. Use {nameof(MapsterGlobalConfig)}.GlobalSettings")]
+        public static TypeAdapterConfig GlobalSettings { get; } = MapsterGlobalConfig.GlobalSettings;
         public Dictionary<Type, IMemberModelEx[]> TypeMemberModelsCache { get; } = new();
         private static List<TypeAdapterRule> CreateRuleTemplate()
         {
@@ -95,23 +99,28 @@ namespace Mapster
         public bool RequireDestinationMemberSource { get; set; }
         public bool RequireExplicitMapping { get; set; }
         public bool RequireExplicitMappingPrimitive { get; set; }
+
+        [Obsolete($"This will be removed in version 11. Use {nameof(MappingCache)}.AllowImplicitDestinationInheritance")]
         public bool AllowImplicitDestinationInheritance { get => MappingCache.AllowImplicitDestinationInheritance; set => MappingCache.AllowImplicitDestinationInheritance = value; }
+
+        [Obsolete($"This will be removed in version 11. Use {nameof(MappingCache)}.AllowImplicitSourceInheritance")]
         public bool AllowImplicitSourceInheritance { get => MappingCache.AllowImplicitSourceInheritance; set => MappingCache.AllowImplicitSourceInheritance = value; }
         public bool SelfContainedCodeGeneration { get; set; }
         public bool ActivateCustomConvertersSrcNullPropagation { get; set; } = false;
 
         public Func<LambdaExpression, Delegate> Compiler { get; set; } = lambda => lambda.Compile();
 
-        public List<TypeAdapterRule> Rules { get; internal set; }
+        [Obsolete($"This will be removed in version 11. Use {nameof(MappingCache)}.GetRules")]
+        public IList<TypeAdapterRule> Rules => MappingCache.GetRules;
         public DefaultOnlySetter Default => MappingCache.GetForTypeSetter(_defaultSetterTuple,this);
         public ConcurrentDictionary<TypeTuple, TypeAdapterRule> RuleMap { get; internal set; } = new ConcurrentDictionary<TypeTuple, TypeAdapterRule>();
 
         public TypeAdapterConfig()
         {
-            MappingCache = new(RulesTemplate.ToList(), this);
+            MappingCache = new(MapsterGlobalConfig.RulesTemplate, this);
             MappingCache.GetNewConfigSetter(_defaultSetterTuple, this);
 
-            AllowImplicitSourceInheritance = true;
+            MappingCache.AllowImplicitSourceInheritance = true;
         }
 
 
