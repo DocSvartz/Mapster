@@ -963,7 +963,7 @@ namespace Mapster
 		/// <returns></returns>
 		public static TypeAdapterSetter<TSource, TDestination> NewConfig()
         {
-            return TypeAdapterConfig.GlobalSettings.NewConfig<TSource, TDestination>();
+            return MapsterGlobalConfig.GlobalSettings.NewConfig<TSource, TDestination>();
         }
 
 
@@ -973,7 +973,7 @@ namespace Mapster
 		/// <returns></returns>
 		public static TypeAdapterSetter<TSource, TDestination> ForType()
         {
-            return TypeAdapterConfig.GlobalSettings.ForType<TSource, TDestination>();
+            return MapsterGlobalConfig.GlobalSettings.ForType<TSource, TDestination>();
         }
 
 
@@ -982,7 +982,7 @@ namespace Mapster
 		/// </summary>
 		public static void Clear()
         {
-            TypeAdapterConfig.GlobalSettings.Remove(typeof(TSource), typeof(TDestination));
+            MapsterGlobalConfig.GlobalSettings.Remove(typeof(TSource), typeof(TDestination));
         }
     }
 }
