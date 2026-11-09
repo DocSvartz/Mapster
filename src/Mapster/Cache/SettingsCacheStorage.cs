@@ -11,22 +11,26 @@ namespace Mapster.Cache
 {
     public class SettingsCacheStorage
     {
+#region PrivateMembers 
         private readonly object _lock = new();
-        private ulong _Id = 0;
-        private readonly ImmutableArray<TypeAdapterRule> ImmutableRules;
-        private readonly List<TypeAdapterRule> Rules = new();
-        private readonly Dictionary<TypeTuple, TypeAdapterRule> RuleMap = new();
-        private readonly Dictionary<Type, IMemberModelEx[]> TypeMemberModelsCache = new();
-
-
+        private ulong _Version = 0;
+        private ImmutableArray<TypeAdapterRule> AdapterRules;
+        private ImmutableDictionary<TypeTuple, TypeAdapterRule> RuleMap = ImmutableDictionary<TypeTuple, TypeAdapterRule>.Empty;
+        private ImmutableDictionary<string, bool> BoolSettings = ImmutableDictionary<string, bool>.Empty;
         private readonly Dictionary<CompiledTypesSettings, TypeAdapterRule> CompiledRule = new();
+
+        private readonly Dictionary<Type, IMemberModelEx[]> TypeMemberModelsCache = new();
+        
+        
+        
         private readonly Dictionary<TypeTuple, Delegate> _mapCache = new();
         private readonly Dictionary<TypeTuple, Delegate> _mapToTargetCache = new();
         private readonly Dictionary<TypeTuple, Delegate> _ProjectionCache = new();
         private readonly Dictionary<TypeTuple, Delegate> _dynamicMapCache = new();
-        private bool allowImplicitDestinationInheritance;
-        private bool allowImplicitSourceInheritance;
-               
+
+        private ulong UpdateAndGetVersion() { _Version++; return _Version; }
+        private void UpdateVersion() { _Version++; }
+
         private static TypeAdapterRule CreateDefaultRule(TypeAdapterSettings? settings = null)
         {
           return  new TypeAdapterRule
@@ -51,10 +55,10 @@ namespace Mapster.Cache
             {
                 Priority = arg =>
                 {
-                    var score1 = arg.DestinationType.GetSubclassDistance(key.Destination, AllowImplicitDestinationInheritance);
+                    var score1 = arg.DestinationType.GetSubclassDistance(key.Destination, GetBoolSetting(nameof(TypeAdapterConfig.AllowImplicitDestinationInheritance)));
                     if (score1 == null)
                         return null;
-                    var score2 = arg.SourceType.GetSubclassDistance(key.Source, AllowImplicitSourceInheritance);
+                    var score2 = arg.SourceType.GetSubclassDistance(key.Source, GetBoolSetting(nameof(TypeAdapterConfig.AllowImplicitSourceInheritance)));
                     if (score2 == null)
                         return null;
                     return score1.Value + score2.Value;
@@ -79,10 +83,11 @@ namespace Mapster.Cache
                    : CreateTypeTupleRule(types, clonedConfig);
             }
 
-            ruleMap.Settings.Id = ++_Id;
+            ruleMap.Settings.Id = UpdateAndGetVersion();
             //Rules.Add(ruleMap);
-            RuleMap[types] = ruleMap;
-            
+
+            RuleMap = RuleMap.SetItem(types, ruleMap);
+                      
             ruleMap.Settings.SourceType = types.Source;
             ruleMap.Settings.DestinationType = types.Destination;
 
@@ -95,7 +100,7 @@ namespace Mapster.Cache
             if (rule != null)
             {
                // Rules.Remove(rule);
-                RuleMap.Remove(key);
+               // RuleMap.Remove(key);
             }
             _mapCache.Remove(key);
             _mapToTargetCache.Remove(key);
@@ -103,33 +108,28 @@ namespace Mapster.Cache
             _dynamicMapCache.Remove(key);
         }
 
-        public bool AllowImplicitDestinationInheritance
+#endregion PrivateMembers
+
+        public void SetBoolSetting(string name, bool value)
         {
-            get => allowImplicitDestinationInheritance;
-            set
+            lock (_lock)
             {
-                lock (_lock)
+                BoolSettings.TryGetValue(name, out var data);
+
+                if(value != data)
                 {
-                    allowImplicitDestinationInheritance = value;
+                    BoolSettings = BoolSettings.SetItem(name, value);
+                    UpdateVersion();
                 }
             }
         }
-        public bool AllowImplicitSourceInheritance 
-        { 
-            get => allowImplicitSourceInheritance; 
-            set
-            {
-                lock(_lock)
-                {
-                    allowImplicitSourceInheritance = value;
-                }
-            }
-        
-        }
+ 
+
+        public bool GetBoolSetting(string name) { BoolSettings.TryGetValue(name, out var data); return data; }
 
         public SettingsCacheStorage(ImmutableArray<TypeAdapterRule> ruleTemplates, TypeAdapterConfig config)
         {
-            ImmutableRules = ruleTemplates;
+            AdapterRules = ruleTemplates;
             var setting = TypeAdapterSettings.CreateDefault;
         }
 
@@ -189,7 +189,8 @@ namespace Mapster.Cache
         {
             lock (_lock)
             {
-                Rules.Add(adapter.CreateRule());
+                AdapterRules = AdapterRules.Add(adapter.CreateRule());
+                UpdateVersion();
             }
         }
 
@@ -197,7 +198,8 @@ namespace Mapster.Cache
         {
             lock (_lock)
             {
-                Rules.Add(rule);
+                AdapterRules = AdapterRules.Add(rule);
+                UpdateVersion();
             }
         }
 
@@ -209,7 +211,7 @@ namespace Mapster.Cache
                 lock (_lock)
                 {
                     // need cache 
-                    return ImmutableList.CreateRange<TypeAdapterRule>(ImmutableRules.Concat(Rules).Concat(RuleMap.Select(x=> x.Value)));
+                    return ImmutableList.CreateRange<TypeAdapterRule>(AdapterRules.Concat(RuleMap.Select(x=> x.Value)));
                 }
             }
         }
@@ -255,7 +257,7 @@ namespace Mapster.Cache
         {
             lock ( _lock)
             {
-              return  (ImmutableList.CreateRange<TypeAdapterRule>(ImmutableRules.Concat(Rules).Concat(RuleMap.Select(x => x.Value))),
+              return  (ImmutableList.CreateRange<TypeAdapterRule>(AdapterRules.Concat(RuleMap.Select(x => x.Value))),
                     ImmutableDictionary.CreateRange<TypeTuple, TypeAdapterRule>(RuleMap),
                     ImmutableDictionary.CreateRange<CompiledTypesSettings, TypeAdapterRule>(CompiledRule));
             }

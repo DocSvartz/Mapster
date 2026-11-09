@@ -1,5 +1,4 @@
-﻿using Mapster.Adapters;
-using Mapster.Cache;
+﻿using Mapster.Cache;
 using Mapster.Models;
 using Mapster.TypeAdapterSetters;
 using Mapster.Utils;
@@ -21,92 +20,22 @@ namespace Mapster
 
         [Obsolete($"This will be removed in version 11. Use {nameof(MapsterGlobalConfig)}.GlobalSettings")]
         public static TypeAdapterConfig GlobalSettings { get; } = MapsterGlobalConfig.GlobalSettings;
+        
         public Dictionary<Type, IMemberModelEx[]> TypeMemberModelsCache { get; } = new();
-        private static List<TypeAdapterRule> CreateRuleTemplate()
-        {
-            return new List<TypeAdapterRule>
-            {
-                new PrimitiveAdapter().CreateRule(),    //-210
-                new ClassAdapter().CreateRule(),        //-200
-                new NotSelfCreationAdapter().CreateRule(), //-150
-                new RecordTypeAdapter2().CreateRule(),   //-149
-                new ReadOnlyInterfaceAdapter().CreateRule(), // -148
-                new CollectionAdapter().CreateRule(),   //-125
-                new DictionaryAdapter().CreateRule(),   //-124
-                new ArrayAdapter().CreateRule(),        //-123
-                new MultiDimensionalArrayAdapter().CreateRule(), //-122
-                new ObjectAdapter().CreateRule(),       //-111
-                new StringAdapter().CreateRule(),       //-110
-                new EnumAdapter().CreateRule(),         //-109
-                new NullableAdapter().CreateRule(),     // 0
-
-                //fallback rules
-                new TypeAdapterRule
-                {
-                    Priority = arg => -200,
-                    Settings = new TypeAdapterSettings
-                    {   
-                        SourceType = typeof(void),
-                        DestinationType = typeof(void),
-
-                        //match exact name
-                        NameMatchingStrategy = NameMatchingStrategy.Exact,
-                        ShouldMapMember =
-                        {
-                            ShouldMapMember.IgnoreAdaptIgnore,      //ignore AdaptIgnore attribute
-                            ShouldMapMember.AllowPublic,            //match public prop
-                            ShouldMapMember.AllowAdaptMember,       //match AdaptMember attribute
-                        },
-                        GetMemberNames =
-                        {
-                            GetMemberName.AdaptMember,              //get name using AdaptMember attribute
-                        },
-                        UseDestinationValues =
-                        {
-                            UseDestinationValue.Attribute,
-                        },
-                        ValueAccessingStrategies =
-                        {
-                            ValueAccessingStrategy.CustomResolver,  //get value from Map
-                            ValueAccessingStrategy.PropertyOrField, //get value from properties/fields
-                            ValueAccessingStrategy.GetMethod,       //get value from get method
-                            ValueAccessingStrategy.FlattenMember,   //get value from chain of properties
-                        }
-                    }
-                },
-
-                //dictionary accessor
-                new TypeAdapterRule
-                {
-                    Priority = arg => arg.SourceType.GetDictionaryType()?.GetGenericArguments()[0] == typeof(string) ? DictionaryAdapter.DefaultScore : (int?)null,
-                    Settings = new TypeAdapterSettings
-                    {
-                        SourceType = typeof(DictionaryAdapter),
-                        DestinationType = typeof(DictionaryAdapter),
-                        ValueAccessingStrategies =
-                        {
-                            ValueAccessingStrategy.CustomResolverForDictionary,
-                            ValueAccessingStrategy.Dictionary,
-                        },
-                    }
-                }
-            };
-        }
         private readonly TypeTuple _defaultSetterTuple = TypeTuple.Create<MapsterCacheMarker, DefaultOnlySetter>();
 
         public readonly SettingsCacheStorage MappingCache; 
 
-        public bool RequireDestinationMemberSource { get; set; }
-        public bool RequireExplicitMapping { get; set; }
-        public bool RequireExplicitMappingPrimitive { get; set; }
+        public bool RequireDestinationMemberSource { get => MappingCache.GetBoolSetting(nameof(RequireDestinationMemberSource)); set => MappingCache.SetBoolSetting(nameof(RequireDestinationMemberSource),value); }
+        public bool RequireExplicitMapping { get => MappingCache.GetBoolSetting(nameof(RequireExplicitMapping)); set => MappingCache.SetBoolSetting(nameof(RequireExplicitMapping), value); }
+        public bool RequireExplicitMappingPrimitive { get => MappingCache.GetBoolSetting(nameof(RequireExplicitMappingPrimitive)); set => MappingCache.SetBoolSetting(nameof(RequireExplicitMappingPrimitive), value); }
+        public bool AllowImplicitDestinationInheritance { get => MappingCache.GetBoolSetting(nameof(AllowImplicitDestinationInheritance)); set => MappingCache.SetBoolSetting(nameof(AllowImplicitDestinationInheritance), value); }
+        public bool AllowImplicitSourceInheritance { get => MappingCache.GetBoolSetting(nameof(AllowImplicitSourceInheritance)); set => MappingCache.SetBoolSetting(nameof(AllowImplicitSourceInheritance), value); }
+        public bool SelfContainedCodeGeneration { get => MappingCache.GetBoolSetting(nameof(SelfContainedCodeGeneration)); set => MappingCache.SetBoolSetting(nameof(SelfContainedCodeGeneration), value); }
+        public bool ActivateCustomConvertersSrcNullPropagation { get => MappingCache.GetBoolSetting(nameof(ActivateCustomConvertersSrcNullPropagation)); set => MappingCache.SetBoolSetting(nameof(ActivateCustomConvertersSrcNullPropagation), value); }
 
-        [Obsolete($"This will be removed in version 11. Use {nameof(MappingCache)}.AllowImplicitDestinationInheritance")]
-        public bool AllowImplicitDestinationInheritance { get => MappingCache.AllowImplicitDestinationInheritance; set => MappingCache.AllowImplicitDestinationInheritance = value; }
 
-        [Obsolete($"This will be removed in version 11. Use {nameof(MappingCache)}.AllowImplicitSourceInheritance")]
-        public bool AllowImplicitSourceInheritance { get => MappingCache.AllowImplicitSourceInheritance; set => MappingCache.AllowImplicitSourceInheritance = value; }
-        public bool SelfContainedCodeGeneration { get; set; }
-        public bool ActivateCustomConvertersSrcNullPropagation { get; set; } = false;
+
 
         public Func<LambdaExpression, Delegate> Compiler { get; set; } = lambda => lambda.Compile();
 
@@ -119,8 +48,7 @@ namespace Mapster
         {
             MappingCache = new(MapsterGlobalConfig.RulesTemplate, this);
             MappingCache.GetNewConfigSetter(_defaultSetterTuple, this);
-
-            MappingCache.AllowImplicitSourceInheritance = true;
+            MappingCache.SetBoolSetting(nameof(AllowImplicitSourceInheritance), true);
         }
 
 
