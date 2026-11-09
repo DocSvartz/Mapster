@@ -51,13 +51,17 @@ namespace Mapster
             MappingCache.SetBoolSetting(nameof(AllowImplicitSourceInheritance), true);
         }
 
+        internal TypeAdapterConfig(TypeAdapterConfigSnapshot snapshot)
+        {
+            MappingCache = new(snapshot, this);
+        }
 
-		/// <summary>
-		/// allows you to specify conditions for when a mapping should occur based on source and destination types and the mapping type.
-		/// </summary>
-		/// <param name="canMap"></param>
-		/// <returns></returns>
-		public TypeAdapterSetter When(Func<Type, Type, MapType, bool> canMap)
+        /// <summary>
+        /// allows you to specify conditions for when a mapping should occur based on source and destination types and the mapping type.
+        /// </summary>
+        /// <param name="canMap"></param>
+        /// <returns></returns>
+        public TypeAdapterSetter When(Func<Type, Type, MapType, bool> canMap)
         {
             var rule = new TypeAdapterRule
             {
@@ -769,11 +773,14 @@ namespace Mapster
             var tuple = new TypeTuple(sourceType, destinationType);
             //_mapDict[tuple] = Compiler(CreateMapExpression(tuple, MapType.Map));
             //_mapToTargetDict[tuple] = Compiler(CreateMapExpression(tuple, MapType.MapToTarget));
-            if (this == MapsterGlobalConfig.GlobalSettings)
-            {
-                var field = typeof(TypeAdapter<,>).MakeGenericType(sourceType, destinationType).GetField("Map");
-                //field!.SetValue(null, _mapDict[tuple]);
-            }
+            //if (this == MapsterGlobalConfig.GlobalSettings)
+            //{
+            //    var field = typeof(TypeAdapter<,>).MakeGenericType(sourceType, destinationType).GetField("Map");
+            //    //field!.SetValue(null, _mapDict[tuple]);
+            //}
+
+            Compiler(GetSnapshot.CreateMapExpression(tuple, MapType.Map));
+            Compiler(GetSnapshot.CreateMapExpression(tuple, MapType.MapToTarget));
         }
 
 
@@ -889,14 +896,12 @@ namespace Mapster
             //_dynamicMapDict.TryRemove(key, out _);
         }
 
-        private static readonly Lazy<TypeAdapterConfig> _cloneConfig = new Lazy<TypeAdapterConfig>(() =>
-        {
-            var config = new TypeAdapterConfig();
-            config.Default.Settings.PreserveReference = true;
-            config.ForType<TypeAdapterSettings, TypeAdapterSettings>()
-                .MapWith(src => src.Clone(), true);
-            return config;
-        });
+        //private s
+
+        //private static readonly Lazy<TypeAdapterConfig> _cloneConfig = new Lazy<TypeAdapterConfig>(() =>
+        //{
+        //    return new TypeAdapterConfig(this.GetSnapshot);
+        //});
 
 
 		/// <summary>
@@ -905,10 +910,12 @@ namespace Mapster
 		/// <returns></returns>
 		public TypeAdapterConfig Clone()
         {
-            //var fn = _cloneConfig.Value.GetMapFunction<TypeAdapterConfig, TypeAdapterConfig>();
+            //var fn = _cloneConfig;
             //return fn(this);
 
-            throw new NotImplementedException();
+            return new(this.GetSnapshot);
+
+           // throw new NotImplementedException();
         }
 
         //private ConcurrentDictionary<string, TypeAdapterConfig>? _inlineConfigs;
@@ -933,7 +940,11 @@ namespace Mapster
             //    return cloned;
             //});
 
-            throw new NotImplementedException();
+            var cloned = Clone();
+                action(cloned);
+                return cloned;
+
+            // throw new NotImplementedException();
         }
 
         public TypeAdapterConfigSnapshot GetSnapshot => MappingCache.CurrentSnapshot;

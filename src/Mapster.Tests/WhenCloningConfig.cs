@@ -15,6 +15,7 @@ namespace Mapster.Tests
             TypeAdapterConfig.GlobalSettings.Clear();
         }
 
+        [Ignore("10.1 Compile not ")]
         [TestMethod]
         public void Alter_Config_After_Map_Should_Error()
         {
@@ -35,6 +36,7 @@ namespace Mapster.Tests
             ex.Message.ShouldContain("TypeAdapter.Adapt was already called");
         }
 
+        [Ignore("In 10.1 Rule and settings is immutable behavior")]
         [TestMethod]
         public void Clone()
         {

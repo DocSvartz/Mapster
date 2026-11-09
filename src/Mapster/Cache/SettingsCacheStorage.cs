@@ -114,7 +114,26 @@ namespace Mapster.Cache
           //  _dynamicMapCache.Remove(key);
         }
 
-#endregion PrivateMembers
+        #endregion PrivateMembers
+
+
+        public SettingsCacheStorage(ImmutableArray<TypeAdapterRule> ruleTemplates, TypeAdapterConfig config)
+        {
+            AdapterRules = ruleTemplates;
+            var setting = TypeAdapterSettings.CreateDefault;
+            _config = config;
+        }
+
+        internal SettingsCacheStorage(TypeAdapterConfigSnapshot configSnapshot, TypeAdapterConfig config)
+        {
+            _Version = configSnapshot.Version;
+            AdapterRules = configSnapshot.AdapterRules;
+            RuleMap = configSnapshot.RuleMap;
+            BoolSettings = configSnapshot.BoolSettings;
+            CompiledRule = configSnapshot.CompiledRule;
+            TypeMemberModelsCache = configSnapshot.TypeMemberModelsCache;
+            _config = config;
+        }
 
         public void SetBoolSetting(string name, bool value)
         {
@@ -132,14 +151,7 @@ namespace Mapster.Cache
  
 
         public bool GetBoolSetting(string name) { BoolSettings.TryGetValue(name, out var data); return data; }
-
-        public SettingsCacheStorage(ImmutableArray<TypeAdapterRule> ruleTemplates, TypeAdapterConfig config)
-        {
-            AdapterRules = ruleTemplates;
-            var setting = TypeAdapterSettings.CreateDefault;
-            _config = config;
-        }
-
+                
         public TypeAdapterSetter<TSource, TDestination> GetNewConfigSetter<TSource, TDestination>(TypeTuple tuple, TypeAdapterConfig config)
         {
             lock (_lock)
@@ -262,7 +274,7 @@ namespace Mapster.Cache
         {
             lock ( _lock)
             {
-                if (_cachedSnapShot == null || _cachedSnapShot.Version != _Version)
+                if (_cachedSnapShot == null || _cachedSnapShot?.Version != _Version)
                     _cachedSnapShot = new TypeAdapterConfigSnapshot()
                     {
                         Version = this._Version,

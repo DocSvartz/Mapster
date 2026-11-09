@@ -318,7 +318,7 @@ namespace Mapster
             if (GetBoolSetting(nameof(TypeAdapterConfig.RequireExplicitMapping)) || GetBoolSetting(nameof(TypeAdapterConfig.RequireExplicitMappingPrimitive)))
             {
                 var key = new TypeTuple(sourceType, destinationType);
-                //_mapDict[key] = Compiler(CreateMapExpression(key, MapType.Map));
+                Compiler(CreateMapExpression(key, MapType.Map));
             }
             Expression invoker;
             //if (this == GlobalSettings)
