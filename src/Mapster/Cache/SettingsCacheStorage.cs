@@ -275,6 +275,7 @@ namespace Mapster.Cache
             lock (_lock)
             {
                 RuleMap = RuleMap.Clear();
+                UpdateVersion();
             }
         }
 
@@ -283,6 +284,7 @@ namespace Mapster.Cache
             lock (_lock)
             {
                 RuleMap = RuleMap.Remove(types);
+                UpdateVersion();
             }
         }
 
