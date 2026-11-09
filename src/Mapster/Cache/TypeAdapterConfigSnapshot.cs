@@ -12,21 +12,18 @@ namespace Mapster
 {
     public class TypeAdapterConfigSnapshot
     {
-        private bool AllowImplicitDestinationInheritance { get; init; }
-        private bool AllowImplicitSourceInheritance { get; init; }
-        public bool SelfContainedCodeGeneration { get; init; }
-        public bool ActivateCustomConvertersSrcNullPropagation { get; init; }
-        public bool RequireDestinationMemberSource { get; init; }
-        public bool RequireExplicitMapping { get; init; }
-        public bool RequireExplicitMappingPrimitive { get; init; }
         private TypeAdapterConfig Parent { get; init; }
 
-        private ImmutableArray<TypeAdapterRule> ImmutableRules { get; init; }
-        private ImmutableArray<TypeAdapterRule> Rules { get; init; }
-        private ImmutableDictionary<TypeTuple, TypeAdapterRule> RuleMap { get; init; }
+        private ImmutableArray<TypeAdapterRule> AdapterRules;
+        private ImmutableDictionary<TypeTuple, TypeAdapterRule> RuleMap;
+        private ImmutableDictionary<string, bool> BoolSettings;
         private Dictionary<Type, IMemberModelEx[]> TypeMemberModelsCache { get; init; }
         private Dictionary<CompiledTypesSettings, TypeAdapterRule> CompiledRule = new();
         private Func<LambdaExpression, Delegate> Compiler { get; init; }
+
+
+        public ulong Version { get; init; }
+        public bool GetBoolSetting(string name) { BoolSettings.TryGetValue(name, out var data); return data; }
 
         private T AddToHash<T>(ConcurrentDictionary<TypeTuple, T> hash, TypeTuple key, Func<TypeTuple, T> func)
         {
@@ -316,7 +313,7 @@ namespace Mapster
 
         internal Expression CreateMapInvokeExpressionBody(Type sourceType, Type destinationType, Expression p)
         {
-            if (RequireExplicitMapping || RequireExplicitMappingPrimitive)
+            if (GetBoolSetting(nameof(TypeAdapterConfig.RequireExplicitMapping)) || GetBoolSetting(nameof(TypeAdapterConfig.RequireExplicitMappingPrimitive)))
             {
                 var key = new TypeTuple(sourceType, destinationType);
                 _mapDict[key] = Compiler(CreateMapExpression(key, MapType.Map));
@@ -339,7 +336,7 @@ namespace Mapster
 
         internal Expression CreateMapToTargetInvokeExpressionBody(Type sourceType, Type destinationType, Expression p1, Expression p2)
         {
-            if (RequireExplicitMapping || RequireExplicitMappingPrimitive)
+            if (GetBoolSetting(nameof(TypeAdapterConfig.RequireExplicitMapping)) || GetBoolSetting(nameof(TypeAdapterConfig.RequireExplicitMappingPrimitive)))
             {
                 var key = new TypeTuple(sourceType, destinationType);
                 _mapToTargetDict[key] = Compiler(CreateMapExpression(key, MapType.MapToTarget));
