@@ -100,19 +100,19 @@ namespace Mapster.Cache
             return ruleMap.Settings;
         }
 
-        private void Remove(TypeTuple key)
-        {
-            RuleMap.TryGetValue(key, out var rule);
-            if (rule != null)
-            {
-               // Rules.Remove(rule);
-               // RuleMap.Remove(key);
-            }
-          //  _mapCache.Remove(key);
-          //  _mapToTargetCache.Remove(key);
-          //  _ProjectionCache.Remove(key);
-          //  _dynamicMapCache.Remove(key);
-        }
+        //private void Remove(TypeTuple key)
+        //{
+        //    RuleMap.TryGetValue(key, out var rule);
+        //    if (rule != null)
+        //    {
+        //       // Rules.Remove(rule);
+        //       // RuleMap.Remove(key);
+        //    }
+        //  //  _mapCache.Remove(key);
+        //  //  _mapToTargetCache.Remove(key);
+        //  //  _ProjectionCache.Remove(key);
+        //  //  _dynamicMapCache.Remove(key);
+        //}
 
         #endregion PrivateMembers
 
@@ -270,6 +270,22 @@ namespace Mapster.Cache
             }
         }
 
+        public void Clear()
+        {
+            lock (_lock)
+            {
+                RuleMap = RuleMap.Clear();
+            }
+        }
+
+        public void Remove(TypeTuple types)
+        {
+            lock (_lock)
+            {
+                RuleMap = RuleMap.Remove(types);
+            }
+        }
+
         private TypeAdapterConfigSnapshot GetSnapShot() 
         {
             lock ( _lock)
@@ -291,7 +307,7 @@ namespace Mapster.Cache
             }
         }
 
-
+         
 
         public TypeAdapterConfigSnapshot CurrentSnapshot => GetSnapShot();
     }

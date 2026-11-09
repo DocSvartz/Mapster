@@ -730,7 +730,9 @@ namespace Mapster
         public void Compile(bool failFast = true)
         {
             var exceptions = new List<Exception>();
-            var keys = MappingCache.GetRuleMap.Keys.ToList();
+            var conf = GetSnapshot;
+
+            var keys = conf.RuleMap.Keys.ToList();
 
             foreach (var key in keys)
             {
@@ -741,7 +743,8 @@ namespace Mapster
 
                     if (key.Source.ContainsGenericParameters || key.Destination.ContainsGenericParameters)
                         continue;
-
+                    Compiler(conf.CreateMapExpression(key, MapType.Map));
+                    Compiler(conf.CreateMapExpression(key, MapType.MapToTarget));
                     //_mapDict[key] = Compiler(CreateMapExpression(key, MapType.Map));
                     //_mapToTargetDict[key] = Compiler(CreateMapExpression(key, MapType.MapToTarget));
                 }
@@ -872,6 +875,8 @@ namespace Mapster
             //{
             //    Remove(key);
             //}
+
+            MappingCache.Clear();
         }
 
 
@@ -882,8 +887,8 @@ namespace Mapster
 		/// <param name="destinationType">Destination type to remove.</param>
 		internal void Remove(Type sourceType, Type destinationType)
         {
-            //var key = new TypeTuple(sourceType, destinationType);
-            //Remove(key);
+            var key = new TypeTuple(sourceType, destinationType);
+            MappingCache.Remove(key);
         }
 
         private void Remove(TypeTuple key)
