@@ -68,11 +68,16 @@ namespace Mapster.Cache
             };
         }
 
-        private TypeAdapterSettings GetSettings(TypeTuple types)
+        private TypeAdapterSettings GetSettings(TypeTuple types, bool isForceNewConfig = false)
         {
-            RuleMap.TryGetValue(types, out var ruleMap);
+            TypeAdapterSettings? clonedConfig = null;
+            TypeAdapterRule? ruleMap = null;
 
-            var clonedConfig = ruleMap?.Settings.Clone();
+            if (!isForceNewConfig)
+            {
+                RuleMap.TryGetValue(types, out ruleMap);
+                clonedConfig = ruleMap?.Settings.Clone();
+            }
 
             if (types.Source == typeof(MapsterCacheMarker) 
                 && types.Destination == typeof(DefaultOnlySetter))
@@ -140,7 +145,7 @@ namespace Mapster.Cache
             lock (_lock)
             {
                 Remove(tuple);
-                return new TypeAdapterSetter<TSource, TDestination>(GetSettings(tuple), config);
+                return new TypeAdapterSetter<TSource, TDestination>(GetSettings(tuple,true), config);
             }
         }
 
@@ -149,7 +154,7 @@ namespace Mapster.Cache
             lock (_lock)
             {
                 Remove(tuple);
-                return new TypeAdapterSetter(GetSettings(tuple), config);
+                return new TypeAdapterSetter(GetSettings(tuple,true), config);
             }
         }
 
