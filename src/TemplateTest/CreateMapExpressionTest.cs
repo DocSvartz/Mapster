@@ -234,7 +234,7 @@ namespace TemplateTest
                     if (methodArgs.Length < 1 || methodArgs.Length > 2)
                         continue;
                     var tuple = new TypeTuple(methodArgs[0].ParameterType, method.ReturnType);
-                    var expr = config.CreateMapExpression(
+                    var expr = config.GetSnapshot.CreateMapExpression(
                         tuple,
                         methodArgs.Length == 1 ? MapType.Map : MapType.MapToTarget
                     );
@@ -262,7 +262,7 @@ namespace TemplateTest
                         continue;
                     var funcArgs = propArgs.GetGenericArguments();
                     var tuple = new TypeTuple(funcArgs[0], funcArgs[1]);
-                    var expr = config.CreateMapExpression(tuple, MapType.Projection);
+                    var expr = config.GetSnapshot.CreateMapExpression(tuple, MapType.Projection);
                     translator.VisitLambdaForGenerateMappers(
                         expr,
                         ExpressionTranslator.LambdaType.PublicLambda,
