@@ -11,7 +11,8 @@ namespace Mapster.Cache
 {
     public class SettingsCacheStorage
     {
-#region PrivateMembers 
+        #region PrivateMembers 
+        private readonly TypeAdapterConfig _config;
         private readonly object _lock = new();
         private ulong _Version = 0;
         private ImmutableArray<TypeAdapterRule> AdapterRules;
@@ -20,16 +21,16 @@ namespace Mapster.Cache
         private readonly Dictionary<CompiledTypesSettings, TypeAdapterRule> CompiledRule = new();
 
         private readonly Dictionary<Type, IMemberModelEx[]> TypeMemberModelsCache = new();
-        
-        
+
+        private TypeAdapterConfigSnapshot? _cachedSnapShot;
         
         private readonly Dictionary<TypeTuple, Delegate> _mapCache = new();
         private readonly Dictionary<TypeTuple, Delegate> _mapToTargetCache = new();
         private readonly Dictionary<TypeTuple, Delegate> _ProjectionCache = new();
         private readonly Dictionary<TypeTuple, Delegate> _dynamicMapCache = new();
 
-        private ulong UpdateAndGetVersion() { _Version++; return _Version; }
-        private void UpdateVersion() { _Version++; }
+        private ulong UpdateAndGetVersion() { _Version = ++_Version; return _Version; }
+        private void UpdateVersion() { _Version = ++_Version; }
 
         private static TypeAdapterRule CreateDefaultRule(TypeAdapterSettings? settings = null)
         {
@@ -102,10 +103,10 @@ namespace Mapster.Cache
                // Rules.Remove(rule);
                // RuleMap.Remove(key);
             }
-            _mapCache.Remove(key);
-            _mapToTargetCache.Remove(key);
-            _ProjectionCache.Remove(key);
-            _dynamicMapCache.Remove(key);
+          //  _mapCache.Remove(key);
+          //  _mapToTargetCache.Remove(key);
+          //  _ProjectionCache.Remove(key);
+          //  _dynamicMapCache.Remove(key);
         }
 
 #endregion PrivateMembers
@@ -131,6 +132,7 @@ namespace Mapster.Cache
         {
             AdapterRules = ruleTemplates;
             var setting = TypeAdapterSettings.CreateDefault;
+            _config = config;
         }
 
         public TypeAdapterSetter<TSource, TDestination> GetNewConfigSetter<TSource, TDestination>(TypeTuple tuple, TypeAdapterConfig config)
@@ -251,16 +253,29 @@ namespace Mapster.Cache
             }
         }
 
-        internal (ImmutableList<TypeAdapterRule> Rules, 
-                ImmutableDictionary<TypeTuple, TypeAdapterRule> RuleMap,
-                ImmutableDictionary<CompiledTypesSettings, TypeAdapterRule> CompiledRule) GetFromMergedSettingsBundle()
+        private TypeAdapterConfigSnapshot GetSnapShot() 
         {
             lock ( _lock)
             {
-              return  (ImmutableList.CreateRange<TypeAdapterRule>(AdapterRules.Concat(RuleMap.Select(x => x.Value))),
-                    ImmutableDictionary.CreateRange<TypeTuple, TypeAdapterRule>(RuleMap),
-                    ImmutableDictionary.CreateRange<CompiledTypesSettings, TypeAdapterRule>(CompiledRule));
+                if (_cachedSnapShot == null || _cachedSnapShot.Version != _Version)
+                    _cachedSnapShot = new TypeAdapterConfigSnapshot()
+                    {
+                        Version = this._Version,
+                        BoolSettings = this.BoolSettings,
+                        AdapterRules = this.AdapterRules,
+                        RuleMap = this.RuleMap,
+                        CompiledRule = this.CompiledRule, // need refactoring
+                        Compiler = _config.Compiler,
+                        Config = _config,
+                        TypeMemberModelsCache = this.TypeMemberModelsCache,
+                    };
+
+                return _cachedSnapShot;
             }
         }
+
+
+
+        public TypeAdapterConfigSnapshot CurrentSnapshot => GetSnapShot();
     }
 }

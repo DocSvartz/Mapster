@@ -310,7 +310,7 @@ namespace Mapster.Adapters
 
         protected Expression? TryRestoreRecordMember(IMemberModelEx member, CompileArgument arg)
         {
-            arg.Context.Config.TypeMemberModelsCache.TryGetValue(arg.DestinationType, out var members);
+            arg.Context.ConfigSnapshot.TypeMemberModelsCache.TryGetValue(arg.DestinationType, out var members);
 
             if (members != null && arg.MapType == MapType.MapToTarget)
             {
@@ -519,7 +519,7 @@ namespace Mapster.Adapters
 
             var requireDestMemberSource = arg.Settings.RequireDestinationMemberSource;
 
-            if (arg.Context.Config.RequireDestinationMemberSource == true
+            if (arg.Context.ConfigSnapshot.GetBoolSetting(nameof(TypeAdapterConfig.RequireDestinationMemberSource)) == true
                 && requireDestMemberSource == DestinationMemebers.None)
                 requireDestMemberSource = DestinationMemebers.AllMembers;
 

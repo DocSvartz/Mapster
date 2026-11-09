@@ -12,7 +12,7 @@ namespace Mapster
     {
         public static ITypeAdapterBuilder<TSource> BuildAdapter<TSource>(this TSource source)
         {
-            return new TypeAdapterBuilder<TSource>(source, TypeAdapterConfig.GlobalSettings);
+            return new TypeAdapterBuilder<TSource>(source, MapsterGlobalConfig.GlobalSettings);
         }
 
         public static ITypeAdapterBuilder<TSource> BuildAdapter<TSource>(this TSource source, TypeAdapterConfig config)
@@ -29,7 +29,7 @@ namespace Mapster
         [return: NotNullIfNotNull(nameof(source))]
         public static TDestination? Adapt<TDestination>(this object? source)
         {
-            return Adapt<TDestination>(source, TypeAdapterConfig.GlobalSettings);
+            return Adapt<TDestination>(source, MapsterGlobalConfig.GlobalSettings);
         }
 
         /// <summary>
@@ -50,7 +50,7 @@ namespace Mapster
             else
                 type = source.GetType();
 
-            var fn = config.GetDynamicMapFunction<TDestination>(type);
+            var fn = config.GetSnapshot.GetDynamicMapFunction<TDestination>(type);
             return fn(source)!;
         }
 
@@ -76,7 +76,7 @@ namespace Mapster
         /// <returns>Adapted destination type.</returns>
         public static TDestination Adapt<TSource, TDestination>(this TSource source, TypeAdapterConfig config)
         {
-            var fn = config.GetMapFunction<TSource, TDestination>();
+            var fn = config.GetSnapshot.GetMapFunction<TSource, TDestination>();
             return fn(source);
         }
 
@@ -114,13 +114,13 @@ namespace Mapster
                 if(sourceType != null && destinationType != null)
                     return UpdateFuncFromPackedinObject(source, destination, config, sourceType, destinationType);
                        
-            var fn = config.GetMapToTargetFunction<TSource, TDestination>();
+            var fn = config.GetSnapshot.GetMapToTargetFunction<TSource, TDestination>();
             return fn(source, destination);
         }
 
         private static TDestination UpdateFuncFromPackedinObject<TSource, TDestination>(TSource source, TDestination destination, TypeAdapterConfig config, Type sourceType, Type destinationType)
         {
-            var del = config.GetMapToTargetFunction(sourceType, destinationType);
+            var del = config.GetSnapshot.GetMapToTargetFunction(sourceType, destinationType);
             var canUseDynamic = sourceType.GetTypeInfo().IsVisible && destinationType.GetTypeInfo().IsVisible;
             return DelegateInvokeCompat.InvokeMapToTarget<TDestination>(del, source!, destination!, canUseDynamic);
         }
@@ -153,7 +153,7 @@ namespace Mapster
         /// <returns>Adapted destination type.</returns>
         public static object? Adapt(this object source, Type sourceType, Type destinationType, TypeAdapterConfig config)
         {
-            var del = config.GetMapFunction(sourceType, destinationType);
+            var del = config.GetSnapshot.GetMapFunction(sourceType, destinationType);
             var canUseDynamic = sourceType.GetTypeInfo().IsVisible && destinationType.GetTypeInfo().IsVisible;
             //NOTE: if type is non-public, we cannot use dynamic
             //DynamicInvoke is slow, but works with non-public
@@ -184,7 +184,7 @@ namespace Mapster
         /// <returns>Adapted destination type.</returns>
         public static object? Adapt(this object source, object destination, Type sourceType, Type destinationType, TypeAdapterConfig config)
         {
-            var del = config.GetMapToTargetFunction(sourceType, destinationType);
+            var del = config.GetSnapshot.GetMapToTargetFunction(sourceType, destinationType);
             var canUseDynamic = sourceType.GetTypeInfo().IsVisible && destinationType.GetTypeInfo().IsVisible;
             //NOTE: if type is non-public, we cannot use dynamic
             //DynamicInvoke is slow, but works with non-public
@@ -285,6 +285,6 @@ namespace Mapster
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Minor Code Smell", "S1104:Fields should not have public accessibility", Justification = "<Pending>")]
     public static class TypeAdapter<TSource, TDestination>
     {
-        public static Func<TSource, TDestination> Map = TypeAdapterConfig.GlobalSettings.GetMapFunction<TSource, TDestination>();
+        public static Func<TSource, TDestination> Map = MapsterGlobalConfig.GlobalSettings.GetSnapshot.GetMapFunction<TSource, TDestination>();
     }
 }

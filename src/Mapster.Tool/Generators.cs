@@ -80,9 +80,10 @@ namespace Mapster.Tool
                 typeof(MapperAttribute).Assembly.GetName(),
                 typeof(IRegister).Assembly.GetName()
             );
-            var config = TypeAdapterConfig.GlobalSettings;
+            var config = MapsterGlobalConfig.GlobalSettings;
             config.SelfContainedCodeGeneration = true;
             config.Scan(assembly);
+            var configSnapshot = config.GetSnapshot;
 
             var generatedAtrr = new List<IGeneratedAttribute>();
 
@@ -143,7 +144,7 @@ namespace Mapster.Tool
                             continue;
                         var funcArgs = propArgs.GetGenericArguments();
                         var tuple = new TypeTuple(funcArgs[0], funcArgs[1]);
-                        var expr = config.CreateMapExpression(tuple, MapType.Projection);
+                        var expr = configSnapshot.CreateMapExpression(tuple, MapType.Projection);
                         translator.VisitLambdaForGenerateMappers(
                             expr,
                             ExpressionTranslator.LambdaType.PublicLambda,
@@ -168,7 +169,7 @@ namespace Mapster.Tool
                         if (methodArgs.Length < 1 || methodArgs.Length > 2)
                             continue;
                         var tuple = new TypeTuple(methodArgs[0].ParameterType, method.ReturnType);
-                        var expr = config.CreateMapExpression(
+                        var expr = configSnapshot.CreateMapExpression(
                             tuple,
                             methodArgs.Length == 1 ? MapType.Map : MapType.MapToTarget
                         );
@@ -604,7 +605,7 @@ namespace Mapster.Tool
                             attr.MapType == 0 ? MapType.Map | MapType.MapToTarget : attr.MapType;
                         GenerateExtensionMethods(
                             mapType,
-                            cloned,
+                            cloned.GetSnapshot,
                             tuple,
                             translator,
                             type,
@@ -620,7 +621,7 @@ namespace Mapster.Tool
                             attr.MapType == 0 ? MapType.Map | MapType.MapToTarget : attr.MapType;
                         GenerateExtensionMethods(
                             mapType,
-                            cloned,
+                            cloned.GetSnapshot,
                             tuple,
                             translator,
                             type,
@@ -634,7 +635,7 @@ namespace Mapster.Tool
                     var mapType = (MapType)rule.Settings.GenerateMapper!;
                     GenerateExtensionMethods(
                         mapType,
-                        config,
+                        config.GetSnapshot,
                         tuple,
                         translator,
                         type,
@@ -656,7 +657,7 @@ namespace Mapster.Tool
 
         private static void GenerateExtensionMethods(
             MapType mapType,
-            TypeAdapterConfig config,
+            TypeAdapterConfigSnapshot config,
             TypeTuple tuple,
             ExpressionTranslator translator,
             Type entityType,

@@ -85,7 +85,7 @@ namespace Mapster.Adapters
 
         protected virtual Expression CreateExpressionBody(Expression source, Expression? destination, CompileArgument arg)
         {
-            if (CheckExplicitMapping && arg.Context.Config.RequireExplicitMapping && !arg.ExplicitMapping)
+            if (CheckExplicitMapping && arg.Context.ConfigSnapshot.GetBoolSetting(nameof(TypeAdapterConfig.RequireExplicitMapping))  && !arg.ExplicitMapping)
                 throw new InvalidOperationException("Implicit mapping is not allowed (check GlobalSettings.RequireExplicitMapping) and no configuration exists");
 
             PreparatoryMappingStep(source, destination, arg);
@@ -122,14 +122,14 @@ namespace Mapster.Adapters
                 }
 
                 if (arg.Context.Running.Count > 1 && 
-                    !arg.Context.Config.SelfContainedCodeGeneration &&
+                    !arg.Context.ConfigSnapshot.GetBoolSetting(nameof(TypeAdapterConfig.SelfContainedCodeGeneration)) &&
                     !arg.UseDestinationValue &&
                     !arg.Context.IsSubFunction())
                 {
                     if (destination == null)
-                        return arg.Context.Config.CreateMapInvokeExpressionBody(source.Type, arg.DestinationType, source);
+                        return arg.Context.ConfigSnapshot.CreateMapInvokeExpressionBody(source.Type, arg.DestinationType, source);
                     else 
-                        return arg.Context.Config.CreateMapToTargetInvokeExpressionBody(source.Type, arg.DestinationType, source, destination);
+                        return arg.Context.ConfigSnapshot.CreateMapToTargetInvokeExpressionBody(source.Type, arg.DestinationType, source, destination);
                 }
                 else
                     return CreateBlockExpressionBody(source, destination, arg);
@@ -438,7 +438,7 @@ namespace Mapster.Adapters
                     if (mapping.Destination != null && arg.Context.ExtraParameters.Add(mapping.Destination))
                         extraParams.Add(mapping.Destination);
                 }
-                var lambda = arg.Context.Config.CreateInlineMapExpression(source.Type, destinationType, mapType, arg.Context, mapping);
+                var lambda = arg.Context.ConfigSnapshot.CreateInlineMapExpression(source.Type, destinationType, mapType, arg.Context, mapping);
                 var paramList = new List<Expression> {source};
                 if (destination != null)
                     paramList.Add(destination);
@@ -466,7 +466,7 @@ namespace Mapster.Adapters
 
             TypeAdapterRule? rule;
             var tuple = new TypeTuple(_source.Type, destinationType);
-            arg.Context.MappingCache.GetRuleMap.TryGetValue(tuple, out rule);
+            arg.Context.ConfigSnapshot.RuleMap.TryGetValue(tuple, out rule);
 
             //adapt(_source);
             var notUsingDestinationValue = mapping is not { UseDestinationValue: true };

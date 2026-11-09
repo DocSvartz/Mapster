@@ -11,15 +11,11 @@ namespace Mapster
 {
     public class CompileContext
     {
-        private (ImmutableList<TypeAdapterRule> Rules,
-                ImmutableDictionary<TypeTuple, TypeAdapterRule> RuleMap,
-                ImmutableDictionary<CompiledTypesSettings, TypeAdapterRule> CompiledRule) SettingSlice; 
-
-        public bool IsExplicitMapping (TypeTuple types) => SettingSlice.RuleMap.ContainsKey (types);
+        public bool IsExplicitMapping (TypeTuple types) => ConfigSnapshot.RuleMap.ContainsKey(types);
         public HashSet<TypeTuple> Running { get; } = new();
-        public Stack<TypeAdapterConfig> Configs { get; } = new();
-        public TypeAdapterConfig Config => Configs.Peek();
-        public SettingsCacheStorage MappingCache => Config.MappingCache;
+        public Stack<TypeAdapterConfigSnapshot> Configs { get; } = new();
+        public TypeAdapterConfigSnapshot ConfigSnapshot => Configs.Peek();
+        //public SettingsCacheStorage MappingCache => ConfigSnapshot.MappingCache;
         public List<TypeAdapterRule> CompiledRules { get; private set; } = new();
         public int? MaxDepth { get; set; }
         public int Depth { get; set; }
@@ -33,13 +29,11 @@ namespace Mapster
         }
         public CompileContext(TypeAdapterConfigSnapshot snapshot)
         {
-           // Configs.Push(config);
-           // SettingSlice = MappingCache.GetFromMergedSettingsBundle();
+            Configs.Push(snapshot);
         }
         public CompileContext(TypeAdapterConfig config)
         {
-            Configs.Push(config);
-            SettingSlice = MappingCache.GetFromMergedSettingsBundle();
+            //Configs.Push(config);
         }
 
         internal TypeAdapterSettings GetMergedSettings(TypeTuple tuple, MapType mapType)
@@ -49,8 +43,8 @@ namespace Mapster
                 SourceType = tuple.Source,
                 DestinationType = tuple.Destination,
                 MapType = mapType,
-                ExplicitMapping = SettingSlice.RuleMap.ContainsKey(tuple),
-                TypeMemberModelsCache = MappingCache.GetTypeMemberModelsCache
+                ExplicitMapping = ConfigSnapshot.RuleMap.ContainsKey(tuple),
+                TypeMemberModelsCache = ConfigSnapshot.TypeMemberModelsCache
 
             };
 
@@ -64,7 +58,7 @@ namespace Mapster
 
             var result = new CompiledTypesSettings(tuple);
              
-            var rules = SettingSlice.Rules.Reverse().ToList().Concat(attrSettings); // need refactoring
+            var rules = ConfigSnapshot.AdapterRules.Concat(ConfigSnapshot.RuleMap.Values).Concat(attrSettings); // need refactoring
                 
             var settings = from rule in rules
                                let priority = rule.Priority(arg)
@@ -84,7 +78,7 @@ namespace Mapster
                 
                 foreach (var types in result.Inherits)
                 {
-                    SettingSlice.RuleMap.TryGetValue(types, out var rule);
+                    ConfigSnapshot.RuleMap.TryGetValue(types, out var rule);
 
                     if (rule != null)
                         inherits.Add(rule);
@@ -104,7 +98,7 @@ namespace Mapster
             else
                 result.Includes.RemoveAll(t => t.Source == tuple.Source);
 
-            CompiledRules.Add(MappingCache.GetCompiledRule(tuple,result));
+            CompiledRules.Add(ConfigSnapshot.Config.MappingCache.GetCompiledRule(tuple,result));
 
             return result;
         }
@@ -146,7 +140,7 @@ namespace Mapster
         private TypeAdapterSettings CreateSettings(BaseAdaptAttribute attr)
         {
             var settings = new TypeAdapterSettings();
-            var setter = new TypeAdapterSetter(settings, Config);
+            var setter = new TypeAdapterSetter(settings, ConfigSnapshot.Config);
             setter.ApplyAdaptAttribute(attr);
             return settings;
         }

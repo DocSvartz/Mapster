@@ -91,12 +91,12 @@ namespace Mapster
 
         public static IEnumerable<IMemberModelEx> GetFieldsAndProperties(this Type type, CompileArgument arg, bool includeNonPublic = false, AttributeMetadataCache? attributeMetadata = null)
         {
-            arg.Context.Config.TypeMemberModelsCache.TryGetValue(type, out var model);
+            arg.Context.ConfigSnapshot.TypeMemberModelsCache.TryGetValue(type, out var model);
 
             if (model is null)
             {
                 model = type.GetAllFieldsAndProperties(attributeMetadata).ToArray();
-                arg.Context.Config.TypeMemberModelsCache[type] = model;
+                arg.Context.ConfigSnapshot.TypeMemberModelsCache[type] = model;
             }
 
             if (includeNonPublic)

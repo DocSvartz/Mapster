@@ -99,7 +99,7 @@ namespace Mapster
 		/// <returns></returns>
 		private TDestination Map<TDestination>()
         {
-            var fn = Config.GetMapFunction<TSource, TDestination>();
+            var fn = Config.GetSnapshot.GetMapFunction<TSource, TDestination>();
             return fn(Source);
         }
 
@@ -123,7 +123,7 @@ namespace Mapster
 
         private TDestination MapToTarget<TDestination>(TDestination destination)
         {
-            var fn = Config.GetMapToTargetFunction<TSource, TDestination>();
+            var fn = Config.GetSnapshot.GetMapToTargetFunction<TSource, TDestination>();
             return fn(Source, destination);
         }
 
@@ -136,7 +136,7 @@ namespace Mapster
 		public Expression<Func<TSource, TDestination>> CreateMapExpression<TDestination>()
         {
             var tuple = new TypeTuple(typeof(TSource), typeof(TDestination));
-            return (Expression<Func<TSource, TDestination>>) Config.CreateMapExpression(tuple, MapType.Map);
+            return (Expression<Func<TSource, TDestination>>) Config.GetSnapshot.CreateMapExpression(tuple, MapType.Map);
         }
 
 
@@ -148,7 +148,7 @@ namespace Mapster
 		public Expression<Func<TSource, TDestination, TDestination>> CreateMapToTargetExpression<TDestination>()
         {
             var tuple = new TypeTuple(typeof(TSource), typeof(TDestination));
-            return (Expression<Func<TSource, TDestination, TDestination>>) Config.CreateMapExpression(tuple, MapType.MapToTarget);
+            return (Expression<Func<TSource, TDestination, TDestination>>) Config.GetSnapshot.CreateMapExpression(tuple, MapType.MapToTarget);
         }
 
 
@@ -160,7 +160,7 @@ namespace Mapster
 		public Expression<Func<TSource, TDestination>> CreateProjectionExpression<TDestination>()
         {
             var tuple = new TypeTuple(typeof(TSource), typeof(TDestination));
-            return (Expression<Func<TSource, TDestination>>) Config.CreateMapExpression(tuple, MapType.Projection);
+            return (Expression<Func<TSource, TDestination>>) Config.GetSnapshot.CreateMapExpression(tuple, MapType.Projection);
         }
     }
 }
