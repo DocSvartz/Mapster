@@ -143,6 +143,7 @@ namespace Mapster.Cache
         internal SettingsCacheStorage(TypeAdapterConfigSnapshot configSnapshot, TypeAdapterConfig config)
         {
             _Version = configSnapshot.Version;
+            DefaultSettingsRule = configSnapshot.DefaultSettingsRule;
             AdapterRules = configSnapshot.AdapterRules;
             RuleMap = configSnapshot.RuleMap;
             BoolSettings = configSnapshot.BoolSettings;
