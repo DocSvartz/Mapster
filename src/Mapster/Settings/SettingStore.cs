@@ -8,11 +8,25 @@ namespace Mapster
 {
     public class SettingStore: IApplyable<SettingStore>
     {
+        private volatile bool _IsFinalized;
         private readonly ConcurrentDictionary<string, object> _objectStore = new ConcurrentDictionary<string, object>();
         private readonly ConcurrentDictionary<string, bool?> _booleanStore = new ConcurrentDictionary<string, bool?>();
 
+        public bool IsFinalized
+        {
+            get => _IsFinalized;
+
+            set
+            {
+                if (!_IsFinalized)
+                    _IsFinalized = value;
+            }
+        }
+
         public void Set(string key, bool? value)
         {
+            if (_IsFinalized) return;
+
             if (value == null)
                 _booleanStore.TryRemove(key, out _);
             else
@@ -21,6 +35,8 @@ namespace Mapster
 
         public void Set(string key, object? value)
         {
+            if (_IsFinalized) return;
+
             if (value == null)
                 _objectStore.TryRemove(key, out _);
             else
@@ -51,6 +67,8 @@ namespace Mapster
 
         private void ApplyBoolSettings (IEnumerable<KeyValuePair<string, bool?>> otherBoolStore)
         {
+            if (_IsFinalized) return;
+
             foreach (var kvp in otherBoolStore)
             {
                 _booleanStore.TryAdd(kvp.Key, kvp.Value);
@@ -59,6 +77,8 @@ namespace Mapster
 
         private void ApplyObjectSettings(IEnumerable<KeyValuePair<string, object?>> otherBoolStore)
         {
+            if (_IsFinalized) return;
+
             foreach (var kvp in otherBoolStore)
             {
                 var self = _objectStore.GetOrAdd(kvp.Key, key =>
@@ -85,6 +105,8 @@ namespace Mapster
 
         public virtual void Apply(object other)
         {
+            if (_IsFinalized) return;
+
             if (other is SettingStore settingStore)
                 Apply(settingStore);
         }
@@ -92,12 +114,16 @@ namespace Mapster
 
         public virtual void Apply(SettingStore other)
         {
+            if (_IsFinalized) return;
+
             ApplyBoolSettings(other._booleanStore);
             ApplyObjectSettings(other._objectStore);
         }
 
         public virtual void ApplyWithSkipSettings(SettingStore other, List<String> skipSettingNames)
         {
+            if (_IsFinalized) return;
+
             ApplyBoolSettings(other._booleanStore.Where(x => !skipSettingNames.Contains(x.Key)));
             ApplyObjectSettings(other._objectStore.Where(x => !skipSettingNames.Contains(x.Key)));
         }

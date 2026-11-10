@@ -30,7 +30,6 @@ namespace Mapster
         {
             SourceType = typeof(void),
             DestinationType = typeof(void),
-            IsFinalized = true,
 
             //match exact name
             NameMatchingStrategy = NameMatchingStrategy.Exact,
@@ -55,6 +54,6 @@ namespace Mapster
                             ValueAccessingStrategy.GetMethod,       //get value from get method
                             ValueAccessingStrategy.FlattenMember,   //get value from chain of properties
                         }
-        };
+        }.Finalize();
     }
 }

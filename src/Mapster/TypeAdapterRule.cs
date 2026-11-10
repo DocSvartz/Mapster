@@ -11,10 +11,10 @@ namespace Mapster
 
     public class CustomAdapterRule : TypeAdapterRule
     {
-        internal CustomAdapterRule(Func<PreCompileArgument, int?> priority, TypeAdapterSettings settings)
+        public CustomAdapterRule(Func<PreCompileArgument, int?> priority, TypeAdapterSettings settings)
         {
             Priority = priority;
-            Settings = settings;
+            Settings = settings.Finalize();
         }
         public CustomAdapterRule(Func<PreCompileArgument, int?> priority): this()
         {

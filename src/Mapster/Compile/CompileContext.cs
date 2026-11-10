@@ -134,10 +134,10 @@ namespace Mapster
         {
             //Finalize settings are used here, since the consumer will not receive
             //it in an intermediate state—unlike in NewConfig() or ForType() creation.
-            var settings = SettingsFactory.GetFinalizeSettings;
+            var settings = SettingsFactory.GetExplicitTypeSettings;
             var setter = new TypeAdapterSetter(settings, ConfigSnapshot.Config);
             setter.ApplyAdaptAttribute(attr);
-            return settings;
+            return settings.Finalize();
         }
 
     }

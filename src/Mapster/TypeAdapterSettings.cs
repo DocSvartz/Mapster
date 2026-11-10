@@ -3,6 +3,7 @@ using Mapster.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Runtime.CompilerServices;
 // ReSharper disable ArrangeAccessorOwnerBody
 
 namespace Mapster
@@ -10,12 +11,11 @@ namespace Mapster
     [AdaptWith(AdaptDirectives.DestinationAsRecord)]
     public class TypeAdapterSettings : SettingStore, ISourceToDestinationTypeAdapterSettings
     {
-        private volatile bool _IsFinalized;
-
         public ulong Id { get; set; }
         public ulong Version { get; set; }
 
-        public bool IsFinalized { get => _IsFinalized;  set => _IsFinalized = value; }
+        public TypeAdapterSettings Finalize() { this.IsFinalized = true; return this; }
+
         public Type? SourceType
         {
             get => Get<Type>(nameof(SourceType));

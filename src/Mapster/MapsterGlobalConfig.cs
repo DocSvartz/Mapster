@@ -31,7 +31,7 @@ namespace Mapster
             result.Add(new CustomAdapterRule((arg => -200), SettingsFactory.GetFallBackFinalizeSettings));
 
             //dictionary accessor
-            var dSettings = SettingsFactory.GetFinalizeSettings;
+            var dSettings = SettingsFactory.GetExplicitTypeSettings;
             dSettings.SourceType = typeof(DictionaryAdapter);
             dSettings.DestinationType = typeof(DictionaryAdapter);
             dSettings.ValueAccessingStrategies.Add(ValueAccessingStrategy.CustomResolverForDictionary);

@@ -22,6 +22,7 @@ namespace Mapster
         internal Dictionary<CompiledTypesSettings, TypeAdapterRule> CompiledRule = new();
         internal Func<LambdaExpression, Delegate> Compiler { get; init; }
 
+        internal Dictionary<TypeTuple, Delegate> MapCache { get; init; } = new();
 
         public ulong Version { get; init; }
         public bool GetBoolSetting(string name) { BoolSettings.TryGetValue(name, out var data); return data; }
@@ -49,10 +50,15 @@ namespace Mapster
         internal Delegate GetMapFunction(Type sourceType, Type destinationType)
         {
             var key = new TypeTuple(sourceType, destinationType);
-            //if (!_mapDict.TryGetValue(key, out var del))
-            //    del = AddToHash(_mapDict, key, tuple => Compiler(
-            //        CreateMapExpression(tuple, MapType.Map)));
-            return Compiler(CreateMapExpression(key, MapType.Map));
+            
+            MapCache.TryGetValue(key, out var data);
+            if (data != null)
+                return data;
+            var del = Compiler(CreateMapExpression(key, MapType.Map));
+
+            MapCache[key]= del;
+
+            return del;
         }
 
         //private readonly ConcurrentDictionary<TypeTuple, Delegate> _mapToTargetDict = new ConcurrentDictionary<TypeTuple, Delegate>();
