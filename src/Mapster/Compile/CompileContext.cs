@@ -113,11 +113,7 @@ namespace Mapster
                          where attr.Type == null || attr.Type == tuple.Destination
                          where attr.Name == null || attr.Name.Replace("[name]", type.Name) == tuple.Destination.Name
                          let distance = tuple.Source.GetSubclassDistance(type, true)
-                         select new TypeAdapterRule
-                         {
-                             Priority = arg => distance + 50,
-                             Settings = CreateSettings(attr)
-                         };
+                         select new ExplicitTypeAdapterRule((arg => distance + 50), CreateSettings(attr));
             if (tuple.Source == tuple.Destination)
                 return rules1;
             var rules2 = from type in tuple.Destination.GetAllTypes()
@@ -129,17 +125,16 @@ namespace Mapster
                          where attr.Type == null || attr.Type == tuple.Source
                          where attr.Name == null || attr.Name.Replace("[name]", type.Name) == tuple.Source.Name
                          let distance = tuple.Destination.GetSubclassDistance(type, true)
-                         select new TypeAdapterRule
-                         {
-                             Priority = arg => distance + 50,
-                             Settings = CreateSettings(attr)
-                         };
+                         select new ExplicitTypeAdapterRule((arg => distance + 50), CreateSettings(attr));
+                         
             return rules1.Concat(rules2);
         }
 
         private TypeAdapterSettings CreateSettings(BaseAdaptAttribute attr)
         {
-            var settings = new TypeAdapterSettings();
+            //Finalize settings are used here, since the consumer will not receive
+            //it in an intermediate state—unlike in NewConfig() or ForType() creation.
+            var settings = SettingsFactory.GetFinalizeSettings;
             var setter = new TypeAdapterSetter(settings, ConfigSnapshot.Config);
             setter.ApplyAdaptAttribute(attr);
             return settings;

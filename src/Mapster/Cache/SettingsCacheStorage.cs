@@ -34,27 +34,26 @@ namespace Mapster.Cache
 
         private static TypeAdapterRule CreateDefaultRule(TypeAdapterSettings? settings = null)
         {
-          return  new TypeAdapterRule
-            {
-                Priority = arg => -100,
-                Settings = settings ?? new TypeAdapterSettings()
-            };
+            Func<PreCompileArgument, int?> priority = arg => -100;
+
+            return settings == null
+                ? new ExplicitTypeAdapterRule(priority)
+                : new ExplicitTypeAdapterRule(priority, settings);
         }
 
 
         private static TypeAdapterRule CreateDestinationTypeRule(TypeTuple key, TypeAdapterSettings? settings = null)
         {
-            return new TypeAdapterRule
-            {
-                Priority = arg => arg.DestinationType.GetSubclassDistance(key.Destination, true),
-                Settings = settings ?? new TypeAdapterSettings(),
-            };
+            Func<PreCompileArgument, int?> priority = arg => arg.DestinationType.GetSubclassDistance(key.Destination, true);
+
+            return settings == null
+                ? new ExplicitTypeAdapterRule(priority)
+                : new ExplicitTypeAdapterRule(priority, settings);
         }
         private TypeAdapterRule CreateTypeTupleRule(TypeTuple key, TypeAdapterSettings? settings = null)
         {
-            return new TypeAdapterRule
-            {
-                Priority = arg =>
+            Func<PreCompileArgument, int?> priority =
+                arg =>
                 {
                     var score1 = arg.DestinationType.GetSubclassDistance(key.Destination, GetBoolSetting(nameof(TypeAdapterConfig.AllowImplicitDestinationInheritance)));
                     if (score1 == null)
@@ -63,9 +62,11 @@ namespace Mapster.Cache
                     if (score2 == null)
                         return null;
                     return score1.Value + score2.Value;
-                },
-                Settings = settings ?? new TypeAdapterSettings(),
-            };
+                };
+
+            return settings == null
+                ? new ExplicitTypeAdapterRule(priority)
+                : new ExplicitTypeAdapterRule(priority, settings);
         }
 
         private TypeAdapterSettings GetSettings(TypeTuple types, bool isForceNewConfig = false)

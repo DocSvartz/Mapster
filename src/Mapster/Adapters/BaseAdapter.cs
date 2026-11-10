@@ -44,17 +44,14 @@ namespace Mapster.Adapters
 
         public TypeAdapterRule CreateRule()
         {
-            var rule = new TypeAdapterRule
-            {
-                Priority = Priority,
-                Settings = new TypeAdapterSettings
-                {
-                    SourceType = this.GetType(),
-                    DestinationType = this.GetType(),
-                    ConverterFactory = CreateAdaptFunc,
-                    ConverterToTargetFactory = CreateAdaptToTargetFunc,
-                }
-            };
+            var rule = new CustomAdapterRule();
+
+            rule.Priority = Priority;
+            rule.Settings.SourceType = this.GetType();
+            rule.Settings.DestinationType = this.GetType();
+            rule.Settings.ConverterFactory = CreateAdaptFunc;
+            rule.Settings.ConverterToTargetFactory = CreateAdaptToTargetFunc;
+
             DecorateRule(rule);
             return rule;
         }

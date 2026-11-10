@@ -342,14 +342,14 @@ namespace Mapster
                 if (!baseDestinationType.GetTypeInfo().IsAssignableFrom(destType.GetTypeInfo()))
                     throw new InvalidCastException("In order to use inherits, TDestination must be inherited from TBaseDestination.");
             }
-        
-            setter.Config.MappingCache.AddRule(new TypeAdapterRule
-            {
-                Priority = arg =>
-                    arg.SourceType == sourceType &&
-                    arg.DestinationType == destType ? (int?)100 : null,
-                Settings = (TypeAdapterSettings)setter.Settings
-            });
+
+            setter.Config.MappingCache.AddRule(
+                new CustomAdapterRule(
+                        (arg =>
+                        arg.SourceType == sourceType &&
+                        arg.DestinationType == destType ? (int?)100 : null)
+                    )
+                );
 
             setter.Settings.Includes.Add(new TypeTuple(sourceType, destType));
 
@@ -1067,13 +1067,12 @@ namespace Mapster
                     throw new InvalidCastException("In order to use inherits, TDestination must be inherited from TBaseDestination.");
             }
 
-            Config.MappingCache.AddRule(new TypeAdapterRule
-            {
-                Priority = arg =>
-                    arg.SourceType == sourceType &&
-                    arg.DestinationType == destType ? (int?)100 : null,
-                Settings = (TypeAdapterSettings)Settings
-            });
+            Config.MappingCache.AddRule(new CustomAdapterRule
+            (
+                (arg =>
+                arg.SourceType == sourceType &&
+                arg.DestinationType == destType ? (int?)100 : null)
+            ));
 
             Settings.Includes.Add(new TypeTuple(sourceType, destType));
 

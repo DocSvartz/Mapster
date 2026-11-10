@@ -63,10 +63,9 @@ namespace Mapster
         /// <returns></returns>
         public TypeAdapterSetter When(Func<Type, Type, MapType, bool> canMap)
         {
-            var rule = new TypeAdapterRule
+            var rule = new CustomAdapterRule
             {
-                Priority = arg => canMap(arg.SourceType, arg.DestinationType, arg.MapType) ? (int?)25 : null,
-                Settings = new TypeAdapterSettings(),
+                Priority = arg => canMap(arg.SourceType, arg.DestinationType, arg.MapType) ? (int?)25 : null
             };
             //Rules.LockAdd(rule);
             MappingCache.AddRule(rule);
@@ -81,10 +80,9 @@ namespace Mapster
 		/// <returns></returns>
 		public TypeAdapterSetter When(Func<PreCompileArgument, bool> canMap)
         {
-            var rule = new TypeAdapterRule
+            var rule = new CustomAdapterRule
             {
-                Priority = arg => canMap(arg) ? (int?)25 : null,
-                Settings = new TypeAdapterSettings(),
+                Priority = arg => canMap(arg) ? (int?)25 : null
             };
             //Rules.LockAdd(rule);
             MappingCache.AddRule(rule);
