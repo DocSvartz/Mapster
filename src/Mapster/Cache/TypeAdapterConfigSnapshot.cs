@@ -11,10 +11,11 @@ using System.Runtime.CompilerServices;
 
 namespace Mapster
 {
-    public class TypeAdapterConfigSnapshot
+    public partial class TypeAdapterConfigSnapshot
     {
         public TypeAdapterConfig Config { get; init; }
 
+        internal TypeAdapterRule DefaultSettingsRule;
         internal ImmutableArray<TypeAdapterRule> AdapterRules;
         internal ImmutableDictionary<TypeTuple, TypeAdapterRule> RuleMap;
         internal ImmutableDictionary<string, bool> BoolSettings;
@@ -25,6 +26,7 @@ namespace Mapster
 
         public ulong Version { get; init; }
         public bool GetBoolSetting(string name) { BoolSettings.TryGetValue(name, out var data); return data; }
+        public IReadOnlyCollection<TypeAdapterRule> Rules => this;
 
         private T AddToHash<T>(ConcurrentDictionary<TypeTuple, T> hash, TypeTuple key, Func<TypeTuple, T> func)
         {

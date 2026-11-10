@@ -1,4 +1,5 @@
-﻿using Mapster.Models;
+﻿using Mapster.Cache;
+using Mapster.Models;
 using Mapster.Utils;
 using System;
 using System.Collections.Generic;

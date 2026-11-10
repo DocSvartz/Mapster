@@ -5,16 +5,16 @@ using Mapster.Utils;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 
 namespace Mapster.Cache
 {
-    public class SettingsCacheStorage
+    public partial class SettingsCacheStorage
     {
         #region PrivateMembers 
         private readonly TypeAdapterConfig _config;
         private readonly object _lock = new();
         private ulong _Version = 0;
+        private TypeAdapterRule DefaultSettingsRule;
         private ImmutableArray<TypeAdapterRule> AdapterRules;
         private ImmutableDictionary<TypeTuple, TypeAdapterRule> RuleMap = ImmutableDictionary<TypeTuple, TypeAdapterRule>.Empty;
         private ImmutableDictionary<string, bool> BoolSettings = ImmutableDictionary<string, bool>.Empty;
@@ -118,6 +118,7 @@ namespace Mapster.Cache
         #endregion PrivateMembers
 
 
+        public IReadOnlyCollection<TypeAdapterRule> Rules => this;
         public SettingsCacheStorage(ImmutableArray<TypeAdapterRule> ruleTemplates, TypeAdapterConfig config)
         {
             AdapterRules = ruleTemplates;
@@ -220,19 +221,6 @@ namespace Mapster.Cache
             {
                 AdapterRules = AdapterRules.Add(rule);
                 UpdateVersion();
-            }
-        }
-
-
-        public ImmutableList<TypeAdapterRule> GetRules
-        {
-            get
-            {
-                lock (_lock)
-                {
-                    // need cache 
-                    return ImmutableList.CreateRange<TypeAdapterRule>(AdapterRules.Concat(RuleMap.Select(x=> x.Value)));
-                }
             }
         }
 
