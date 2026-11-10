@@ -43,15 +43,9 @@ namespace Mapster
         public static TDestination? Adapt<TDestination>(this object? source, TypeAdapterConfig config)
         {
             // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-            Type? type;
 
-            if (source == null)
-                type = typeof(Object);
-            else
-                type = source.GetType();
-
-            var fn = config.GetSnapshot.GetDynamicMapFunction<TDestination>(type);
-            return fn(source)!;
+            var snapshot = config.GetSnapshot;
+            return source.Adapt<TDestination>(snapshot);
         }
 
         /// <summary>
@@ -109,27 +103,10 @@ namespace Mapster
         /// <returns>Adapted destination type.</returns>
         public static TDestination Adapt<TSource, TDestination>(this TSource source, TDestination destination, TypeAdapterConfig config)
         {
-            var sourceType = source?.GetType();
-            var destinationType = destination?.GetType();
-
-            if (sourceType == typeof(object)) // Infinity loop in ObjectAdapter if Runtime Type of source is Object 
-                return destination;
-
-            if (typeof(TSource) == typeof(object) || typeof(TDestination) == typeof(object))
-                if(sourceType != null && destinationType != null)
-                    return UpdateFuncFromPackedinObject(source, destination, config, sourceType, destinationType);
-                       
-            var fn = config.GetSnapshot.GetMapToTargetFunction<TSource, TDestination>();
-            return fn(source, destination);
+            var snapshot = config.GetSnapshot;
+            return source.Adapt<TSource, TDestination>(destination,snapshot);
         }
-
-        private static TDestination UpdateFuncFromPackedinObject<TSource, TDestination>(TSource source, TDestination destination, TypeAdapterConfig config, Type sourceType, Type destinationType)
-        {
-            var del = config.GetSnapshot.GetMapToTargetFunction(sourceType, destinationType);
-            var canUseDynamic = sourceType.GetTypeInfo().IsVisible && destinationType.GetTypeInfo().IsVisible;
-            return DelegateInvokeCompat.InvokeMapToTarget<TDestination>(del, source!, destination!, canUseDynamic);
-        }
-
+                
         /// <summary>
         /// Adapt the source object to the destination type.
         /// </summary>
@@ -158,11 +135,9 @@ namespace Mapster
         /// <returns>Adapted destination type.</returns>
         public static object? Adapt(this object source, Type sourceType, Type destinationType, TypeAdapterConfig config)
         {
-            var del = config.GetSnapshot.GetMapFunction(sourceType, destinationType);
-            var canUseDynamic = sourceType.GetTypeInfo().IsVisible && destinationType.GetTypeInfo().IsVisible;
-            //NOTE: if type is non-public, we cannot use dynamic
-            //DynamicInvoke is slow, but works with non-public
-            return DelegateInvokeCompat.InvokeMap(del, source, canUseDynamic);
+            var snapshot = config.GetSnapshot;
+
+            return source.Adapt(sourceType, destinationType, snapshot);
         }
 
         /// <summary>
@@ -189,11 +164,9 @@ namespace Mapster
         /// <returns>Adapted destination type.</returns>
         public static object? Adapt(this object source, object destination, Type sourceType, Type destinationType, TypeAdapterConfig config)
         {
-            var del = config.GetSnapshot.GetMapToTargetFunction(sourceType, destinationType);
-            var canUseDynamic = sourceType.GetTypeInfo().IsVisible && destinationType.GetTypeInfo().IsVisible;
-            //NOTE: if type is non-public, we cannot use dynamic
-            //DynamicInvoke is slow, but works with non-public
-            return DelegateInvokeCompat.InvokeMapToTarget(del, source, destination, canUseDynamic);
+            var snapshot = config.GetSnapshot;
+            
+            return source.Adapt(destination, sourceType, destinationType, snapshot);
         }
         
         /// <summary>
@@ -229,25 +202,8 @@ namespace Mapster
         /// <returns>Adapted destination type.</returns>
         public static TDestination ValidateAndAdapt<TSource, TDestination>(this TSource source, TypeAdapterConfig config)
         {
-            var sourceType = typeof(TSource);
-            var selectorType = typeof(TDestination);
-
-            var sourceProperties = new HashSet<string>(sourceType.GetProperties().Select(p => p.Name));
-            var selectorProperties = new HashSet<string>(selectorType.GetProperties().Select(p=> p.Name));
-
-            // Get the rule map for the current types
-            var ruleMap = config.MappingCache.GetRuleMap;
-            var typeTuple = new TypeTuple(sourceType, selectorType);
-            ruleMap.TryGetValue(typeTuple, out var rule);
-
-            foreach (var selectorProperty in selectorProperties)
-            {
-                if (sourceProperties.Contains(selectorProperty)) continue;
-                // Check whether the adapter config has a config for the property
-                if (rule != null && rule.Settings.Resolvers.Any(r => r.DestinationMemberName.Equals(selectorProperty))) continue;
-                throw new Exception($"Property {selectorProperty} does not exist in {sourceType.Name} and is not configured in Mapster");
-            }
-            return source.Adapt<TDestination>(config);
+            var snapshot = config.GetSnapshot;
+            return source.ValidateAndAdapt<TSource, TDestination>(snapshot);
         }
 
 
