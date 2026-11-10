@@ -40,7 +40,7 @@ namespace Mapster
         public Func<LambdaExpression, Delegate> Compiler { get; set; } = lambda => lambda.Compile();
 
         [Obsolete($"This will be removed in version 11. Use {nameof(MappingCache)}.Rules")]
-        public IReadOnlyCollection<TypeAdapterRule> Rules => MappingCache.Rules;
+        public IList<TypeAdapterRule> Rules => MappingCache.Rules.ToList();
         public DefaultOnlySetter Default => MappingCache.GetForTypeSetter(_defaultSetterTuple,this);
         public ConcurrentDictionary<TypeTuple, TypeAdapterRule> RuleMap { get; internal set; } = new ConcurrentDictionary<TypeTuple, TypeAdapterRule>();
 

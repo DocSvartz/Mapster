@@ -58,7 +58,7 @@ namespace Mapster
 
             var result = new CompiledTypesSettings(tuple);
              
-            var rules = ConfigSnapshot.AdapterRules.Concat(ConfigSnapshot.RuleMap.Values).Concat(attrSettings); // need refactoring
+            var rules = ConfigSnapshot.Rules.Concat(attrSettings);
                 
             var settings = from rule in rules
                                let priority = rule.Priority(arg)

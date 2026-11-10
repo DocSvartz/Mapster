@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 
 namespace Mapster
 {
@@ -16,7 +15,7 @@ namespace Mapster
         public TypeAdapterConfig Config { get; init; }
 
         internal TypeAdapterRule DefaultSettingsRule;
-        internal ImmutableArray<TypeAdapterRule> AdapterRules;
+        internal ImmutableArray<TypeAdapterRule> AdapterRules { get; init;}
         internal ImmutableDictionary<TypeTuple, TypeAdapterRule> RuleMap;
         internal ImmutableDictionary<string, bool> BoolSettings;
         internal Dictionary<Type, IMemberModelEx[]> TypeMemberModelsCache { get; init; }

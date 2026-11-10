@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Mapster.Cache
+namespace Mapster
 {
     public partial class TypeAdapterConfigSnapshot : IEnumerable<TypeAdapterRule>, IReadOnlyCollection<TypeAdapterRule>
     {
@@ -20,7 +20,10 @@ namespace Mapster.Cache
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
+}
 
+namespace Mapster.Cache 
+{
     public partial class SettingsCacheStorage : IEnumerable<TypeAdapterRule>, IReadOnlyCollection<TypeAdapterRule>
     {
         public int Count => DefaultSettingsRule is not null ? 1 : 0
@@ -37,3 +40,4 @@ namespace Mapster.Cache
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }
+

@@ -74,21 +74,19 @@ namespace Mapster.Cache
             TypeAdapterSettings? clonedConfig = null;
             TypeAdapterRule? ruleMap = null;
 
-            if (!isForceNewConfig)
-            {
-                RuleMap.TryGetValue(types, out ruleMap);
-                clonedConfig = ruleMap?.Settings.Clone();
-            }
-
-            if (types.Source == typeof(MapsterCacheMarker) 
+            if (types.Source == typeof(MapsterCacheMarker)
                 && types.Destination == typeof(DefaultOnlySetter))
-                    ruleMap = CreateDefaultRule(clonedConfig);
-            else
-            {
-                ruleMap = types.Source == typeof(void)
-                   ? CreateDestinationTypeRule(types, clonedConfig)
-                   : CreateTypeTupleRule(types, clonedConfig);
-            }
+                return GetDefaultSetterSettings(types, isForceNewConfig);
+
+            RuleMap.TryGetValue(types, out ruleMap);
+
+            if (!isForceNewConfig)
+                clonedConfig = ruleMap?.Settings.Clone();
+                   
+            ruleMap = types.Source == typeof(void)
+                ? CreateDestinationTypeRule(types, clonedConfig)
+                : CreateTypeTupleRule(types, clonedConfig);
+
 
             ruleMap.Settings.Id = UpdateAndGetVersion();
             //Rules.Add(ruleMap);
@@ -97,6 +95,22 @@ namespace Mapster.Cache
                       
             ruleMap.Settings.SourceType = types.Source;
             ruleMap.Settings.DestinationType = types.Destination;
+
+            return ruleMap.Settings;
+        }
+
+        private TypeAdapterSettings GetDefaultSetterSettings(TypeTuple types, bool isForceNewConfig = false)
+        {
+            var clonedConfig = isForceNewConfig ? null :
+                DefaultSettingsRule?.Settings.Clone();
+
+            var ruleMap = CreateDefaultRule(clonedConfig);
+
+            ruleMap.Settings.Id = UpdateAndGetVersion();
+            ruleMap.Settings.SourceType = types.Source;
+            ruleMap.Settings.DestinationType = types.Destination;
+
+            DefaultSettingsRule = ruleMap;
 
             return ruleMap.Settings;
         }
@@ -287,6 +301,7 @@ namespace Mapster.Cache
                         Version = this._Version,
                         BoolSettings = this.BoolSettings,
                         AdapterRules = this.AdapterRules,
+                        DefaultSettingsRule = this.DefaultSettingsRule,
                         RuleMap = this.RuleMap,
                         CompiledRule = this.CompiledRule, // need refactoring
                         Compiler = _config.Compiler,
