@@ -18,11 +18,7 @@ namespace Mapster
         internal ImmutableArray<TypeAdapterRule> AdapterRules { get; init;}
         internal ImmutableDictionary<TypeTuple, TypeAdapterRule> RuleMap;
         internal ImmutableDictionary<string, bool> BoolSettings;
-        internal Dictionary<Type, IMemberModelEx[]> TypeMemberModelsCache { get; init; }
-        internal Dictionary<CompiledTypesSettings, TypeAdapterRule> CompiledRule = new();
         internal Func<LambdaExpression, Delegate> Compiler { get; init; }
-
-        internal Dictionary<TypeTuple, Delegate> MapCache { get; init; } = new();
 
         public ulong Version { get; init; }
         public bool GetBoolSetting(string name) { BoolSettings.TryGetValue(name, out var data); return data; }
@@ -50,14 +46,8 @@ namespace Mapster
         internal Delegate GetMapFunction(Type sourceType, Type destinationType)
         {
             var key = new TypeTuple(sourceType, destinationType);
-            
-            MapCache.TryGetValue(key, out var data);
-            if (data != null)
-                return data;
-            var del = Compiler(CreateMapExpression(key, MapType.Map));
-
-            MapCache[key]= del;
-
+            if (!_mapDict.TryGetValue(key, out var del))
+                del = AddToHash(_mapDict, key, tuple => Compiler(CreateMapExpression(tuple, MapType.Map)));
             return del;
         }
 
@@ -69,9 +59,9 @@ namespace Mapster
         internal Delegate GetMapToTargetFunction(Type sourceType, Type destinationType)
         {
             var key = new TypeTuple(sourceType, destinationType);
-            //if (!_mapToTargetDict.TryGetValue(key, out var del))
-            //    del = AddToHash(_mapToTargetDict, key, tuple => Compiler(CreateMapExpression(tuple, MapType.MapToTarget)));
-            return Compiler(CreateMapExpression(key, MapType.MapToTarget));
+            if (!_mapToTargetDict.TryGetValue(key, out var del))
+                del = AddToHash(_mapToTargetDict, key, tuple => Compiler(CreateMapExpression(tuple, MapType.MapToTarget)));
+            return del;
         }
 
         //private readonly ConcurrentDictionary<TypeTuple, MethodCallExpression> _projectionDict = new ConcurrentDictionary<TypeTuple, MethodCallExpression>();
@@ -84,18 +74,18 @@ namespace Mapster
         internal MethodCallExpression GetProjectionCallExpression(Type sourceType, Type destinationType)
         {
             var key = new TypeTuple(sourceType, destinationType);
-            //if (!_projectionDict.TryGetValue(key, out var del))
-            //    del = AddToHash(_projectionDict, key, CreateProjectionCallExpression);
-            return CreateProjectionCallExpression(key);
+            if (!_projectionDict.TryGetValue(key, out var del))
+                del = AddToHash(_projectionDict, key, CreateProjectionCallExpression);
+            return del;
         }
 
         //private readonly ConcurrentDictionary<TypeTuple, Delegate> _dynamicMapDict = new ConcurrentDictionary<TypeTuple, Delegate>();
         public Func<object, TDestination> GetDynamicMapFunction<TDestination>(Type sourceType)
         {
             var key = new TypeTuple(sourceType, typeof(TDestination));
-            //if (!_dynamicMapDict.TryGetValue(key, out var del))
-            //    del = AddToHash(_dynamicMapDict, key, tuple => Compiler(CreateDynamicMapExpression(tuple)));
-            return (Func<object, TDestination>)Compiler(CreateDynamicMapExpression(key));
+            if (!_dynamicMapDict.TryGetValue(key, out var del))
+                del = AddToHash(_dynamicMapDict, key, tuple => Compiler(CreateDynamicMapExpression(tuple)));
+            return (Func<object, TDestination>)del;
         }
 
         private Expression CreateSelfExpression()
@@ -348,7 +338,7 @@ namespace Mapster
             if (GetBoolSetting(nameof(TypeAdapterConfig.RequireExplicitMapping)) || GetBoolSetting(nameof(TypeAdapterConfig.RequireExplicitMappingPrimitive)))
             {
                 var key = new TypeTuple(sourceType, destinationType);
-                //_mapToTargetDict[key] = Compiler(CreateMapExpression(key, MapType.MapToTarget));
+                _mapToTargetDict[key] = Compiler(CreateMapExpression(key, MapType.MapToTarget));
             }
             var method = (from m in typeof(TypeAdapterConfigSnapshot).GetMethods(BindingFlags.Instance | BindingFlags.Public)
                           where m.Name == nameof(GetMapToTargetFunction)
@@ -364,92 +354,7 @@ namespace Mapster
             var invoke = CreateMapToTargetInvokeExpressionBody(sourceType, destinationType, p1, p2);
             return Expression.Lambda(invoke, p1, p2);
         }
-
-        //private IEnumerable<TypeAdapterRule> GetAttributeSettings(TypeTuple tuple, MapType mapType)
-        //{
-        //    var rules1 = from type in tuple.Source.GetAllTypes()
-        //        from o in type.GetTypeInfo().GetCustomAttributesData()
-        //        where typeof(AdaptToAttribute).IsAssignableFrom(o.GetAttributeType())
-        //        let attr = o.CreateCustomAttribute<AdaptToAttribute>()
-        //        where attr != null && (attr.MapType & mapType) != 0
-        //        where attr.Type == null || attr.Type == tuple.Destination
-        //        where attr.Name == null || attr.Name.Replace("[name]", type.Name) == tuple.Destination.Name
-        //        let distance = GetSubclassDistance(tuple.Source, type, true)
-        //        select new TypeAdapterRule
-        //        {
-        //            Priority = arg => distance + 50,
-        //            Settings = CreateSettings(attr)
-        //        };
-        //    if (tuple.Source == tuple.Destination)
-        //        return rules1;
-        //    var rules2 = from type in tuple.Destination.GetAllTypes()
-        //        from o in type.GetTypeInfo().GetCustomAttributesData()
-        //        where typeof(AdaptFromAttribute).IsAssignableFrom(o.GetAttributeType()) ||
-        //              typeof(AdaptTwoWaysAttribute).IsAssignableFrom(o.GetAttributeType())
-        //        let attr = o.CreateCustomAttribute<BaseAdaptAttribute>()
-        //        where attr != null && (attr.MapType & mapType) != 0
-        //        where attr.Type == null || attr.Type == tuple.Source
-        //        where attr.Name == null || attr.Name.Replace("[name]", type.Name) == tuple.Source.Name
-        //        let distance = GetSubclassDistance(tuple.Destination, type, true)
-        //        select new TypeAdapterRule
-        //        {
-        //            Priority = arg => distance + 50,
-        //            Settings = CreateSettings(attr)
-        //        };
-        //    return rules1.Concat(rules2);
-        //}
-
-        //private TypeAdapterSettings CreateSettings(BaseAdaptAttribute attr)
-        //{
-        //    var settings = new TypeAdapterSettings();
-        //    var setter = new TypeAdapterSetter(settings, this);
-        //    setter.ApplyAdaptAttribute(attr);
-        //    return settings;
-        //}
-
-        //internal TypeAdapterSettings GetMergedSettings(TypeTuple tuple, MapType mapType)
-        //{
-        //    var arg = new PreCompileArgument
-        //    {
-        //        SourceType = tuple.Source,
-        //        DestinationType = tuple.Destination,
-        //        MapType = mapType,
-        //        ExplicitMapping = RuleMap.ContainsKey(tuple),
-        //        TypeMemberModelsCache = this.TypeMemberModelsCache
-
-        //    };
-
-        //    //auto add setting if there is attr setting
-        //    var attrSettings = GetAttributeSettings(tuple, mapType).ToList();
-        //    if (!arg.ExplicitMapping && attrSettings.Any(rule => rule.Priority(arg) == 100))
-        //    {
-        //        GetSettings(tuple);
-        //        arg.ExplicitMapping = true;
-        //    }
-
-        //    var result = new TypeAdapterSettings();
-        //    lock (Rules)
-        //    {
-        //        var rules = Rules.Reverse<TypeAdapterRule>().Concat(attrSettings);
-        //        var settings = from rule in rules
-        //            let priority = rule.Priority(arg)
-        //            where priority != null
-        //            orderby priority.Value descending
-        //            select rule.Settings;
-        //        foreach (var setting in settings)
-        //        {
-        //            result.Apply(setting);
-        //        }
-        //    }
-
-        //    //remove recursive include types
-        //    if (mapType == MapType.MapToTarget)
-        //        result.Includes.Remove(tuple);
-        //    else
-        //        result.Includes.RemoveAll(t => t.Source == tuple.Source);
-        //    return result;
-        //}
-
+                
         internal TypeAdapterSettings GetOvverideDefaultSettings(TypeTuple tuple, MapType mapType)
         {
             var arg = new PreCompileArgument
@@ -519,8 +424,8 @@ namespace Mapster
                     if (key.Source.ContainsGenericParameters || key.Destination.ContainsGenericParameters)
                         continue;
 
-                  //  _mapDict[key] = Compiler(CreateMapExpression(key, MapType.Map));
-                  //  _mapToTargetDict[key] = Compiler(CreateMapExpression(key, MapType.MapToTarget));
+                    _mapDict[key] = Compiler(CreateMapExpression(key, MapType.Map));
+                    _mapToTargetDict[key] = Compiler(CreateMapExpression(key, MapType.MapToTarget));
                 }
                 catch (Exception ex)
                 {
@@ -548,8 +453,8 @@ namespace Mapster
         public void Compile(Type sourceType, Type destinationType)
         {
             var tuple = new TypeTuple(sourceType, destinationType);
-           // _mapDict[tuple] = Compiler(CreateMapExpression(tuple, MapType.Map));
-           // _mapToTargetDict[tuple] = Compiler(CreateMapExpression(tuple, MapType.MapToTarget));
+            _mapDict[tuple] = Compiler(CreateMapExpression(tuple, MapType.Map));
+            _mapToTargetDict[tuple] = Compiler(CreateMapExpression(tuple, MapType.MapToTarget));
             //if (this == GlobalSettings)
             //{
             //    var field = typeof(TypeAdapter<,>).MakeGenericType(sourceType, destinationType).GetField("Map");
@@ -566,7 +471,7 @@ namespace Mapster
             var keys = RuleMap.Keys.ToList();
             foreach (var key in keys)
             {
-               // _projectionDict[key] = CreateProjectionCallExpression(key);
+                _projectionDict[key] = CreateProjectionCallExpression(key);
             }
         }
 
@@ -579,7 +484,7 @@ namespace Mapster
         public void CompileProjection(Type sourceType, Type destinationType)
         {
             var tuple = new TypeTuple(sourceType, destinationType);
-           // _projectionDict[tuple] = CreateProjectionCallExpression(tuple);
+            _projectionDict[tuple] = CreateProjectionCallExpression(tuple);
         }
     }
 }
