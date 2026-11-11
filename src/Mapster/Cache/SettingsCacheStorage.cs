@@ -37,8 +37,8 @@ namespace Mapster.Cache
             Func<PreCompileArgument, int?> priority = arg => -100;
 
             return settings == null
-                ? new ExplicitTypeAdapterRule(priority)
-                : new ExplicitTypeAdapterRule(priority, settings);
+                ? new TypeAdapterRule(priority)
+                : new TypeAdapterRule(priority, settings);
         }
 
 
@@ -47,8 +47,8 @@ namespace Mapster.Cache
             Func<PreCompileArgument, int?> priority = arg => arg.DestinationType.GetSubclassDistance(key.Destination, true);
 
             return settings == null
-                ? new ExplicitTypeAdapterRule(priority)
-                : new ExplicitTypeAdapterRule(priority, settings);
+                ? new TypeAdapterRule(priority)
+                : new TypeAdapterRule(priority, settings);
         }
         private TypeAdapterRule CreateTypeTupleRule(TypeTuple key, TypeAdapterSettings? settings = null)
         {
@@ -65,8 +65,8 @@ namespace Mapster.Cache
                 };
 
             return settings == null
-                ? new ExplicitTypeAdapterRule(priority)
-                : new ExplicitTypeAdapterRule(priority, settings);
+                ? new TypeAdapterRule(priority)
+                : new TypeAdapterRule(priority, settings);
         }
 
         private TypeAdapterSettings GetSettings(TypeTuple types, bool isForceNewConfig = false)

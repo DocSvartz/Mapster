@@ -63,7 +63,7 @@ namespace Mapster
         /// <returns></returns>
         public TypeAdapterSetter When(Func<Type, Type, MapType, bool> canMap)
         {
-            var rule = new ExplicitTypeAdapterRule
+            var rule = new TypeAdapterRule
             {
                 Priority = arg => canMap(arg.SourceType, arg.DestinationType, arg.MapType) ? (int?)25 : null
             };
@@ -80,7 +80,7 @@ namespace Mapster
 		/// <returns></returns>
 		public TypeAdapterSetter When(Func<PreCompileArgument, bool> canMap)
         {
-            var rule = new ExplicitTypeAdapterRule
+            var rule = new TypeAdapterRule
             {
                 Priority = arg => canMap(arg) ? (int?)25 : null
             };

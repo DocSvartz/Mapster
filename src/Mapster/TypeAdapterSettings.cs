@@ -3,7 +3,6 @@ using Mapster.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
-using System.Runtime.CompilerServices;
 // ReSharper disable ArrangeAccessorOwnerBody
 
 namespace Mapster
@@ -14,7 +13,36 @@ namespace Mapster
         public ulong Id { get; set; }
         public ulong Version { get; set; }
 
-        public TypeAdapterSettings Finalize() { this.IsReadOnly = true; return this; }
+        /// <summary>
+        /// Creates a clone of the current instance 
+        /// <see cref="TypeAdapterSettings"/>
+        /// in ReadOnly state.<br/>
+        /// Use this if you need to preserve the current instance.
+        /// </summary>
+        /// <returns>Return new instanse <see cref="TypeAdapterSettings"/> in ReadOnly state.</returns>
+        public TypeAdapterSettings ToReadOnly()
+        {
+            var clone = this.Clone();
+            clone.IsReadOnly = true;
+
+            return clone;
+        }
+
+        /// <summary>
+        /// Creates a new instance <see cref="TypeAdapterSettings"/> in ReadOnly state.
+        /// Using the internal state of the current instance.<br/>
+        /// Use this if there is no need to preserve the current instance.
+        /// </summary>
+        /// <returns>Return new instanse <see cref="TypeAdapterSettings"/> and Dispose internal state of current instanse!</returns>
+        public TypeAdapterSettings ToReadOnlyAndDisposeThis()
+        {
+            var result = new TypeAdapterSettings();
+            
+            this.MoveState(result);
+            this.DropState();
+
+            return result;
+        }
 
         public Type? SourceType
         {

@@ -28,7 +28,7 @@ namespace Mapster
             result.Add(new NullableAdapter().CreateRule());                 // 0
 
             //fallback rules
-            result.Add(new CustomAdapterRule((arg => -200), TypeAdapterSettingsFactory.GetFallBackFinalizeSettings));
+            result.Add(new ReadOnlyTypeAdapterRule((arg => -200), TypeAdapterSettingsFactory.GetFallBackFinalizeSettings));
 
             //dictionary accessor
             var dSettings = TypeAdapterSettingsFactory.GetSettings;
@@ -39,7 +39,7 @@ namespace Mapster
 
             
             result.Add(
-                    new CustomAdapterRule(
+                    new ReadOnlyTypeAdapterRule(
                         (arg => arg.SourceType.GetDictionaryType()?.GetGenericArguments()[0] == typeof(string) ? DictionaryAdapter.DefaultScore : (int?)null),
                         dSettings)
                     );

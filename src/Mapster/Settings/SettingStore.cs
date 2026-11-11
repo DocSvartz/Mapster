@@ -9,9 +9,23 @@ namespace Mapster
     public class SettingStore: IApplyable<SettingStore>
     {
         private volatile bool _IsReadOnly;
-        private readonly ConcurrentDictionary<string, object> _objectStore = new ConcurrentDictionary<string, object>();
-        private readonly ConcurrentDictionary<string, bool?> _booleanStore = new ConcurrentDictionary<string, bool?>();
+        private ConcurrentDictionary<string, object> _objectStore = new ConcurrentDictionary<string, object>();
+        private ConcurrentDictionary<string, bool?> _booleanStore = new ConcurrentDictionary<string, bool?>();
 
+        internal void DropState()
+        {
+            _booleanStore = null;
+            _objectStore = null;
+            IsDisposed = true;
+        }
+
+        protected void MoveState(SettingStore sender) 
+        { 
+            sender._booleanStore = _booleanStore;
+            sender._objectStore = _objectStore;
+        }
+        
+        public bool IsDisposed { get; private set; }
         public bool IsReadOnly
         {
             get => _IsReadOnly;

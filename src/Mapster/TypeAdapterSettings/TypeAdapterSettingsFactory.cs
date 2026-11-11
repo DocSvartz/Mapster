@@ -5,15 +5,15 @@ namespace Mapster
     public static class TypeAdapterSettingsFactory
     {
         /// <summary>
-        /// Settings used for creating mapping rule <see cref="CustomAdapterRule"/> in: 
+        /// Settings used for creating mapping rule <see cref="ReadOnlyTypeAdapterRule"/> in: 
         /// <see cref="BaseAdapter"/>,
-        /// <see cref="CustomAdapterRule"/>
+        /// <see cref="ReadOnlyTypeAdapterRule"/>
         /// .
         /// </summary>
         public static TypeAdapterSettings GetReadOnlySettings => new TypeAdapterSettings() { IsReadOnly = true };
 
         /// <summary>
-        /// Settings used for creating mapping rule <see cref="ExplicitTypeAdapterRule"/> in: 
+        /// Settings used for creating mapping rule <see cref="TypeAdapterRule"/> in: 
         /// <see cref="TypeAdapterConfig.NewConfig"/>, 
         /// <see cref="TypeAdapterConfig.ForType"/>, 
         /// <see cref="TypeAdapterConfig.ForDestinationType"/>
@@ -54,6 +54,6 @@ namespace Mapster
                             ValueAccessingStrategy.GetMethod,       //get value from get method
                             ValueAccessingStrategy.FlattenMember,   //get value from chain of properties
                         }
-        }.Finalize();
+        }.ToReadOnlyAndDisposeThis();
     }
 }

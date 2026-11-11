@@ -50,7 +50,7 @@ namespace Mapster.Adapters
             Settings.ConverterFactory = CreateAdaptFunc;
             Settings.ConverterToTargetFactory = CreateAdaptToTargetFunc;
 
-            var rule = new CustomAdapterRule(Priority, Settings);
+            var rule = new ReadOnlyTypeAdapterRule(Priority, Settings);
 
             DecorateRule(rule);
             return rule;

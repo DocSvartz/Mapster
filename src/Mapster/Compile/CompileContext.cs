@@ -113,7 +113,7 @@ namespace Mapster
                          where attr.Type == null || attr.Type == tuple.Destination
                          where attr.Name == null || attr.Name.Replace("[name]", type.Name) == tuple.Destination.Name
                          let distance = tuple.Source.GetSubclassDistance(type, true)
-                         select new ExplicitTypeAdapterRule((arg => distance + 50), CreateSettings(attr));
+                         select new TypeAdapterRule((arg => distance + 50), CreateSettings(attr));
             if (tuple.Source == tuple.Destination)
                 return rules1;
             var rules2 = from type in tuple.Destination.GetAllTypes()
@@ -125,7 +125,7 @@ namespace Mapster
                          where attr.Type == null || attr.Type == tuple.Source
                          where attr.Name == null || attr.Name.Replace("[name]", type.Name) == tuple.Source.Name
                          let distance = tuple.Destination.GetSubclassDistance(type, true)
-                         select new ExplicitTypeAdapterRule((arg => distance + 50), CreateSettings(attr));
+                         select new TypeAdapterRule((arg => distance + 50), CreateSettings(attr));
                          
             return rules1.Concat(rules2);
         }
@@ -137,7 +137,7 @@ namespace Mapster
             var settings = TypeAdapterSettingsFactory.GetSettings;
             var setter = new TypeAdapterSetter(settings, ConfigSnapshot.Config);
             setter.ApplyAdaptAttribute(attr);
-            return settings.Finalize();
+            return settings.ToReadOnlyAndDisposeThis();
         }
 
     }
