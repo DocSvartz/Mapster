@@ -15,5 +15,6 @@ namespace Mapster
 
         internal Dictionary<Type, IMemberModelEx[]> TypeMemberModelsCache { get; init; }
         internal Dictionary<CompiledTypesSettings, TypeAdapterRule> CompiledRule = new();
+        internal ConcurrentDictionary<CompiledTypesSettings,bool> CacheCompiledTypesSettings { get; init; } = new();
     }
 }

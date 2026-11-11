@@ -31,8 +31,8 @@ namespace Mapster
                 var del = func(types);
                 hash[types] = del;
 
-                if (RuleMap.TryGetValue(types, out var rule))
-                    rule.Settings.Compiled = true;
+               // if (RuleMap.TryGetValue(types, out var rule))
+                   // rule.Settings.Compiled = true;
                 return del;
 
             });

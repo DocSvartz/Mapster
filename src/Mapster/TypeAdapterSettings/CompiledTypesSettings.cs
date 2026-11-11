@@ -17,8 +17,11 @@ namespace Mapster
         {
             if(other is TypeAdapterSettings settings)
             {
-                StorageVersion += settings.StorageVersion;
-                QuickHash += settings.QuickHash;
+                if (settings.SourceType == Types.Source 
+                    && settings.DestinationType == Types.Destination)
+                    StorageVersion = settings.StorageVersion;
+
+                QuickHash += settings.StorageVersion;
             }
             base.Apply(other);
         }

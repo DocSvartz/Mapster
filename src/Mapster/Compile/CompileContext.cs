@@ -1,5 +1,7 @@
 ﻿using Mapster.Cache;
 using Mapster.Models;
+using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Data;
@@ -17,6 +19,7 @@ namespace Mapster
         public TypeAdapterConfigSnapshot ConfigSnapshot => Configs.Peek();
         //public SettingsCacheStorage MappingCache => ConfigSnapshot.MappingCache;
         public List<TypeAdapterRule> CompiledRules { get; private set; } = new();
+        internal ConcurrentDictionary<TypeTuple, CompiledSettingsCacheItem> CacheCompiledTypesSettings { get; private set; } = new();
         public int? MaxDepth { get; set; }
         public int Depth { get; set; }
         public HashSet<ParameterExpression> ExtraParameters { get; } = new();
@@ -55,6 +58,8 @@ namespace Mapster
                 //GetSettings(tuple);
                 arg.ExplicitMapping = true;
             }
+
+            CacheCompiledTypesSettings.TryGetValue(tuple, out var foundSettings);
 
             var result = new CompiledTypesSettings(tuple);
              
@@ -98,7 +103,19 @@ namespace Mapster
             else
                 result.Includes.RemoveAll(t => t.Source == tuple.Source);
 
-            CompiledRules.Add(ConfigSnapshot.Config.MappingCache.GetCompiledRule(tuple,result));
+            // CompiledRules.Add(ConfigSnapshot.Config.MappingCache.GetCompiledRule(tuple,result));
+
+            CompiledSettingsCacheItem updateCache = null;
+
+            if (arg.MapType == MapType.Map)
+                updateCache = foundSettings != null ? foundSettings with { Map = result } : new CompiledSettingsCacheItem(result, null, null);
+            if (arg.MapType == MapType.MapToTarget)
+                updateCache = foundSettings != null ? foundSettings with { MapToTaget = result } : new CompiledSettingsCacheItem(null, result, null);
+            if (arg.MapType == MapType.Projection)
+                updateCache = foundSettings != null ? foundSettings with { Projection = result } : new CompiledSettingsCacheItem(null, result, result);
+
+
+            CacheCompiledTypesSettings[tuple] = updateCache!;
 
             return result;
         }
