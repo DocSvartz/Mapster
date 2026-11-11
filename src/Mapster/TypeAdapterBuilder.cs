@@ -12,6 +12,7 @@ namespace Mapster
         TSource Source { get; }
         TSource IAdapterBuilder<TSource>.Source => Source;
         TypeAdapterConfig Config { get; set; }
+        TypeAdapterConfigSnapshot ConfigSnapshot { get; set; }
         TypeAdapterConfig IAdapterBuilder.Config => Config;
 
         private Dictionary<string, object>? _parameters;
@@ -23,6 +24,7 @@ namespace Mapster
         {
             Source = source;
             Config = config;
+            ConfigSnapshot = config.GetSnapshot;
         }
 
 
@@ -45,6 +47,7 @@ namespace Mapster
             int key2 = 0)
         {
             Config = Config.Fork(action, key1, key2);
+            ConfigSnapshot = Config.GetSnapshot; // need add new Property in Interface
             return this;
         }
 
@@ -99,7 +102,7 @@ namespace Mapster
 		/// <returns></returns>
 		private TDestination Map<TDestination>()
         {
-            var fn = Config.GetSnapshot.GetMapFunction<TSource, TDestination>();
+            var fn = ConfigSnapshot.GetMapFunction<TSource, TDestination>();
             return fn(Source);
         }
 
@@ -123,7 +126,7 @@ namespace Mapster
 
         private TDestination MapToTarget<TDestination>(TDestination destination)
         {
-            var fn = Config.GetSnapshot.GetMapToTargetFunction<TSource, TDestination>();
+            var fn = ConfigSnapshot.GetMapToTargetFunction<TSource, TDestination>();
             return fn(Source, destination);
         }
 
@@ -136,7 +139,7 @@ namespace Mapster
 		public Expression<Func<TSource, TDestination>> CreateMapExpression<TDestination>()
         {
             var tuple = new TypeTuple(typeof(TSource), typeof(TDestination));
-            return (Expression<Func<TSource, TDestination>>) Config.GetSnapshot.CreateMapExpression(tuple, MapType.Map);
+            return (Expression<Func<TSource, TDestination>>) ConfigSnapshot.CreateMapExpression(tuple, MapType.Map);
         }
 
 
@@ -148,7 +151,7 @@ namespace Mapster
 		public Expression<Func<TSource, TDestination, TDestination>> CreateMapToTargetExpression<TDestination>()
         {
             var tuple = new TypeTuple(typeof(TSource), typeof(TDestination));
-            return (Expression<Func<TSource, TDestination, TDestination>>) Config.GetSnapshot.CreateMapExpression(tuple, MapType.MapToTarget);
+            return (Expression<Func<TSource, TDestination, TDestination>>) ConfigSnapshot.CreateMapExpression(tuple, MapType.MapToTarget);
         }
 
 
@@ -160,7 +163,7 @@ namespace Mapster
 		public Expression<Func<TSource, TDestination>> CreateProjectionExpression<TDestination>()
         {
             var tuple = new TypeTuple(typeof(TSource), typeof(TDestination));
-            return (Expression<Func<TSource, TDestination>>) Config.GetSnapshot.CreateMapExpression(tuple, MapType.Projection);
+            return (Expression<Func<TSource, TDestination>>) ConfigSnapshot.CreateMapExpression(tuple, MapType.Projection);
         }
     }
 }
