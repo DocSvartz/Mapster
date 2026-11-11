@@ -41,6 +41,8 @@ namespace Mapster
             this.MoveState(result);
             this.DropState();
 
+            result.IsReadOnly = true;
+
             return result;
         }
 
