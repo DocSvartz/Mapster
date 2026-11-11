@@ -28,7 +28,7 @@ namespace Mapster
             result.Add(new NullableAdapter().CreateRule());                 // 0
 
             //fallback rules
-            result.Add(new ReadOnlyTypeAdapterRule((arg => -200), TypeAdapterSettingsFactory.GetFallBackFinalizeSettings));
+            result.Add(new ReadOnlyTypeAdapterRule((arg => -200), TypeAdapterSettingsFactory.GetFallBackReadOnlySettings));
 
             //dictionary accessor
             var dSettings = TypeAdapterSettingsFactory.GetSettings;

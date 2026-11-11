@@ -10,8 +10,8 @@ namespace Mapster
     [AdaptWith(AdaptDirectives.DestinationAsRecord)]
     public class TypeAdapterSettings : SettingStore, ISourceToDestinationTypeAdapterSettings
     {
-        public ulong Id { get; set; }
-        public ulong Version { get; set; }
+        public ulong StorageVersion { get; set; } = 1;
+        public ulong QuickHash { get; set; }
 
         /// <summary>
         /// Creates a clone of the current instance 

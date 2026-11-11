@@ -26,34 +26,43 @@ namespace Mapster
         /// Settings for Fallback rule in 
         /// <see cref="MapsterGlobalConfig.RulesTemplate"/> 
         /// </summary>
-        internal static TypeAdapterSettings GetFallBackFinalizeSettings => new TypeAdapterSettings
+        internal static TypeAdapterSettings GetFallBackReadOnlySettings
         {
-            SourceType = typeof(void),
-            DestinationType = typeof(void),
+            get 
+            {
+                var settings = new TypeAdapterSettings()
+                {
+                    SourceType = typeof(void),
+                    DestinationType = typeof(void),
 
-            //match exact name
-            NameMatchingStrategy = NameMatchingStrategy.Exact,
-            ShouldMapMember =
+                    //match exact name
+                    NameMatchingStrategy = NameMatchingStrategy.Exact,
+                    ShouldMapMember =
                         {
                             ShouldMapMember.IgnoreAdaptIgnore,      //ignore AdaptIgnore attribute
                             ShouldMapMember.AllowPublic,            //match public prop
                             ShouldMapMember.AllowAdaptMember,       //match AdaptMember attribute
                         },
-            GetMemberNames =
+                    GetMemberNames =
                         {
                             GetMemberName.AdaptMember,              //get name using AdaptMember attribute
                         },
-            UseDestinationValues =
+                    UseDestinationValues =
                         {
                             UseDestinationValue.Attribute,
                         },
-            ValueAccessingStrategies =
+                    ValueAccessingStrategies =
                         {
                             ValueAccessingStrategy.CustomResolver,  //get value from Map
                             ValueAccessingStrategy.PropertyOrField, //get value from properties/fields
                             ValueAccessingStrategy.GetMethod,       //get value from get method
                             ValueAccessingStrategy.FlattenMember,   //get value from chain of properties
                         }
-        }.ToReadOnlyAndDisposeThis();
+                };
+                settings.IsReadOnly = true;
+
+                return settings;
+            }
+        }
     }
 }

@@ -88,7 +88,7 @@ namespace Mapster.Cache
                 : CreateTypeTupleRule(types, clonedConfig);
 
 
-            ruleMap.Settings.Id = UpdateAndGetVersion();
+            ruleMap.Settings.StorageVersion = UpdateAndGetVersion();
             //Rules.Add(ruleMap);
 
             RuleMap = RuleMap.SetItem(types, ruleMap);
@@ -106,7 +106,7 @@ namespace Mapster.Cache
 
             var ruleMap = CreateDefaultRule(clonedConfig);
 
-            ruleMap.Settings.Id = UpdateAndGetVersion();
+            ruleMap.Settings.StorageVersion = UpdateAndGetVersion();
             ruleMap.Settings.SourceType = types.Source;
             ruleMap.Settings.DestinationType = types.Destination;
 
