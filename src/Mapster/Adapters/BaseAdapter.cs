@@ -44,7 +44,7 @@ namespace Mapster.Adapters
 
         public TypeAdapterRule CreateRule()
         {
-            var Settings = SettingsFactory.GetExplicitTypeSettings;
+            var Settings = TypeAdapterSettingsFactory.GetSettings;
             Settings.SourceType = this.GetType();
             Settings.DestinationType = this.GetType();
             Settings.ConverterFactory = CreateAdaptFunc;

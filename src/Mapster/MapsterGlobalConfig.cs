@@ -28,10 +28,10 @@ namespace Mapster
             result.Add(new NullableAdapter().CreateRule());                 // 0
 
             //fallback rules
-            result.Add(new CustomAdapterRule((arg => -200), SettingsFactory.GetFallBackFinalizeSettings));
+            result.Add(new CustomAdapterRule((arg => -200), TypeAdapterSettingsFactory.GetFallBackFinalizeSettings));
 
             //dictionary accessor
-            var dSettings = SettingsFactory.GetExplicitTypeSettings;
+            var dSettings = TypeAdapterSettingsFactory.GetSettings;
             dSettings.SourceType = typeof(DictionaryAdapter);
             dSettings.DestinationType = typeof(DictionaryAdapter);
             dSettings.ValueAccessingStrategies.Add(ValueAccessingStrategy.CustomResolverForDictionary);

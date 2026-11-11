@@ -22,7 +22,7 @@ namespace Mapster
         }
         public CustomAdapterRule()
         {
-            Settings = SettingsFactory.GetFinalizeSettings;
+            Settings = TypeAdapterSettingsFactory.GetReadOnlySettings;
         }
     }
 
@@ -43,7 +43,7 @@ namespace Mapster
 
         public ExplicitTypeAdapterRule()
         {
-            Settings = SettingsFactory.GetExplicitTypeSettings;
+            Settings = TypeAdapterSettingsFactory.GetSettings;
         }
     }
 }

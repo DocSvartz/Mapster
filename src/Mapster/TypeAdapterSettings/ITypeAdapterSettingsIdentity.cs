@@ -6,7 +6,7 @@ namespace Mapster
     {
         public ulong Id { get; set; }
         public ulong Version { get; set; }
-        public bool IsFinalized { get; set; }
+        public bool IsReadOnly { get; set; }
         Type? SourceType { get; set; }
         Type? DestinationType { get; set; }
         TypeAdapterSettings Clone();

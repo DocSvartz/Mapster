@@ -14,7 +14,7 @@ namespace Mapster
         public ulong Id { get; set; }
         public ulong Version { get; set; }
 
-        public TypeAdapterSettings Finalize() { this.IsFinalized = true; return this; }
+        public TypeAdapterSettings Finalize() { this.IsReadOnly = true; return this; }
 
         public Type? SourceType
         {

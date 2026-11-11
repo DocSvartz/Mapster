@@ -426,7 +426,7 @@ namespace Mapster
         {
             setter.CheckCompiled();
 
-            setter.Settings.IsFinalized = true;
+            setter.Settings.IsReadOnly = true;
             return setter;
         }
     }

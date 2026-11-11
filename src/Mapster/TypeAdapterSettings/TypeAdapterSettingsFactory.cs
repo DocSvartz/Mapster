@@ -2,7 +2,7 @@
 
 namespace Mapster
 {
-    public static class SettingsFactory
+    public static class TypeAdapterSettingsFactory
     {
         /// <summary>
         /// Settings used for creating mapping rule <see cref="CustomAdapterRule"/> in: 
@@ -10,7 +10,7 @@ namespace Mapster
         /// <see cref="CustomAdapterRule"/>
         /// .
         /// </summary>
-        public static TypeAdapterSettings GetFinalizeSettings => new TypeAdapterSettings() { IsFinalized = true };
+        public static TypeAdapterSettings GetReadOnlySettings => new TypeAdapterSettings() { IsReadOnly = true };
 
         /// <summary>
         /// Settings used for creating mapping rule <see cref="ExplicitTypeAdapterRule"/> in: 
@@ -20,7 +20,7 @@ namespace Mapster
         /// <see cref="TypeAdapterSetters.DefaultOnlySetter"/>
         /// .
         /// </summary>
-        internal static TypeAdapterSettings GetExplicitTypeSettings => new TypeAdapterSettings() { IsFinalized = false };
+        internal static TypeAdapterSettings GetSettings => new TypeAdapterSettings() { IsReadOnly = false };
 
         /// <summary>
         /// Settings for Fallback rule in 
