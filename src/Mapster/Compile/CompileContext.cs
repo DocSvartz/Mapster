@@ -197,6 +197,9 @@ namespace Mapster
 
         private void UpdateCachedSettings(TypeTuple tuple, bool IsHasAttributeRule, CompiledSettingsCacheItem cacheItem, CompiledTypesSettings result, PreCompileArgument arg)
         {
+            if (tuple.Source == typeof(Never) || tuple.Destination == typeof(Never))
+                return; // it is special Marker type 
+
             CompiledSettingsCacheItem updateCache = null!;
 
             if (IsHasAttributeRule)
