@@ -72,20 +72,25 @@ namespace Mapster
             return members.Any(it => (it.SetterModifier & (AccessModifier.Public | AccessModifier.NonPublic)) != 0);
         }
 
+        public static MappingTypeModel GetMappingTypeModel(this Type type)
+        {
+            return new(type, type.GetAllFieldsAndProperties());
+        }
+
         public static IEnumerable<IMemberModelEx> GetFieldsAndProperties(this Type type, PreCompileArgument arg, bool includeNonPublic = false, AttributeMetadataCache? attributeMetadata = null)
         {
            arg.TypeMemberModelsCache.TryGetValue(type, out var model);
 
             if(model is null)
             {
-                model = type.GetAllFieldsAndProperties(attributeMetadata).ToArray();
+                model = new(type, type.GetAllFieldsAndProperties(attributeMetadata));
                 arg.TypeMemberModelsCache[type] = model;
             }
 
             if(includeNonPublic)
-                return model;
+                return model.Members;
 
-            return model.Where(member => ((member.Info as MemberInfo)?.IsPublicPropertyOrField()).GetValueOrDefault());
+            return model.Members.Where(member => ((member.Info as MemberInfo)?.IsPublicPropertyOrField()).GetValueOrDefault());
 
         }
 
@@ -95,14 +100,14 @@ namespace Mapster
 
             if (model is null)
             {
-                model = type.GetAllFieldsAndProperties(attributeMetadata).ToArray();
+                model = new(type, type.GetAllFieldsAndProperties(attributeMetadata));
                 arg.Context.ConfigSnapshot.TypeMemberModelsCache[type] = model;
             }
 
             if (includeNonPublic)
-                return model;
+                return model.Members;
 
-            return model.Where(member => ((member.Info as MemberInfo)?.IsPublicPropertyOrField()).GetValueOrDefault());
+            return model.Members.Where(member => ((member.Info as MemberInfo)?.IsPublicPropertyOrField()).GetValueOrDefault());
         }
 
         private static IEnumerable<IMemberModelEx> GetAllFieldsAndProperties(this Type type, AttributeMetadataCache? attributeMetadata = null)

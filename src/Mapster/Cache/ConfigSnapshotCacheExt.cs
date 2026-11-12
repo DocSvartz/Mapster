@@ -1,4 +1,5 @@
-﻿using Mapster.Models;
+﻿using Mapster.Cache;
+using Mapster.Models;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -17,9 +18,9 @@ namespace Mapster
         private readonly ConcurrentDictionary<TypeTuple, MethodCallExpression> _projectionDict = new ConcurrentDictionary<TypeTuple, MethodCallExpression>();
         private readonly ConcurrentDictionary<TypeTuple, Delegate> _dynamicMapDict = new ConcurrentDictionary<TypeTuple, Delegate>();
 
-        internal Dictionary<Type, IMemberModelEx[]> TypeMemberModelsCache { get; init; }
+        internal ConcurrentDictionary<Type, MappingTypeModel> TypeMemberModelsCache { get; init; }
         internal Dictionary<CompiledTypesSettings, TypeAdapterRule> CompiledRule = new();
-        internal ConcurrentDictionary<CompiledTypesSettings,bool> CacheCompiledTypesSettings { get; init; } = new();
+        internal ConcurrentDictionary<TypeTuple, CompiledSettingsCacheItem> CacheCompiledTypesSettings { get; init; } = new();
 
 
         /// <summary>

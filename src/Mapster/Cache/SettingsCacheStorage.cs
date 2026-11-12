@@ -3,6 +3,7 @@ using Mapster.Models;
 using Mapster.TypeAdapterSetters;
 using Mapster.Utils;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
@@ -20,7 +21,7 @@ namespace Mapster.Cache
         private ImmutableDictionary<string, bool> BoolSettings = ImmutableDictionary<string, bool>.Empty;
         private readonly Dictionary<CompiledTypesSettings, TypeAdapterRule> CompiledRule = new();
 
-        private readonly Dictionary<Type, IMemberModelEx[]> TypeMemberModelsCache = new();
+        private readonly ConcurrentDictionary<Type, MappingTypeModel> TypeMemberModelsCache = new();
 
         private TypeAdapterConfigSnapshot? _cachedSnapShot;
         
@@ -251,7 +252,7 @@ namespace Mapster.Cache
             }
         }
 
-        public Dictionary<Type, IMemberModelEx[]> GetTypeMemberModelsCache => TypeMemberModelsCache;
+        public ConcurrentDictionary<Type, MappingTypeModel> GetTypeMemberModelsCache => TypeMemberModelsCache;
 
         public TypeAdapterRule GetCompiledRule(TypeTuple types, TypeAdapterSettings settings)
         {

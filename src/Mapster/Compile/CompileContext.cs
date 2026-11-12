@@ -1,10 +1,9 @@
 ﻿using Mapster.Cache;
 using Mapster.Models;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Data;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -17,9 +16,6 @@ namespace Mapster
         public HashSet<TypeTuple> Running { get; } = new();
         public Stack<TypeAdapterConfigSnapshot> Configs { get; } = new();
         public TypeAdapterConfigSnapshot ConfigSnapshot => Configs.Peek();
-        //public SettingsCacheStorage MappingCache => ConfigSnapshot.MappingCache;
-        public List<TypeAdapterRule> CompiledRules { get; private set; } = new();
-        internal ConcurrentDictionary<TypeTuple, CompiledSettingsCacheItem> CacheCompiledTypesSettings { get; private set; } = new();
         public int? MaxDepth { get; set; }
         public int Depth { get; set; }
         public HashSet<ParameterExpression> ExtraParameters { get; } = new();
@@ -41,6 +37,11 @@ namespace Mapster
 
         internal TypeAdapterSettings GetMergedSettings(TypeTuple tuple, MapType mapType)
         {
+            // Get settings from cache. If found skip apply rules and create rule and setting from attibutes
+            if (TryGetCachedSettings(tuple, mapType, out var foundsettings, out var cacheItem))
+                return foundsettings;
+
+
             var arg = new PreCompileArgument
             {
                 SourceType = tuple.Source,
@@ -51,17 +52,41 @@ namespace Mapster
 
             };
 
-            //auto add setting if there is attr setting
-            var attrSettings = GetAttributeSettings(tuple, mapType).ToList();
-            if (!arg.ExplicitMapping && attrSettings.Any(rule => rule.Priority(arg) == 100))
-            {
-                //GetSettings(tuple);
-                arg.ExplicitMapping = true;
-            }
-
-            CacheCompiledTypesSettings.TryGetValue(tuple, out var foundSettings);
+            ConfigSnapshot.TypeMemberModelsCache.TryGetValue(tuple.Source, out var srcTypeModel);
+            ConfigSnapshot.TypeMemberModelsCache.TryGetValue(tuple.Destination, out var destTypeModel);
 
             var result = new CompiledTypesSettings(tuple);
+            IEnumerable<TypeAdapterRule> attrSettings = Enumerable.Empty<TypeAdapterRule>();
+            bool IsHasAttributeRule = false;
+
+            if (srcTypeModel is null || destTypeModel is null)
+            {
+                if (srcTypeModel is null)
+                {
+                    srcTypeModel = tuple.Source.GetMappingTypeModel();
+                    ConfigSnapshot.TypeMemberModelsCache[tuple.Source] = srcTypeModel;
+                }
+                if(destTypeModel is null)
+                {
+                    destTypeModel = tuple.Destination.GetMappingTypeModel();
+                    ConfigSnapshot.TypeMemberModelsCache[tuple.Destination] = destTypeModel;
+                }
+
+            }
+            else
+            {
+                //auto add setting if there is attr setting
+                attrSettings = GetAttributeSettings(tuple, mapType, srcTypeModel, destTypeModel).ToList();
+                if (!arg.ExplicitMapping && attrSettings.Any(rule => rule.Priority(arg) == 100))
+                {
+                    //GetSettings(tuple);
+                    arg.ExplicitMapping = true;
+                }
+            }
+
+            if (attrSettings?.Any() == true)
+                IsHasAttributeRule = true;
+                       
              
             var rules = ConfigSnapshot.Rules.Concat(attrSettings);
                 
@@ -94,8 +119,7 @@ namespace Mapster
                     result.Apply(item.Settings);
                 }
             }
-
-            
+                      
 
             //remove recursive include types
             if (mapType == MapType.MapToTarget)
@@ -103,45 +127,33 @@ namespace Mapster
             else
                 result.Includes.RemoveAll(t => t.Source == tuple.Source);
 
-            // CompiledRules.Add(ConfigSnapshot.Config.MappingCache.GetCompiledRule(tuple,result));
-
-            CompiledSettingsCacheItem updateCache = null;
-
-            if (arg.MapType == MapType.Map)
-                updateCache = foundSettings != null ? foundSettings with { Map = result } : new CompiledSettingsCacheItem(result, null, null);
-            if (arg.MapType == MapType.MapToTarget)
-                updateCache = foundSettings != null ? foundSettings with { MapToTaget = result } : new CompiledSettingsCacheItem(null, result, null);
-            if (arg.MapType == MapType.Projection)
-                updateCache = foundSettings != null ? foundSettings with { Projection = result } : new CompiledSettingsCacheItem(null, result, result);
-
-
-            CacheCompiledTypesSettings[tuple] = updateCache!;
+            // Update cache
+            UpdateCachedSettings(tuple, IsHasAttributeRule, cacheItem, result, arg);
 
             return result;
         }
 
-        private IEnumerable<TypeAdapterRule> GetAttributeSettings(TypeTuple tuple, MapType mapType)
+        private IEnumerable<TypeAdapterRule> GetAttributeSettings(TypeTuple tuple, MapType mapType, 
+            MappingTypeModel srcTypeModel, MappingTypeModel destTypeModel)
         {
-            var rules1 = from type in tuple.Source.GetAllTypes()
-                         from o in type.GetTypeInfo().GetCustomAttributesData()
+            var rules1 = from o in srcTypeModel.CustomAttributes
                          where typeof(AdaptToAttribute).IsAssignableFrom(o.GetAttributeType())
                          let attr = o.CreateCustomAttribute<AdaptToAttribute>()
                          where attr != null && (attr.MapType & mapType) != 0
                          where attr.Type == null || attr.Type == tuple.Destination
-                         where attr.Name == null || attr.Name.Replace("[name]", type.Name) == tuple.Destination.Name
-                         let distance = tuple.Source.GetSubclassDistance(type, true)
+                         where attr.Name == null || attr.Name.Replace("[name]", srcTypeModel.Type.Name) == tuple.Destination.Name
+                         let distance = tuple.Source.GetSubclassDistance(srcTypeModel.Type, true)
                          select new TypeAdapterRule((arg => distance + 50), CreateSettings(attr));
             if (tuple.Source == tuple.Destination)
                 return rules1;
-            var rules2 = from type in tuple.Destination.GetAllTypes()
-                         from o in type.GetTypeInfo().GetCustomAttributesData()
+            var rules2 = from o in destTypeModel.CustomAttributes
                          where typeof(AdaptFromAttribute).IsAssignableFrom(o.GetAttributeType()) ||
                                typeof(AdaptTwoWaysAttribute).IsAssignableFrom(o.GetAttributeType())
                          let attr = o.CreateCustomAttribute<BaseAdaptAttribute>()
                          where attr != null && (attr.MapType & mapType) != 0
                          where attr.Type == null || attr.Type == tuple.Source
-                         where attr.Name == null || attr.Name.Replace("[name]", type.Name) == tuple.Source.Name
-                         let distance = tuple.Destination.GetSubclassDistance(type, true)
+                         where attr.Name == null || attr.Name.Replace("[name]", destTypeModel.Type.Name) == tuple.Source.Name
+                         let distance = tuple.Destination.GetSubclassDistance(destTypeModel.Type, true)
                          select new TypeAdapterRule((arg => distance + 50), CreateSettings(attr));
                          
             return rules1.Concat(rules2);
@@ -157,5 +169,51 @@ namespace Mapster
             return settings.ToReadOnlyAndDisposeThis();
         }
 
+        /// <summary>
+        /// Attempts to retrieve cached compilation settings for the specified type pair and mapping type.
+        /// </summary>
+        /// <param name="tuple">The type tuple used as the primary key in the cache.</param>
+        /// <param name="mapType">The mapping type for which compiled settings are requested.</param>
+        /// <param name="settings">When this method returns, contains the cached compiled settings if found; otherwise, null.</param>
+        /// <param name="cacheItem">When this method returns, contains the cache item associated with the type tuple if found; otherwise, null.</param>
+        /// <returns>
+        /// Returns <c>true</c> if both the cache item and the corresponding compiled settings were successfully retrieved; 
+        /// otherwise, returns <c>false</c>.
+        /// </returns>
+        private bool TryGetCachedSettings(TypeTuple tuple, MapType mapType, [NotNullWhen(true)] out CompiledTypesSettings? settings, out CompiledSettingsCacheItem? cacheItem)
+        {
+            ConfigSnapshot.CacheCompiledTypesSettings.TryGetValue(tuple, out cacheItem);
+            if(cacheItem != null)
+            {
+                cacheItem.TryGetValue(mapType, out settings);
+                if(settings != null)
+                    return true;
+            }
+            else
+                settings = null;
+
+            return false;
+        }
+
+        private void UpdateCachedSettings(TypeTuple tuple, bool IsHasAttributeRule, CompiledSettingsCacheItem cacheItem, CompiledTypesSettings result, PreCompileArgument arg)
+        {
+            CompiledSettingsCacheItem updateCache = null!;
+
+            if (IsHasAttributeRule)
+            {
+                if (arg.MapType == MapType.Map)
+                    updateCache = cacheItem != null ? cacheItem with { Map = result } : new CompiledSettingsCacheItem(result, null, null);
+                if (arg.MapType == MapType.MapToTarget)
+                    updateCache = cacheItem != null ? cacheItem with { MapToTaget = result } : new CompiledSettingsCacheItem(null, result, null);
+                if (arg.MapType == MapType.Projection)
+                    updateCache = cacheItem != null ? cacheItem with { Projection = result } : new CompiledSettingsCacheItem(null, result, result);
+            }
+            else
+            {
+                updateCache = cacheItem != null ? cacheItem : new CompiledSettingsCacheItem(result, result, result, false);
+            }
+
+            ConfigSnapshot.CacheCompiledTypesSettings[tuple] = updateCache;
+        }
     }
 }

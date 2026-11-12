@@ -12,6 +12,6 @@ namespace Mapster
         public Type DestinationType;
         public MapType MapType;
         public bool ExplicitMapping;
-        public Dictionary<Type, IMemberModelEx[]> TypeMemberModelsCache { get; init; }
+        public ConcurrentDictionary<Type, MappingTypeModel> TypeMemberModelsCache { get; init; }
     }
 }

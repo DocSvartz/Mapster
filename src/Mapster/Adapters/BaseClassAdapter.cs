@@ -310,11 +310,11 @@ namespace Mapster.Adapters
 
         protected Expression? TryRestoreRecordMember(IMemberModelEx member, CompileArgument arg)
         {
-            arg.Context.ConfigSnapshot.TypeMemberModelsCache.TryGetValue(arg.DestinationType, out var members);
+            arg.Context.ConfigSnapshot.TypeMemberModelsCache.TryGetValue(arg.DestinationType, out var typeModel);
 
-            if (members != null && arg.MapType == MapType.MapToTarget)
+            if (typeModel != null && arg.MapType == MapType.MapToTarget)
             {
-                var find = members
+                var find = typeModel.Members
                                .Where(x => string.Equals(x.Name, member.Name, StringComparison.InvariantCultureIgnoreCase)).FirstOrDefault();
 
                 if (find != null)
