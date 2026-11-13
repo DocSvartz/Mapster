@@ -209,12 +209,15 @@ namespace Mapster
                 if (arg.MapType == MapType.MapToTarget)
                     updateCache = cacheItem != null ? cacheItem with { MapToTaget = result } : new CompiledSettingsCacheItem(null, result, null);
                 if (arg.MapType == MapType.Projection)
-                    updateCache = cacheItem != null ? cacheItem with { Projection = result } : new CompiledSettingsCacheItem(null, result, result);
+                    updateCache = cacheItem != null ? cacheItem with { Projection = result } : new CompiledSettingsCacheItem(null, null, result);
+            }
+            else if (arg.MapType == MapType.Projection)
+            {
+                // !!! For now, you always need to create a separate cache for a Projection !!!
+                updateCache = cacheItem != null ? cacheItem with { Projection = result } : new CompiledSettingsCacheItem(null, null, result, false);
             }
             else
-            {
-                updateCache = cacheItem != null ? cacheItem : new CompiledSettingsCacheItem(result, result, result, false);
-            }
+                updateCache = cacheItem != null ? cacheItem with { Map = result, MapToTaget = result } : new CompiledSettingsCacheItem(result, result, null, false);
 
             ConfigSnapshot.CacheCompiledTypesSettings[tuple] = updateCache;
         }
