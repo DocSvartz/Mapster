@@ -264,9 +264,16 @@ namespace Mapster
                     arg.Settings.Ignore.Apply(mapping.NextIgnore);
                     arg.UseDestinationValue = mapping.UseDestinationValue;
 
+
+                    // Need refactoring !!!
                     if (mapping.OverrideSettings != null)
                     {
                         mapping.OverrideSettings.Apply(arg.Settings);
+
+                        mapping.OverrideSettings.Source = arg.Source;
+                        mapping.OverrideSettings.Destination = arg.Source;
+                        mapping.OverrideSettings.Result = arg.Result;
+
 
                         if (mapping.OverrideSettings.ConverterFactory == null || mapping.OverrideSettings.ConverterToTargetFactory == null)
                         {
@@ -396,10 +403,6 @@ namespace Mapster
                 MapType = mapType,
                 Context = context,
                 Settings = setting,
-
-                Source = setting.Source ?? Expression.Parameter(tuple.Source, "p1"),
-                Destination = setting.Destination ?? Expression.Parameter(tuple.Destination, "p2"),
-                Result = setting.Result ?? Expression.Parameter(tuple.Destination, "result")
             };
         }
 

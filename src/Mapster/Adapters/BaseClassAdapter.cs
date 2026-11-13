@@ -637,12 +637,8 @@ namespace Mapster.Adapters
         protected override void PreparatoryMappingStep(Expression source, Expression? destination, CompileArgument arg)
         {
             if(arg.Settings.TypeConverter == null)
-            {
                 arg.Settings.TypeConverter = CreateTypeConverter(source, destination, arg);
-                arg.Settings.Source = arg.Source;
-                arg.Settings.Destination = arg.Destination;
-                arg.Settings.Result = arg.Result;
-            }
+ 
             base.PreparatoryMappingStep(source, destination, arg);
         }
 
