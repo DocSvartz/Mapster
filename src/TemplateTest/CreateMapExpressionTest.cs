@@ -18,7 +18,7 @@ namespace TemplateTest
         [TestMethod]
         public void TestCreateMapExpression()
         {
-            TypeAdapterConfig.GlobalSettings.SelfContainedCodeGeneration = true;
+            MapsterGlobalConfig.GlobalSettings.SelfContainedCodeGeneration = true;
             var foo = default(Customer);
             var def = new ExpressionDefinitions
             {
@@ -37,7 +37,7 @@ namespace TemplateTest
         [TestMethod]
         public void TestCreateMapToTargetExpression()
         {
-            TypeAdapterConfig.GlobalSettings.SelfContainedCodeGeneration = true;
+            MapsterGlobalConfig.GlobalSettings.SelfContainedCodeGeneration = true;
             var foo = default(Customer);
             var def = new ExpressionDefinitions
             {
@@ -56,7 +56,7 @@ namespace TemplateTest
         [TestMethod]
         public void TestCreateProjectionExpression()
         {
-            TypeAdapterConfig.GlobalSettings.SelfContainedCodeGeneration = true;
+            MapsterGlobalConfig.GlobalSettings.SelfContainedCodeGeneration = true;
             var foo = default(Customer);
             var def = new ExpressionDefinitions
             {
