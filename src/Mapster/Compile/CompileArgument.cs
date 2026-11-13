@@ -11,7 +11,7 @@ namespace Mapster
     {
         public Type SourceType { get; set; }
         public Type DestinationType { get; set; }
-        internal TypeConverterModel TypeConverter { get; set; }
+        internal TypeConverterModel TypeConverter => Settings.TypeConverter;
         public MapType MapType { get; set; }
         public bool ExplicitMapping { get; set; }
         public ISourceToDestinationTypeAdapterSettings Settings { get; set; }
@@ -74,7 +74,6 @@ namespace Mapster
                 Destination = this.Destination,
                 Result = this.Result,
 
-                TypeConverter = this.TypeConverter,
 
                
             };

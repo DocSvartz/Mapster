@@ -1,4 +1,5 @@
 ﻿using Mapster.Enums;
+using Mapster.MappingModels;
 using Mapster.Models;
 using System;
 using System.Collections.Generic;
@@ -12,6 +13,17 @@ namespace Mapster
     {
         public ulong StorageVersion { get; set; } = 1;
         public ulong QuickHash { get; set; }
+
+
+        internal TypeConverterModel TypeConverter { get; set; }
+        public ParameterExpression Source { get; set; }
+        public ParameterExpression Destination { get; set; }
+        public ParameterExpression Result { get; set; }
+
+        TypeConverterModel ISourceToDestinationTypeAdapterSettings.TypeConverter
+        {
+            get => TypeConverter; set => TypeConverter = value;
+        }
 
         /// <summary>
         /// Creates a clone of the current instance 
@@ -277,5 +289,6 @@ namespace Mapster
         }
 
         public static TypeAdapterSettings CreateDefault => new TypeAdapterSettings() { SourceType = typeof(void), DestinationType = typeof(void) };
+
     }
 }

@@ -397,9 +397,9 @@ namespace Mapster
                 Context = context,
                 Settings = setting,
 
-                Source = Expression.Parameter(tuple.Source, "p1"),
-                Destination = Expression.Parameter(tuple.Destination, "p2"),
-                Result = Expression.Parameter(tuple.Destination, "result")
+                Source = setting.Source ?? Expression.Parameter(tuple.Source, "p1"),
+                Destination = setting.Destination ?? Expression.Parameter(tuple.Destination, "p2"),
+                Result = setting.Result ?? Expression.Parameter(tuple.Destination, "result")
             };
         }
 

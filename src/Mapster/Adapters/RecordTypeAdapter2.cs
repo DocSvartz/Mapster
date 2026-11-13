@@ -180,7 +180,10 @@ namespace Mapster.Adapters
 
         protected override Expression GetMemberInlineAdapter(MemberMapping member, CompileArgument arg, Expression? defaultValue = null)
         {
-            return base.GetMemberInlineAdapter(member, arg, TryRestoreRecordMember(member,arg));
+            if(arg.MapType == MapType.MapToTarget)
+                return base.GetMemberInlineAdapter(member, arg, TryRestoreRecordMember(member, arg));
+            else
+                return base.GetMemberInlineAdapter(member, arg);
         }
     }
 }
