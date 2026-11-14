@@ -10,25 +10,22 @@ namespace Mapster.Models
     {
         private readonly FieldInfo _fieldInfo;
         //private readonly AttributeMetadataCache? _attributeMetadata;
-        private readonly CustomAttributeData[] _customAttributeData;
+        private readonly IReadOnlyCollection<CustomAttributeData> _customAttributeData;
 
         public FieldModel(FieldInfo fieldInfo)
         {
             _fieldInfo = fieldInfo;
+
+            IsBackField = fieldInfo.IsAutoBackingField();
+
             _customAttributeData = _fieldInfo.GetCustomAttributesData().ToArray();
 
-            IsBackField = fieldInfo.Name.EndsWith(">k__BackingField");
-            IsRequired = fieldInfo.GetCustomAttributes()
-                    .Any(y => y.GetType().FullName == "System.Runtime.CompilerServices.RequiredMemberAttribute");
+            IsRequired =
+                _customAttributeData.Count == 0
+                    ? false
+                    : _customAttributeData.Any(y => y.GetType().FullName == "System.Runtime.CompilerServices.RequiredMemberAttribute");
         }
-
-        //internal FieldModel(FieldInfo fieldInfo)
-        //    : this(fieldInfo)
-        //{
-        //   // _attributeMetadata = attributeMetadata;
-
-            
-        //}
+               
 
         public Type Type => _fieldInfo.FieldType;
         public string Name => _fieldInfo.Name;

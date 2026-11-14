@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -11,16 +10,19 @@ namespace Mapster.Models
     {
         private readonly PropertyInfo _propertyInfo;
         //private readonly AttributeMetadataCache? _attributeMetadata;
-        private readonly CustomAttributeData[] _customAttributeData;
+        private readonly IReadOnlyCollection<CustomAttributeData> _customAttributeData;
 
         public PropertyModel(PropertyInfo propertyInfo)
         {
             _propertyInfo = propertyInfo;
-
-            IsRequired = propertyInfo.GetCustomAttributes()
-                    .Any(y => y.GetType().FullName == "System.Runtime.CompilerServices.RequiredMemberAttribute");
-
+                       
+            var tempAttr = _propertyInfo.GetCustomAttributesData();
             _customAttributeData = _propertyInfo.GetCustomAttributesData().ToArray();
+
+            IsRequired =
+                _customAttributeData.Count == 0
+                    ? false
+                    : _customAttributeData.Any(y => y.GetType().FullName == "System.Runtime.CompilerServices.RequiredMemberAttribute");
         }
 
         //internal PropertyModel(PropertyInfo propertyInfo, AttributeMetadataCache? attributeMetadata)

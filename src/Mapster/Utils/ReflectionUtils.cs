@@ -630,5 +630,13 @@ namespace Mapster
             }
             return score;
         }
+
+        internal static bool IsAutoBackingField(this FieldInfo field)
+        {
+            var name = field.Name;
+            return name.Length > 17
+                && name[0] == '<'
+                && name.EndsWith(">k__BackingField", StringComparison.Ordinal);
+        }
     }
 }

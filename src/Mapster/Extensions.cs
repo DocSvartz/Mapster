@@ -1,7 +1,8 @@
-﻿using System;
+﻿using Mapster.Models;
+using System;
 using System.Linq;
 using System.Linq.Expressions;
-using Mapster.Models;
+using System.Reflection;
 
 namespace Mapster
 {
@@ -36,6 +37,12 @@ namespace Mapster
         public static T? GetCustomAttribute<T>(this IMemberModel member) where T : Attribute
         {
             return (T?) member.GetCustomAttributes(true).FirstOrDefault(attr => attr is T);
+            // I don’t quite understand why this is necessary.
+            // It seems to me that for an "Ignore" operation, the mere presence of the attribute should be sufficient. 
+            // Why, then, is it necessary to create all the attributes while taking the hierarchy into account?
+
+            // If we only need to check whether these attributes exist or not, then this is sufficient.
+            //memberInfo.IsDefined(typeof(T), inherit: true);
         }
 
         internal static T? GetCustomAttributeFromData<T>(this IMemberModel member) where T : Attribute
