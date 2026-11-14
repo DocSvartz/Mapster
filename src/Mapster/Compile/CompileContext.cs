@@ -20,7 +20,7 @@ namespace Mapster
         public int Depth { get; set; }
         public HashSet<ParameterExpression> ExtraParameters { get; } = new();
                
-        internal AttributeMetadataCache AttributeMetadata { get; } = new();
+       // internal AttributeMetadataCache AttributeMetadata { get; } = new();
 
         internal bool IsSubFunction()
         {

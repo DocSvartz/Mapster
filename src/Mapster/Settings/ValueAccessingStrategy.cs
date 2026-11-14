@@ -69,7 +69,7 @@ namespace Mapster
         private static bool PropertyOrFieldFn(ResolverSourceInput srcInput, IMemberModel destinationMember, MemberMapping memberMapping, CompileArgument arg)
         {
             var source = srcInput.Src;
-            var members = source.Type.GetFieldsAndProperties(arg, true, arg.Context.AttributeMetadata);
+            var members = source.Type.GetFieldsAndProperties(arg, true);
             var strategy = arg.Settings.NameMatchingStrategy;
             var destinationMemberName = destinationMember
                 .GetMemberName(MemberSide.Destination, arg.Settings.GetMemberNames,

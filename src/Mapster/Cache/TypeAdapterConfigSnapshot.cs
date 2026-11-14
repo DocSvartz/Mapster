@@ -129,7 +129,7 @@ namespace Mapster
             }
             finally
             {
-                context.AttributeMetadata.Complete();
+               // context.AttributeMetadata.Complete();
                 if (fork != null)
                     context.Configs.Pop();
                 context.Running.Remove(tuple);

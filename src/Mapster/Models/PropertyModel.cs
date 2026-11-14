@@ -10,7 +10,7 @@ namespace Mapster.Models
     public class PropertyModel : IMemberModelEx
     {
         private readonly PropertyInfo _propertyInfo;
-        private readonly AttributeMetadataCache? _attributeMetadata;
+        //private readonly AttributeMetadataCache? _attributeMetadata;
         private readonly CustomAttributeData[] _customAttributeData;
 
         public PropertyModel(PropertyInfo propertyInfo)
@@ -23,11 +23,11 @@ namespace Mapster.Models
             _customAttributeData = _propertyInfo.GetCustomAttributesData().ToArray();
         }
 
-        internal PropertyModel(PropertyInfo propertyInfo, AttributeMetadataCache? attributeMetadata)
-            : this(propertyInfo)
-        {
-            _attributeMetadata = attributeMetadata;
-        }
+        //internal PropertyModel(PropertyInfo propertyInfo, AttributeMetadataCache? attributeMetadata)
+        //    : this(propertyInfo)
+        //{
+        //    _attributeMetadata = attributeMetadata;
+        //}
 
         public Type Type => _propertyInfo.PropertyType;
         public virtual string Name => _propertyInfo.Name;

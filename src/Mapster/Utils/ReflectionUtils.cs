@@ -77,13 +77,13 @@ namespace Mapster
             return new(type, type.GetAllFieldsAndProperties());
         }
 
-        public static IEnumerable<IMemberModelEx> GetFieldsAndProperties(this Type type, PreCompileArgument arg, bool includeNonPublic = false, AttributeMetadataCache? attributeMetadata = null)
+        public static IEnumerable<IMemberModelEx> GetFieldsAndProperties(this Type type, PreCompileArgument arg, bool includeNonPublic = false)
         {
            arg.TypeMemberModelsCache.TryGetValue(type, out var model);
 
             if(model is null)
             {
-                model = new(type, type.GetAllFieldsAndProperties(attributeMetadata));
+                model = new(type, type.GetAllFieldsAndProperties());
                 arg.TypeMemberModelsCache[type] = model;
             }
 
@@ -94,13 +94,13 @@ namespace Mapster
 
         }
 
-        public static IEnumerable<IMemberModelEx> GetFieldsAndProperties(this Type type, CompileArgument arg, bool includeNonPublic = false, AttributeMetadataCache? attributeMetadata = null)
+        public static IEnumerable<IMemberModelEx> GetFieldsAndProperties(this Type type, CompileArgument arg, bool includeNonPublic = false)
         {
             arg.Context.ConfigSnapshot.TypeMemberModelsCache.TryGetValue(type, out var model);
 
             if (model is null)
             {
-                model = new(type, type.GetAllFieldsAndProperties(attributeMetadata));
+                model = new(type, type.GetAllFieldsAndProperties());
                 arg.Context.ConfigSnapshot.TypeMemberModelsCache[type] = model;
             }
 
@@ -110,7 +110,7 @@ namespace Mapster
             return model.Members.Where(member => ((member.Info as MemberInfo)?.IsPublicPropertyOrField()).GetValueOrDefault());
         }
 
-        private static IEnumerable<IMemberModelEx> GetAllFieldsAndProperties(this Type type, AttributeMetadataCache? attributeMetadata = null)
+        private static IEnumerable<IMemberModelEx> GetAllFieldsAndProperties(this Type type)
         {
             IEnumerable<MemberInfo> members = type.GetTypeInfo().IsInterface 
                 ? GetAllInterfaces(type).SelectMany(type => type.GetPropertiesOrFields())
@@ -128,12 +128,12 @@ namespace Mapster
             IEnumerable<IMemberModelEx> GetPropertiesFunc(IEnumerable<MemberInfo> t) =>
                 t.OfType<PropertyInfo>()
                 .Where(x => x.GetIndexParameters().Length == 0).DropHiddenMembers(firstMembersByName)
-                .Select(x => new PropertyModel(x, attributeMetadata));
+                .Select(x => new PropertyModel(x));
 
             IEnumerable<IMemberModelEx> GetFieldsFunc(IEnumerable<MemberInfo> t) =>
                 t.OfType<FieldInfo>()
                 .DropHiddenMembers(firstMembersByName)
-                .Select(x => new FieldModel(x, attributeMetadata));
+                .Select(x => new FieldModel(x));
         }
 
         public static MemberInfo[] GetPropertiesOrFields(this Type type)
