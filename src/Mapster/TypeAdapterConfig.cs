@@ -16,10 +16,10 @@ namespace Mapster
     public class TypeAdapterConfig
     {
         [Obsolete($"This will be removed in version 11. Use {nameof(MapsterGlobalConfig)}.RulesTemplate")]
-        public static ImmutableArray<TypeAdapterRule> RulesTemplate { get; } = MapsterGlobalConfig.RulesTemplate;
+        public static IReadOnlyCollection<TypeAdapterRule> RulesTemplate => MapsterGlobalConfig.RulesTemplate;
 
         [Obsolete($"This will be removed in version 11. Use {nameof(MapsterGlobalConfig)}.GlobalSettings")]
-        public static TypeAdapterConfig GlobalSettings { get; } = MapsterGlobalConfig.GlobalSettings;
+        public static TypeAdapterConfig GlobalSettings => MapsterGlobalConfig.GlobalSettings;
         
         public Dictionary<Type, IMemberModelEx[]> TypeMemberModelsCache { get; } = new();
         private readonly TypeTuple _defaultSetterTuple = TypeTuple.Create<MapsterCacheMarker, DefaultOnlySetter>();
