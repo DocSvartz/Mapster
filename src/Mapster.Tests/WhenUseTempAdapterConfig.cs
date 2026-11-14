@@ -56,7 +56,7 @@ namespace Mapster.Tests
             var source = new SourceDto("Charlie", 40);
             long id = 123;
 
-            var globalMap = TypeAdapterConfig.GlobalSettings.GetSnapshot.GetMapFunction<SourceDto, DestinationDto>();
+            var globalMap = MapsterGlobalConfig.GlobalSettings.GetSnapshot.GetMapFunction<SourceDto, DestinationDto>();
 
             // Act
             var result = source.Adapt<SourceDto, DestinationDto>(setter =>

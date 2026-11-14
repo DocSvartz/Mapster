@@ -15,8 +15,8 @@ namespace Mapster.Tests
         [TestCleanup]
         public void Cleanup()
         {
-            TypeAdapterConfig.GlobalSettings.Clear();
-            TypeAdapterConfig.GlobalSettings.AllowImplicitDestinationInheritance = false;
+            MapsterGlobalConfig.GlobalSettings.Clear();
+            MapsterGlobalConfig.GlobalSettings.AllowImplicitDestinationInheritance = false;
         }
 
         [TestMethod]

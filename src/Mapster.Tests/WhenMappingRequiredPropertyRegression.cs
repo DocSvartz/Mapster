@@ -27,7 +27,7 @@ namespace Mapster.Tests
         [TestMethod]
         public void PolymorphicMappingToAbstractClassCompileWithoutError()
         {
-            var config = TypeAdapterConfig.GlobalSettings;
+            var config = MapsterGlobalConfig.GlobalSettings;
 
             config.NewConfig<ConcreteSource, ConcreteDestination>();
 

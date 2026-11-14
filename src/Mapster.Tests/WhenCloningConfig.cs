@@ -12,7 +12,7 @@ namespace Mapster.Tests
         [TestCleanup]
         public void TestCleanup()
         {
-            TypeAdapterConfig.GlobalSettings.Clear();
+            MapsterGlobalConfig.GlobalSettings.Clear();
         }
 
         [Ignore("10.1 Compile not ")]
@@ -51,8 +51,8 @@ namespace Mapster.Tests
             var result = TypeAdapter.Adapt<SimpleDto>(poco);
             result.Name.ShouldBe("a");
 
-            var config = TypeAdapterConfig.GlobalSettings.Clone();
-            var global = TypeAdapterConfig.GlobalSettings;
+            var config = MapsterGlobalConfig.GlobalSettings.Clone();
+            var global = MapsterGlobalConfig.GlobalSettings;
             config.ShouldNotBeSameAs(global);
             config.Default.ShouldNotBeSameAs(global.Default);
             config.Default.Settings.ShouldNotBeSameAs(global.Default.Settings);

@@ -10,7 +10,7 @@ namespace MapsterMapper
     {
         public TypeAdapterConfig Config { get; }
 
-        public Mapper() : this(TypeAdapterConfig.GlobalSettings) { }
+        public Mapper() : this(MapsterGlobalConfig.GlobalSettings) { }
 
         public Mapper(TypeAdapterConfig config)
         {
