@@ -10,7 +10,7 @@ namespace Mapster
     {
         bool? ApplyCustomConverterFactoryNullPropagation { get; set; }
         bool? MapToTargetPrimitive { get; set; }
-        Action<TypeAdapterConfig>? Fork { get; set; }
+        Action<ITypeAdapterConfig>? Fork { get; set; }
         
         List<TypeTuple> Includes { get; }
         List<TypeTuple> Inherits { get; }

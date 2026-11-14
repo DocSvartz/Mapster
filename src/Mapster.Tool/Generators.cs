@@ -532,7 +532,7 @@ namespace Mapster.Tool
 
             foreach (var (key, _) in ruleMap)
                 types.Add(key.Source);
-            var configDict = new Dictionary<BaseAdaptAttribute, TypeAdapterConfig>();
+            var configDict = new Dictionary<BaseAdaptAttribute, ITypeAdapterConfig>();
             foreach (var builder in codeGenConfig.AdaptAttributeBuilders)
             {
                 var attr = builder.Attribute;

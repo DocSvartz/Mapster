@@ -4,7 +4,7 @@
     public class DestinationTypeOnlySetter : DefaultOnlySetter
     {
         public new IDestinationTypeAdapterSettings Settings => OriginSettings;
-        public DestinationTypeOnlySetter(TypeAdapterSettings originSettings, TypeAdapterConfig config): base(originSettings, config)
+        public DestinationTypeOnlySetter(TypeAdapterSettings originSettings, ITypeAdapterConfig config): base(originSettings, config)
         {
         }
     }

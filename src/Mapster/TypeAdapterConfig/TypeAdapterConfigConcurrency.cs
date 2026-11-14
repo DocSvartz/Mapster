@@ -12,7 +12,7 @@ using System.Runtime.CompilerServices;
 
 namespace Mapster
 {
-    public class TypeAdapterConfig
+    public class TypeAdapterConfigConcurrency : ITypeAdapterConfig
     {
         [Obsolete($"This will be removed in version 11. Use {nameof(MapsterGlobalConfig)}.RulesTemplate")]
         public static IReadOnlyCollection<TypeAdapterRule> RulesTemplate => MapsterGlobalConfig.RulesTemplate;
@@ -22,7 +22,7 @@ namespace Mapster
         
         private readonly TypeTuple _defaultSetterTuple = TypeTuple.Create<MapsterCacheMarker, DefaultOnlySetter>();
 
-        public readonly SettingsCacheStorage MappingCache; 
+        public SettingsCacheStorage MappingCache { get; }
 
         public bool RequireDestinationMemberSource { get => MappingCache.GetBoolSetting(nameof(RequireDestinationMemberSource)); set => MappingCache.SetBoolSetting(nameof(RequireDestinationMemberSource),value); }
         public bool RequireExplicitMapping { get => MappingCache.GetBoolSetting(nameof(RequireExplicitMapping)); set => MappingCache.SetBoolSetting(nameof(RequireExplicitMapping), value); }
@@ -42,14 +42,14 @@ namespace Mapster
         public DefaultOnlySetter Default => MappingCache.GetForTypeSetter(_defaultSetterTuple,this);
         public ConcurrentDictionary<TypeTuple, TypeAdapterRule> RuleMap { get; internal set; } = new ConcurrentDictionary<TypeTuple, TypeAdapterRule>();
 
-        public TypeAdapterConfig()
+        public TypeAdapterConfigConcurrency()
         {
             MappingCache = new(MapsterGlobalConfig.RulesTemplate, this);
             MappingCache.GetNewConfigSetter(_defaultSetterTuple, this);
             MappingCache.SetBoolSetting(nameof(AllowImplicitSourceInheritance), true);
         }
 
-        internal TypeAdapterConfig(TypeAdapterConfigSnapshot snapshot)
+        internal TypeAdapterConfigConcurrency(TypeAdapterConfigSnapshot snapshot)
         {
             MappingCache = new(snapshot, this);
         }
@@ -346,19 +346,19 @@ namespace Mapster
 		/// Clones the current TypeAdapterConfig.
 		/// </summary>
 		/// <returns></returns>
-		public TypeAdapterConfig Clone()
+		public ITypeAdapterConfig Clone()
         {
             //var fn = _cloneConfig;
             //return fn(this);
 
-            return new(this.GetSnapshot);
+            return new TypeAdapterConfigConcurrency(this.GetSnapshot);
 
            // throw new NotImplementedException();
         }
 
      
 
-        public TypeAdapterConfig Fork(Action<TypeAdapterConfig> action,
+        public ITypeAdapterConfig Fork(Action<ITypeAdapterConfig> action,
 #if !NET40
             [CallerFilePath]
 #endif
@@ -379,36 +379,5 @@ namespace Mapster
         }
 
         public TypeAdapterConfigSnapshot GetSnapshot => MappingCache.CurrentSnapshot;
-    }
-
-    public static class TypeAdapterConfig<TSource, TDestination>
-    {
-		/// <summary>
-		///  Creates a new configuration for mapping between the source and destination types.
-		/// </summary>
-		/// <returns></returns>
-		public static TypeAdapterSetter<TSource, TDestination> NewConfig()
-        {
-            return MapsterGlobalConfig.GlobalSettings.NewConfig<TSource, TDestination>();
-        }
-
-
-		/// <summary>
-		/// Creates a configuration for mapping between the source and destination types.
-		/// </summary>
-		/// <returns></returns>
-		public static TypeAdapterSetter<TSource, TDestination> ForType()
-        {
-            return MapsterGlobalConfig.GlobalSettings.ForType<TSource, TDestination>();
-        }
-
-
-		/// <summary>
-		/// Clears the type mapping configuration for the specified source and destination types.
-		/// </summary>
-		public static void Clear()
-        {
-            MapsterGlobalConfig.GlobalSettings.Remove(typeof(TSource), typeof(TDestination));
-        }
     }
 }

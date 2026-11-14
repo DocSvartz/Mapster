@@ -18,7 +18,7 @@ namespace Mapster
 
         public new ISourceToDestinationTypeAdapterSettings Settings => OriginSettings;
        // public readonly TypeAdapterConfig Config;
-        public TypeAdapterSetter(TypeAdapterSettings OriginSettings, TypeAdapterConfig config): base(OriginSettings,config)
+        public TypeAdapterSetter(TypeAdapterSettings OriginSettings, ITypeAdapterConfig config): base(OriginSettings,config)
         {
            
         }
@@ -433,7 +433,7 @@ namespace Mapster
 
     public class TypeAdapterSetter<TDestination> : DestinationTypeOnlySetter
     {
-        internal TypeAdapterSetter(TypeAdapterSettings settings, TypeAdapterConfig parentConfig)
+        internal TypeAdapterSetter(TypeAdapterSettings settings, ITypeAdapterConfig parentConfig)
             : base(settings, parentConfig)
         { }
 
@@ -599,7 +599,7 @@ namespace Mapster
     {
         public new ISourceToDestinationTypeAdapterSettings Settings => OriginSettings;
 
-        internal TypeAdapterSetter(TypeAdapterSettings settings, TypeAdapterConfig parentConfig)
+        internal TypeAdapterSetter(TypeAdapterSettings settings, ITypeAdapterConfig parentConfig)
             : base(settings, parentConfig)
         { }
 
@@ -1117,7 +1117,7 @@ namespace Mapster
             return this;
         }
 
-        public TypeAdapterSetter<TSource, TDestination> Fork(Action<TypeAdapterConfig> action)
+        public TypeAdapterSetter<TSource, TDestination> Fork(Action<ITypeAdapterConfig> action)
         {
             this.CheckCompiled();
 
@@ -1154,7 +1154,7 @@ namespace Mapster
         public TypeAdapterSetter<TSource, TDestination> SourceToDestinationSetter { get; }
         public TypeAdapterSetter<TDestination, TSource> DestinationToSourceSetter { get; }
 
-        public TwoWaysTypeAdapterSetter(TypeAdapterConfig config)
+        public TwoWaysTypeAdapterSetter(ITypeAdapterConfig config)
         {
             SourceToDestinationSetter = config.ForType<TSource, TDestination>();
             DestinationToSourceSetter = config.ForType<TDestination, TSource>();
@@ -1365,7 +1365,7 @@ namespace Mapster
             return this;
         }
 
-        public TwoWaysTypeAdapterSetter<TSource, TDestination> Fork(Action<TypeAdapterConfig> action)
+        public TwoWaysTypeAdapterSetter<TSource, TDestination> Fork(Action<ITypeAdapterConfig> action)
         {
             SourceToDestinationSetter.Fork(action);
             DestinationToSourceSetter.Fork(action);

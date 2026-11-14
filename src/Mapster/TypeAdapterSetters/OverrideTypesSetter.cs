@@ -9,17 +9,17 @@ namespace Mapster
     {
         internal protected OverrideTypesSettings _Settings { get => (OverrideTypesSettings)Settings; }
 
-        public OverrideTypesSetter(TypeAdapterConfig config) : this (new OverrideTypesSettings (), config) { }
-        public OverrideTypesSetter(TypeAdapterSettings settings, TypeAdapterConfig config) : base(settings, config) { }
+        public OverrideTypesSetter(ITypeAdapterConfig config) : this (new OverrideTypesSettings (), config) { }
+        public OverrideTypesSetter(TypeAdapterSettings settings, ITypeAdapterConfig config) : base(settings, config) { }
     }
 
     public class OverrideTypesSetter<TSource, TDestination> : OverrideTypesSetter
     {
-        public OverrideTypesSetter(TypeAdapterConfig config) : base(config)
+        public OverrideTypesSetter(ITypeAdapterConfig config) : base(config)
         {
         }
 
-        public OverrideTypesSetter(TypeAdapterSettings settings, TypeAdapterConfig config) : base(settings, config)
+        public OverrideTypesSetter(TypeAdapterSettings settings, ITypeAdapterConfig config) : base(settings, config)
         {
         }
 

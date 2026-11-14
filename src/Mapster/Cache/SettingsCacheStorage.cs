@@ -12,7 +12,7 @@ namespace Mapster.Cache
     public partial class SettingsCacheStorage
     {
         #region PrivateMembers 
-        private readonly TypeAdapterConfig _config;
+        private readonly ITypeAdapterConfig _config;
         private readonly object _lock = new();
         private ulong _Version = 0;
         private TypeAdapterRule DefaultSettingsRule;
@@ -134,14 +134,14 @@ namespace Mapster.Cache
 
 
         public IReadOnlyCollection<TypeAdapterRule> Rules => this;
-        public SettingsCacheStorage(ImmutableArray<TypeAdapterRule> ruleTemplates, TypeAdapterConfig config)
+        public SettingsCacheStorage(ImmutableArray<TypeAdapterRule> ruleTemplates, ITypeAdapterConfig config)
         {
             AdapterRules = ruleTemplates;
             var setting = TypeAdapterSettings.CreateDefault;
             _config = config;
         }
 
-        internal SettingsCacheStorage(TypeAdapterConfigSnapshot configSnapshot, TypeAdapterConfig config)
+        internal SettingsCacheStorage(TypeAdapterConfigSnapshot configSnapshot, ITypeAdapterConfig config)
         {
             _Version = configSnapshot.Version;
             DefaultSettingsRule = configSnapshot.DefaultSettingsRule;
@@ -170,7 +170,7 @@ namespace Mapster.Cache
 
         public bool GetBoolSetting(string name) { BoolSettings.TryGetValue(name, out var data); return data; }
                 
-        public TypeAdapterSetter<TSource, TDestination> GetNewConfigSetter<TSource, TDestination>(TypeTuple tuple, TypeAdapterConfig config)
+        public TypeAdapterSetter<TSource, TDestination> GetNewConfigSetter<TSource, TDestination>(TypeTuple tuple, ITypeAdapterConfig config)
         {
             lock (_lock)
             {
@@ -179,7 +179,7 @@ namespace Mapster.Cache
             }
         }
 
-        public TypeAdapterSetter GetNewConfigSetter(TypeTuple tuple, TypeAdapterConfig config)
+        public TypeAdapterSetter GetNewConfigSetter(TypeTuple tuple, ITypeAdapterConfig config)
         {
             lock (_lock)
             {
@@ -188,7 +188,7 @@ namespace Mapster.Cache
             }
         }
 
-        public TypeAdapterSetter<TSource, TDestination> GetForTypeSetter<TSource, TDestination>(TypeTuple tuple, TypeAdapterConfig config)
+        public TypeAdapterSetter<TSource, TDestination> GetForTypeSetter<TSource, TDestination>(TypeTuple tuple, ITypeAdapterConfig config)
         {
             lock (_lock)
             {
@@ -196,7 +196,7 @@ namespace Mapster.Cache
             }
         }
 
-        public TypeAdapterSetter GetForTypeSetter(TypeTuple tuple, TypeAdapterConfig config)
+        public TypeAdapterSetter GetForTypeSetter(TypeTuple tuple, ITypeAdapterConfig config)
         {
             lock (_lock)
             {
@@ -204,7 +204,7 @@ namespace Mapster.Cache
             }
         }
 
-        public TypeAdapterSetter<TDestination> GetForDestinationTypeSetter<TDestination>(TypeTuple tuple, TypeAdapterConfig config)
+        public TypeAdapterSetter<TDestination> GetForDestinationTypeSetter<TDestination>(TypeTuple tuple, ITypeAdapterConfig config)
         {
             lock (_lock)
             {
@@ -212,7 +212,7 @@ namespace Mapster.Cache
             }
         }
 
-        public DestinationTypeOnlySetter GetForDestinationTypeSetter(TypeTuple tuple, TypeAdapterConfig config)
+        public DestinationTypeOnlySetter GetForDestinationTypeSetter(TypeTuple tuple, ITypeAdapterConfig config)
         {
             lock (_lock)
             {

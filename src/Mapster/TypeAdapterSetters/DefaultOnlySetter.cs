@@ -8,7 +8,7 @@
         protected const string DestinationParameterName = "destination";
 
         public IDefaultTypeAdapterSettings Settings => OriginSettings;
-        public DefaultOnlySetter(TypeAdapterSettings originSettings, TypeAdapterConfig config):base(originSettings, config)
+        public DefaultOnlySetter(TypeAdapterSettings originSettings, ITypeAdapterConfig config):base(originSettings, config)
         {
         }
     }
@@ -17,8 +17,8 @@
     public abstract class BaseSetter
     {
         public readonly TypeAdapterSettings OriginSettings;
-        public readonly TypeAdapterConfig Config;
-        public BaseSetter(TypeAdapterSettings originSettings, TypeAdapterConfig config)
+        public readonly ITypeAdapterConfig Config;
+        public BaseSetter(TypeAdapterSettings originSettings, ITypeAdapterConfig config)
         {
             OriginSettings = originSettings;
             Config = config;

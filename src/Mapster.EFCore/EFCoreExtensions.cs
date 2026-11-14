@@ -11,7 +11,7 @@ namespace Mapster.EFCore
     public static class EFCoreExtensions
     {
         public static IQueryable<TDestination> EFCoreProjectToType<TDestination>(this IQueryable source, 
-            TypeAdapterConfig? config = null, ProjectToTypeAutoMapping autoMapConfig = ProjectToTypeAutoMapping.WithoutCollections)
+            ITypeAdapterConfig? config = null, ProjectToTypeAutoMapping autoMapConfig = ProjectToTypeAutoMapping.WithoutCollections)
         {
             var allInclude = new IncludeVisitor();
             allInclude.Visit(source.Expression);

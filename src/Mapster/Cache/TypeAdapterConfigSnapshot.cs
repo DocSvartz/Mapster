@@ -12,7 +12,7 @@ namespace Mapster
 {
     public partial class TypeAdapterConfigSnapshot
     {
-        public TypeAdapterConfig Config { get; init; }
+        public ITypeAdapterConfig Config { get; init; }
 
         internal TypeAdapterRule DefaultSettingsRule;
         internal ImmutableArray<TypeAdapterRule> AdapterRules { get; init;}
@@ -110,7 +110,7 @@ namespace Mapster
         {
             var context = new CompileContext(this);
             context.Running.Add(tuple);
-            Action<TypeAdapterConfig>? fork = null;
+            Action<ITypeAdapterConfig>? fork = null;
             try
             {
                 var arg = GetCompileArgument(tuple, mapType, context);

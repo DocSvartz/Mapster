@@ -4,7 +4,7 @@ namespace Mapster
 {
     public interface IAdapterBuilder
     {
-        TypeAdapterConfig Config { get; }
+        ITypeAdapterConfig Config { get; }
         bool HasParameter { get; }
         Dictionary<string, object> Parameters { get; }
         MapContextScope CreateMapContextScope();
