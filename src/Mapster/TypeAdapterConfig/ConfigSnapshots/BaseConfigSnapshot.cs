@@ -137,6 +137,21 @@ namespace Mapster
             return CreateInlineMapExpression(sourceType, destinationType, mapType, context, mapping);
         }
 
+        Delegate ITypeAdapterConfigSnapshot.GetMapToTargetFunction(Type sourceType, Type destinationType)
+        {
+            return GetMapToTargetFunction(sourceType, destinationType);
+        }
+
+        Delegate ITypeAdapterConfigSnapshot.GetMapFunction(Type sourceType, Type destinationType)
+        {
+            return GetMapFunction(sourceType, destinationType);
+        }
+
+        MethodCallExpression ITypeAdapterConfigSnapshot.GetProjectionCallExpression(Type sourceType, Type destinationType)
+        {
+            return GetProjectionCallExpression(sourceType, destinationType);
+        }
+
         public int Count => DefaultSettingsRule is not null ? 1 : 0
                             + AdapterRules.Count
                             + CustomSettingsRules.Count

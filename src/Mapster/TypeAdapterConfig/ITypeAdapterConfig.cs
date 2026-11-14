@@ -48,6 +48,6 @@ namespace Mapster
         void CompileProjection();
         void CompileProjection(Type sourceType, Type destinationType);
 
-        TypeAdapterConfigSnapshot GetSnapshot { get; }
+        ITypeAdapterConfigSnapshot GetSnapshot { get; }
     }
 }

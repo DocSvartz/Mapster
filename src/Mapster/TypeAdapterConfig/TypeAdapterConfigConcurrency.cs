@@ -49,7 +49,7 @@ namespace Mapster
             MappingCache.SetBoolSetting(nameof(AllowImplicitSourceInheritance), true);
         }
 
-        internal TypeAdapterConfigConcurrency(TypeAdapterConfigSnapshot snapshot)
+        internal TypeAdapterConfigConcurrency(ITypeAdapterConfigSnapshot snapshot)
         {
             MappingCache = new(snapshot, this);
         }
@@ -378,6 +378,6 @@ namespace Mapster
             // throw new NotImplementedException();
         }
 
-        public TypeAdapterConfigSnapshot GetSnapshot => MappingCache.CurrentSnapshot;
+        public ITypeAdapterConfigSnapshot GetSnapshot => MappingCache.CurrentSnapshot;
     }
 }

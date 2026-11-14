@@ -13,6 +13,9 @@ namespace Mapster
         internal ConcurrentDictionary<Type, MappingTypeModel> TypeMemberModelsCache { get; init; }
         internal ConcurrentDictionary<TypeTuple, CompiledSettingsCacheItem> CacheCompiledTypesSettings { get; init; }
         internal ImmutableDictionary<string, bool> BoolSettings { get; init; }
+        internal Delegate GetMapFunction(Type sourceType, Type destinationType);
+        internal Delegate GetMapToTargetFunction(Type sourceType, Type destinationType);
+        internal MethodCallExpression GetProjectionCallExpression(Type sourceType, Type destinationType);
         internal Expression CreateMapInvokeExpressionBody(Type sourceType, Type destinationType, Expression p);
         internal Expression CreateDynamicMapInvokeExpressionBody(Type destinationType, Expression p1);
         internal Expression CreateMapToTargetInvokeExpressionBody(Type sourceType, Type destinationType, Expression p1, Expression p2);

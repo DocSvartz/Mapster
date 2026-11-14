@@ -23,7 +23,7 @@ namespace Mapster.Cache
 
         private readonly ConcurrentDictionary<Type, MappingTypeModel> TypeMemberModelsCache = new();
 
-        private TypeAdapterConfigSnapshot? _cachedSnapShot;
+        private ITypeAdapterConfigSnapshot? _cachedSnapShot;
         
         private readonly Dictionary<TypeTuple, Delegate> _mapCache = new();
         private readonly Dictionary<TypeTuple, Delegate> _mapToTargetCache = new();
@@ -293,7 +293,7 @@ namespace Mapster.Cache
             }
         }
 
-        private TypeAdapterConfigSnapshot GetSnapShot() 
+        private ITypeAdapterConfigSnapshot GetSnapShot() 
         {
             lock ( _lock)
             {
@@ -317,6 +317,6 @@ namespace Mapster.Cache
 
          
 
-        public TypeAdapterConfigSnapshot CurrentSnapshot => GetSnapShot();
+        public ITypeAdapterConfigSnapshot CurrentSnapshot => GetSnapShot();
     }
 }

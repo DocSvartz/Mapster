@@ -12,7 +12,7 @@ namespace Mapster
         TSource Source { get; }
         TSource IAdapterBuilder<TSource>.Source => Source;
         ITypeAdapterConfig Config { get; set; }
-        TypeAdapterConfigSnapshot ConfigSnapshot { get; set; }
+        ITypeAdapterConfigSnapshot ConfigSnapshot { get; set; }
         ITypeAdapterConfig IAdapterBuilder.Config => Config;
 
         private Dictionary<string, object>? _parameters;

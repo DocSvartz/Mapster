@@ -42,7 +42,7 @@ namespace Mapster
         {
             return (Func<TSource, TDestination>)GetMapFunction(typeof(TSource), typeof(TDestination));
         }
-        internal Delegate GetMapFunction(Type sourceType, Type destinationType)
+        internal protected Delegate GetMapFunction(Type sourceType, Type destinationType)
         {
             var key = new TypeTuple(sourceType, destinationType);
             if (!_mapDict.TryGetValue(key, out var del))
@@ -55,7 +55,7 @@ namespace Mapster
         {
             return (Func<TSource, TDestination, TDestination>)GetMapToTargetFunction(typeof(TSource), typeof(TDestination));
         }
-        internal Delegate GetMapToTargetFunction(Type sourceType, Type destinationType)
+        internal protected Delegate GetMapToTargetFunction(Type sourceType, Type destinationType)
         {
             var key = new TypeTuple(sourceType, destinationType);
             if (!_mapToTargetDict.TryGetValue(key, out var del))
@@ -69,7 +69,7 @@ namespace Mapster
 
             return (Expression<Func<TSource, TDestination>>)((UnaryExpression)del.Arguments[1]).Operand;
         }
-        internal MethodCallExpression GetProjectionCallExpression(Type sourceType, Type destinationType)
+        internal protected MethodCallExpression GetProjectionCallExpression(Type sourceType, Type destinationType)
         {
             var key = new TypeTuple(sourceType, destinationType);
             if (!_projectionDict.TryGetValue(key, out var del))
@@ -95,7 +95,7 @@ namespace Mapster
 
         internal protected Expression CreateDynamicMapInvokeExpressionBody(Type destinationType, Expression p1)
         {
-            var method = (from m in typeof(TypeAdapterConfigSnapshot).GetMethods(BindingFlags.Instance | BindingFlags.Public)
+            var method = (from m in typeof(ITypeAdapterConfigSnapshot).GetMethods(BindingFlags.Instance | BindingFlags.Public)
                           where m.Name == nameof(GetDynamicMapFunction)
                           select m).First().MakeGenericMethod(destinationType);
             var getType = typeof(object).GetMethod(nameof(GetType));
@@ -301,7 +301,7 @@ namespace Mapster
             //}
             //else
             //{
-                var method = (from m in typeof(TypeAdapterConfigSnapshot).GetMethods(BindingFlags.Instance | BindingFlags.Public)
+                var method = (from m in typeof(ITypeAdapterConfigSnapshot).GetMethods(BindingFlags.Instance | BindingFlags.Public)
                               where m.Name == nameof(GetMapFunction)
                               select m).First().MakeGenericMethod(sourceType, destinationType);
                 invoker = Expression.Call(CreateSelfExpression(), method);
@@ -316,7 +316,7 @@ namespace Mapster
                 var key = new TypeTuple(sourceType, destinationType);
                 _mapToTargetDict[key] = Compiler(CreateMapExpression(key, MapType.MapToTarget));
             }
-            var method = (from m in typeof(TypeAdapterConfigSnapshot).GetMethods(BindingFlags.Instance | BindingFlags.Public)
+            var method = (from m in typeof(ITypeAdapterConfigSnapshot).GetMethods(BindingFlags.Instance | BindingFlags.Public)
                           where m.Name == nameof(GetMapToTargetFunction)
                           select m).First().MakeGenericMethod(sourceType, destinationType);
             var invoker = Expression.Call(CreateSelfExpression(), method);

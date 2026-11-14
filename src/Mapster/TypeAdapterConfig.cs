@@ -49,7 +49,7 @@ namespace Mapster
             MappingCache.SetBoolSetting(nameof(AllowImplicitSourceInheritance), true);
         }
 
-        internal TypeAdapterConfig(TypeAdapterConfigSnapshot snapshot)
+        internal TypeAdapterConfig(ITypeAdapterConfigSnapshot snapshot)
         {
             MappingCache = new(snapshot, this);
         }
@@ -377,7 +377,7 @@ namespace Mapster
         }
         #endregion Clone&Fork
 
-        public TypeAdapterConfigSnapshot GetSnapshot => MappingCache.CurrentSnapshot;
+        public ITypeAdapterConfigSnapshot GetSnapshot => MappingCache.CurrentSnapshot;
     }
 
     public static class TypeAdapterConfig<TSource, TDestination>
