@@ -13,10 +13,10 @@ namespace Mapster
     public abstract class BaseConfigSnapshot : BaseMapFuncProducer, ITypeAdapterConfigSnapshot
     {    
         
-        public abstract IReadOnlyCollection<TypeAdapterRule> DefaultSettingsRules { get; init; }
-        public abstract IReadOnlyCollection<TypeAdapterRule> AdapterRules { get; init; }
-        public abstract IReadOnlyCollection<TypeAdapterRule> CustomSettingsRules { get; init; }
-        public abstract IReadOnlyDictionary<TypeTuple, TypeAdapterRule> RuleMap { get; init; }
+        public IReadOnlyCollection<TypeAdapterRule> DefaultSettingsRules { get; init; }
+        public IReadOnlyCollection<TypeAdapterRule> AdapterRules { get; init; }
+        public IReadOnlyCollection<TypeAdapterRule> CustomSettingsRules { get; init; }
+        public IReadOnlyDictionary<TypeTuple, TypeAdapterRule> RuleMap { get; init; }
 
         public ulong Version { get; init; }
 
@@ -111,6 +111,7 @@ namespace Mapster
         {
             foreach (var x in AdapterRules) yield return x;
             if (DefaultSettingsRule is not null) yield return DefaultSettingsRule;
+            foreach (var x in DefaultSettingsRules) yield return x;
             foreach (var x in CustomSettingsRules) yield return x;
             foreach (var x in RuleMap.Values) yield return x;
         }
@@ -160,6 +161,6 @@ namespace Mapster
         ITypeAdapterConfig ITypeAdapterConfigSnapshot.Config { get => Config; init => Config = value; }
         ConcurrentDictionary<Type, MappingTypeModel> ITypeAdapterConfigSnapshot.TypeMemberModelsCache { get => TypeMemberModelsCache; init => TypeMemberModelsCache = value; }
         ConcurrentDictionary<TypeTuple, CompiledSettingsCacheItem> ITypeAdapterConfigSnapshot.CacheCompiledTypesSettings { get => CacheCompiledTypesSettings; init => CacheCompiledTypesSettings = value; }
-        ImmutableDictionary<string, bool> ITypeAdapterConfigSnapshot.BoolSettings { get => BoolSettings; init => BoolSettings = value; }
+        IReadOnlyDictionary<string, bool> ITypeAdapterConfigSnapshot.BoolSettings { get => BoolSettings; init => BoolSettings = value; }
     }
 }

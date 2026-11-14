@@ -1,4 +1,5 @@
-﻿using Mapster.Cache;
+﻿using Mapster.Adapters;
+using Mapster.Cache;
 using Mapster.Models;
 using Mapster.TypeAdapterSetters;
 using Mapster.Utils;
@@ -376,6 +377,16 @@ namespace Mapster
                 return cloned;
 
             // throw new NotImplementedException();
+        }
+
+        public void AddAdapter(BaseAdapter adapter)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void AddCustomRule(TypeAdapterRule rule)
+        {
+            throw new NotImplementedException();
         }
 
         public ITypeAdapterConfigSnapshot GetSnapshot => MappingCache.CurrentSnapshot;

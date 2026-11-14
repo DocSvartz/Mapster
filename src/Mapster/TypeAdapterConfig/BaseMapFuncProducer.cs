@@ -13,7 +13,7 @@ namespace Mapster
 {
     public abstract class BaseMapFuncProducer
     {
-        internal ImmutableDictionary<string, bool> BoolSettings { get; init; }
+        internal IReadOnlyDictionary<string, bool> BoolSettings { get; init; }
         public bool GetBoolSetting(string name) { BoolSettings.TryGetValue(name, out var data); return data; }
         internal Func<LambdaExpression, Delegate> Compiler { get; init; }
 

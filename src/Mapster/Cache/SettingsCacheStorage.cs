@@ -33,7 +33,7 @@ namespace Mapster.Cache
         private ulong UpdateAndGetVersion() { _Version = ++_Version; return _Version; }
         private void UpdateVersion() { _Version = ++_Version; }
 
-        private static TypeAdapterRule CreateDefaultRule(TypeAdapterSettings? settings = null)
+        internal static TypeAdapterRule CreateDefaultRule(TypeAdapterSettings? settings = null)
         {
             Func<PreCompileArgument, int?> priority = arg => -100;
 

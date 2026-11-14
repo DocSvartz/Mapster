@@ -1,4 +1,5 @@
-﻿using Mapster.Cache;
+﻿using Mapster.Adapters;
+using Mapster.Cache;
 using Mapster.Models;
 using Mapster.TypeAdapterSetters;
 using System;
@@ -20,12 +21,15 @@ namespace Mapster
         bool RequireExplicitMappingPrimitive { get; set; }
         bool SelfContainedCodeGeneration { get; set; }
         Func<LambdaExpression, Delegate> Compiler { get; set; }
+
+        public void AddAdapter(BaseAdapter adapter);
+        public void AddCustomRule(TypeAdapterRule rule);
         
-        
-       
+
+
         ConcurrentDictionary<TypeTuple, TypeAdapterRule> RuleMap { get; }
         IList<TypeAdapterRule> Rules { get; }
-        public SettingsCacheStorage MappingCache { get; }
+        //public SettingsCacheStorage MappingCache { get; }
 
         DefaultOnlySetter Default { get; }
         DestinationTypeOnlySetter ForDestinationType(Type destinationType);

@@ -8,9 +8,6 @@ namespace Mapster
     /// </summary>
     internal class RunningConfigSnapshot : BaseConfigSnapshot
     {
-        public override IReadOnlyCollection<TypeAdapterRule> DefaultSettingsRules { get; init; }
-        public override IReadOnlyCollection<TypeAdapterRule> AdapterRules { get; init; }
-        public override IReadOnlyCollection<TypeAdapterRule> CustomSettingsRules { get; init; } // need refactoring
-        public override IReadOnlyDictionary<TypeTuple, TypeAdapterRule> RuleMap { get; init; }
+        
     }
 }

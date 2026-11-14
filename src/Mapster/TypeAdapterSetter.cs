@@ -343,7 +343,7 @@ namespace Mapster
                     throw new InvalidCastException("In order to use inherits, TDestination must be inherited from TBaseDestination.");
             }
 
-            setter.Config.MappingCache.AddRule(
+            setter.Config.AddCustomRule(
                 new ReadOnlyTypeAdapterRule(
                         (arg =>
                         arg.SourceType == sourceType &&
@@ -1067,7 +1067,7 @@ namespace Mapster
                     throw new InvalidCastException("In order to use inherits, TDestination must be inherited from TBaseDestination.");
             }
 
-            Config.MappingCache.AddRule(new ReadOnlyTypeAdapterRule
+            Config.AddCustomRule(new ReadOnlyTypeAdapterRule
             (
                 (arg =>
                 arg.SourceType == sourceType &&

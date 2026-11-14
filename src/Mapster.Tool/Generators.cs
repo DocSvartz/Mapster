@@ -528,7 +528,7 @@ namespace Mapster.Tool
 
             // assemblies defines open generic only, so we have to add specialised types used in mappings
 
-            var ruleMap = config.MappingCache.GetRuleMap;
+            var ruleMap = config.RuleMap;
 
             foreach (var (key, _) in ruleMap)
                 types.Add(key.Source);

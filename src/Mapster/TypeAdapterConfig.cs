@@ -1,4 +1,5 @@
-﻿using Mapster.Cache;
+﻿using Mapster.Adapters;
+using Mapster.Cache;
 using Mapster.Models;
 using Mapster.TypeAdapterSetters;
 using Mapster.Utils;
@@ -10,6 +11,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography.X509Certificates;
 
 namespace Mapster
 {
@@ -23,44 +25,108 @@ namespace Mapster
 
         private readonly TypeTuple _defaultSetterTuple = TypeTuple.Create<MapsterCacheMarker, DefaultOnlySetter>();
 
-        public SettingsCacheStorage MappingCache { get;}
+        //public SettingsCacheStorage MappingCache { get;}
 
-        public bool RequireDestinationMemberSource { get => MappingCache.GetBoolSetting(nameof(RequireDestinationMemberSource)); set => MappingCache.SetBoolSetting(nameof(RequireDestinationMemberSource), value); }
-        public bool RequireExplicitMapping { get => MappingCache.GetBoolSetting(nameof(RequireExplicitMapping)); set => MappingCache.SetBoolSetting(nameof(RequireExplicitMapping), value); }
-        public bool RequireExplicitMappingPrimitive { get => MappingCache.GetBoolSetting(nameof(RequireExplicitMappingPrimitive)); set => MappingCache.SetBoolSetting(nameof(RequireExplicitMappingPrimitive), value); }
-        public bool AllowImplicitDestinationInheritance { get => MappingCache.GetBoolSetting(nameof(AllowImplicitDestinationInheritance)); set => MappingCache.SetBoolSetting(nameof(AllowImplicitDestinationInheritance), value); }
-        public bool AllowImplicitSourceInheritance { get => MappingCache.GetBoolSetting(nameof(AllowImplicitSourceInheritance)); set => MappingCache.SetBoolSetting(nameof(AllowImplicitSourceInheritance), value); }
-        public bool SelfContainedCodeGeneration { get => MappingCache.GetBoolSetting(nameof(SelfContainedCodeGeneration)); set => MappingCache.SetBoolSetting(nameof(SelfContainedCodeGeneration), value); }
-        public bool ActivateCustomConvertersSrcNullPropagation { get => MappingCache.GetBoolSetting(nameof(ActivateCustomConvertersSrcNullPropagation)); set => MappingCache.SetBoolSetting(nameof(ActivateCustomConvertersSrcNullPropagation), value); }
+        public bool RequireDestinationMemberSource { get => GetBoolSetting(nameof(RequireDestinationMemberSource)); set => SetBoolSetting(nameof(RequireDestinationMemberSource), value); }
+        public bool RequireExplicitMapping { get => GetBoolSetting(nameof(RequireExplicitMapping)); set => SetBoolSetting(nameof(RequireExplicitMapping), value); }
+        public bool RequireExplicitMappingPrimitive { get => GetBoolSetting(nameof(RequireExplicitMappingPrimitive)); set => SetBoolSetting(nameof(RequireExplicitMappingPrimitive), value); }
+        public bool AllowImplicitDestinationInheritance { get => GetBoolSetting(nameof(AllowImplicitDestinationInheritance)); set => SetBoolSetting(nameof(AllowImplicitDestinationInheritance), value); }
+        public bool AllowImplicitSourceInheritance { get => GetBoolSetting(nameof(AllowImplicitSourceInheritance)); set => SetBoolSetting(nameof(AllowImplicitSourceInheritance), value); }
+        public bool SelfContainedCodeGeneration { get => GetBoolSetting(nameof(SelfContainedCodeGeneration)); set => SetBoolSetting(nameof(SelfContainedCodeGeneration), value); }
+        public bool ActivateCustomConvertersSrcNullPropagation { get => GetBoolSetting(nameof(ActivateCustomConvertersSrcNullPropagation)); set => SetBoolSetting(nameof(ActivateCustomConvertersSrcNullPropagation), value); }
 
 
 
 
         public Func<LambdaExpression, Delegate> Compiler { get; set; } = lambda => lambda.Compile();
 
-        [Obsolete($"This will be removed in version 11. Use {nameof(MappingCache)}.Rules")]
-        public IList<TypeAdapterRule> Rules => MappingCache.Rules.ToList();
-        public DefaultOnlySetter Default => MappingCache.GetForTypeSetter(_defaultSetterTuple, this);
+        [Obsolete($"This will be removed in version 11. Use {nameof(GetSnapshot)}.Rules")]
+        public IList<TypeAdapterRule> Rules => _snapshot.ToList();
+        public DefaultOnlySetter Default => _DefaultSetter;
         //public ConcurrentDictionary<TypeTuple, TypeAdapterRule> RuleMap { get; internal set; } = new ConcurrentDictionary<TypeTuple, TypeAdapterRule>();
 
         public TypeAdapterConfig()
         {
-            MappingCache = new(MapsterGlobalConfig.RulesTemplate, this);
-            MappingCache.GetNewConfigSetter(_defaultSetterTuple, this);
-            MappingCache.SetBoolSetting(nameof(AllowImplicitSourceInheritance), true);
+            //MappingCache = new(MapsterGlobalConfig.RulesTemplate, this);
+            //MappingCache.GetNewConfigSetter(_defaultSetterTuple, this);
+            //MappingCache.
+
+
+            BoolSettings = new();
+            DefaultSettingsRules = MapsterGlobalConfig.RulesTemplate;
+            AdapterRules = new();
+            CustomSettingsRules = new();
+            RuleMap = new();
+
+            _DefaultSetterRule = SettingsCacheStorage.CreateDefaultRule();
+            _DefaultSetter = new DefaultOnlySetter(_DefaultSetterRule.Settings,this);
+
+            SetBoolSetting(nameof(AllowImplicitSourceInheritance), true);
+
+            _snapshot = new RunningConfigSnapshot()
+            {
+                BoolSettings = this.BoolSettings,
+                DefaultSettingsRule = _DefaultSetterRule,
+                DefaultSettingsRules = this.DefaultSettingsRules,
+                AdapterRules = AdapterRules,
+                CustomSettingsRules = CustomSettingsRules,
+                RuleMap = RuleMap,
+                Compiler = Compiler,
+                Config = this
+            };
+
+
         }
 
         internal TypeAdapterConfig(ITypeAdapterConfigSnapshot snapshot)
         {
-            MappingCache = new(snapshot, this);
+            BoolSettings = new(snapshot.BoolSettings);
+            _DefaultSetterRule = SettingsCacheStorage.CreateDefaultRule(snapshot.DefaultSettingsRule.Settings.Clone());
+            _DefaultSetter = new DefaultOnlySetter(_DefaultSetterRule.Settings, this);
+            DefaultSettingsRules = snapshot.DefaultSettingsRules.ToImmutableArray();
+            AdapterRules = new(snapshot.AdapterRules);
+            CustomSettingsRules = new(snapshot.CustomSettingsRules);
+            RuleMap = new(snapshot.RuleMap);
+            Compiler = Compiler;
+
+            _snapshot = new RunningConfigSnapshot()
+            {
+                BoolSettings = this.BoolSettings,
+                DefaultSettingsRule = _DefaultSetterRule,
+                DefaultSettingsRules = this.DefaultSettingsRules,
+                AdapterRules = AdapterRules,
+                CustomSettingsRules = CustomSettingsRules,
+                RuleMap = RuleMap,
+                Compiler = Compiler,
+                Config = this
+            };
         }
 
         #region SettingsState
+
+        private TypeAdapterRule _DefaultSetterRule;
+        private DefaultOnlySetter _DefaultSetter;
+        private void SetBoolSetting(string name, bool value) => BoolSettings[name] = value;
+        private bool GetBoolSetting(string name) { BoolSettings.TryGetValue(name, out var data); return data; }
+        private ConcurrentDictionary<string, bool> BoolSettings { get; init; }
+        ///////////////////////////////////////////////////////////////////////////////////////////////////
         private ImmutableArray<TypeAdapterRule> DefaultSettingsRules { get; init; }
         private ConcurrentBag<TypeAdapterRule> AdapterRules { get; init; }
         private ConcurrentBag<TypeAdapterRule> CustomSettingsRules { get; init; }
-        private ConcurrentDictionary<TypeTuple, TypeAdapterRule> RuleMap { get; init; }
-        
+        public ConcurrentDictionary<TypeTuple, TypeAdapterRule> RuleMap { get; init; }
+
+        public void AddAdapter(BaseAdapter adapter)
+        {
+            AdapterRules.Add(adapter.CreateRule());
+        }
+
+        public void AddCustomRule(TypeAdapterRule rule)
+        {
+            CustomSettingsRules.Add(rule);
+        }
+
+        private RunningConfigSnapshot _snapshot;
+
         #endregion SettingsState
 
         #region SetterSettings
@@ -77,7 +143,7 @@ namespace Mapster
                 Priority = arg => canMap(arg.SourceType, arg.DestinationType, arg.MapType) ? (int?)25 : null
             };
             //Rules.LockAdd(rule);
-            MappingCache.AddRule(rule);
+            AddCustomRule(rule);
             return new TypeAdapterSetter((TypeAdapterSettings)rule.Settings, this);
         }
 
@@ -94,7 +160,7 @@ namespace Mapster
                 Priority = arg => canMap(arg) ? (int?)25 : null
             };
             //Rules.LockAdd(rule);
-            MappingCache.AddRule(rule);
+            AddCustomRule(rule);
             return new TypeAdapterSetter((TypeAdapterSettings)rule.Settings, this);
         }
 
@@ -107,8 +173,9 @@ namespace Mapster
         /// <returns></returns>
         public TypeAdapterSetter<TSource, TDestination> NewConfig<TSource, TDestination>()
         {
-            // Remove(typeof(TSource), typeof(TDestination));
-            return MappingCache.GetNewConfigSetter<TSource, TDestination>(TypeTuple.Create<TSource, TDestination>(), this);
+            Remove(typeof(TSource), typeof(TDestination));
+            //return MappingCache.GetNewConfigSetter<TSource, TDestination>(TypeTuple.Create<TSource, TDestination>(), this);
+            return new TypeAdapterSetter<TSource, TDestination>(GetSettings(TypeTuple.Create<TSource, TDestination>(), true), this);
         }
 
 
@@ -120,8 +187,9 @@ namespace Mapster
         /// <returns></returns>
         public TypeAdapterSetter NewConfig(Type sourceType, Type destinationType)
         {
-            //Remove(sourceType, destinationType);
-            return MappingCache.GetNewConfigSetter(new TypeTuple(sourceType, destinationType), this);
+            Remove(sourceType, destinationType);
+            //return MappingCache.GetNewConfigSetter(new TypeTuple(sourceType, destinationType), this);
+            return new TypeAdapterSetter(GetSettings(new TypeTuple(sourceType, destinationType), true), this);
         }
 
 
@@ -133,9 +201,12 @@ namespace Mapster
         /// <returns></returns>
         public TypeAdapterSetter<TSource, TDestination> ForType<TSource, TDestination>()
         {
-            //  var key = new TypeTuple(typeof(TSource), typeof(TDestination));
+
+              var key = new TypeTuple(typeof(TSource), typeof(TDestination));
             // var settings = GetSettings(key);
-            return MappingCache.GetForTypeSetter<TSource, TDestination>(new TypeTuple(typeof(TSource), typeof(TDestination)), this);
+            //return    MappingCache.GetForTypeSetter<TSource, TDestination>(new TypeTuple(typeof(TSource), typeof(TDestination)), this);
+            Remove(key);
+            return new TypeAdapterSetter<TSource, TDestination>(GetSettings(key), this);
         }
 
 
@@ -147,9 +218,11 @@ namespace Mapster
         /// <returns></returns>
         public TypeAdapterSetter ForType(Type sourceType, Type destinationType)
         {
-            // var key = new TypeTuple(sourceType, destinationType);
+             var key = new TypeTuple(sourceType, destinationType);
             // var settings = GetSettings(key);
-            return MappingCache.GetForTypeSetter(new TypeTuple(sourceType, destinationType), this);
+            //return MappingCache.GetForTypeSetter(new TypeTuple(sourceType, destinationType), this);
+            Remove(key);
+            return new TypeAdapterSetter(GetSettings(key), this);
         }
 
 
@@ -160,9 +233,11 @@ namespace Mapster
         /// <returns></returns>
         public TypeAdapterSetter<TDestination> ForDestinationType<TDestination>()
         {
-            //var key = new TypeTuple(typeof(void), typeof(TDestination));
+            var key = new TypeTuple(typeof(void), typeof(TDestination));
             //var settings = GetSettings(key);
-            return MappingCache.GetForDestinationTypeSetter<TDestination>(new TypeTuple(typeof(void), typeof(TDestination)), this);
+            //return MappingCache.GetForDestinationTypeSetter<TDestination>(new TypeTuple(typeof(void), typeof(TDestination)), this);
+            Remove(key);
+            return new TypeAdapterSetter<TDestination>(GetSettings(key), this);
         }
 
 
@@ -173,10 +248,69 @@ namespace Mapster
         /// <returns></returns>
         public DestinationTypeOnlySetter ForDestinationType(Type destinationType)
         {
-            //var key = new TypeTuple(typeof(void), destinationType);
+            var key = new TypeTuple(typeof(void), destinationType);
             //var settings = GetSettings(key);
-            return MappingCache.GetForDestinationTypeSetter(new TypeTuple(typeof(void), destinationType), this);
+            // return MappingCache.GetForDestinationTypeSetter(new TypeTuple(typeof(void), destinationType), this);
+            Remove(key);
+            return new DestinationTypeOnlySetter(GetSettings(key), this);
         }
+
+        private TypeAdapterSettings GetSettings(TypeTuple types, bool isForceNewConfig = false)
+        {
+            TypeAdapterSettings? clonedConfig = null;
+            TypeAdapterRule? ruleMap = null;
+
+            RuleMap.TryGetValue(types, out ruleMap);
+
+            if (!isForceNewConfig)
+                clonedConfig = ruleMap?.Settings.Clone();
+
+            ruleMap = types.Source == typeof(void)
+                ? CreateDestinationTypeRule(types, clonedConfig)
+                : CreateTypeTupleRule(types, clonedConfig);
+
+
+           // ruleMap.Settings.StorageVersion = UpdateAndGetVersion();
+            //Rules.Add(ruleMap);
+
+            RuleMap[types] = ruleMap;
+
+            ruleMap.Settings.SourceType = types.Source;
+            ruleMap.Settings.DestinationType = types.Destination;
+
+            return ruleMap.Settings;
+        }
+
+        private TypeAdapterRule CreateDestinationTypeRule(TypeTuple key, TypeAdapterSettings? settings = null)
+        {
+            Func<PreCompileArgument, int?> priority = arg => arg.DestinationType.GetSubclassDistance(key.Destination, true);
+
+            return settings == null
+                ? new TypeAdapterRule(priority)
+                : new TypeAdapterRule(priority, settings);
+        }
+        private TypeAdapterRule CreateTypeTupleRule(TypeTuple key, TypeAdapterSettings? settings = null)
+        {
+            Func<PreCompileArgument, int?> priority =
+                arg =>
+                {
+                    var score1 = arg.DestinationType.GetSubclassDistance(key.Destination, GetBoolSetting(nameof(TypeAdapterConfig.AllowImplicitDestinationInheritance)));
+                    if (score1 == null)
+                        return null;
+                    var score2 = arg.SourceType.GetSubclassDistance(key.Source, GetBoolSetting(nameof(TypeAdapterConfig.AllowImplicitSourceInheritance)));
+                    if (score2 == null)
+                        return null;
+                    return score1.Value + score2.Value;
+                };
+
+            return settings == null
+                ? new TypeAdapterRule(priority)
+                : new TypeAdapterRule(priority, settings);
+        }
+
+
+
+
         #endregion SetterSettings
 
         #region Compile
@@ -244,7 +378,7 @@ namespace Mapster
         /// </summary>
         public void CompileProjection()
         {
-            var keys = MappingCache.GetRuleMap.Keys.ToList(); ;
+            var keys = RuleMap.Keys.ToList(); ;
             foreach (var key in keys)
             {
                 // _projectionDict[key] = CreateProjectionCallExpression(key);
@@ -324,7 +458,7 @@ namespace Mapster
         /// </summary>
         internal void Clear()
         {
-            MappingCache.Clear();
+            //MappingCache.Clear();
         }
 
 
@@ -336,17 +470,23 @@ namespace Mapster
         internal void Remove(Type sourceType, Type destinationType)
         {
             var key = new TypeTuple(sourceType, destinationType);
-            MappingCache.Remove(key);
+            this.RuleMap.TryRemove(key, out _);
+            _snapshot._dynamicMapDict.TryRemove(key, out _);
+            _snapshot._mapDict.TryRemove(key, out _);
+            _snapshot._mapToTargetDict.TryRemove(key, out _);
+            _snapshot._projectionDict.TryRemove(key, out _);
+            _snapshot.CacheCompiledTypesSettings.TryRemove(key, out _);
+
+            //MappingCache.Remove(key);
         }
 
         private void Remove(TypeTuple key)
         {
-            ////if (RuleMap.TryRemove(key, out var rule))
-            ////    Rules.LockRemove(rule);
-            //_mapDict.TryRemove(key, out _);
-            //_mapToTargetDict.TryRemove(key, out _);
-            //_projectionDict.TryRemove(key, out _);
-            //_dynamicMapDict.TryRemove(key, out _);
+            _snapshot._dynamicMapDict.TryRemove(key, out _);
+            _snapshot._mapDict.TryRemove(key, out _);
+            _snapshot._mapToTargetDict.TryRemove(key, out _);
+            _snapshot._projectionDict.TryRemove(key, out _);
+            _snapshot.CacheCompiledTypesSettings.TryRemove(key, out _);
         }
         #endregion Clear
 
@@ -386,7 +526,7 @@ namespace Mapster
         }
         #endregion Clone&Fork
 
-        public ITypeAdapterConfigSnapshot GetSnapshot => MappingCache.CurrentSnapshot;
+        public ITypeAdapterConfigSnapshot GetSnapshot => _snapshot;
     }
 
     public static class TypeAdapterConfig<TSource, TDestination>

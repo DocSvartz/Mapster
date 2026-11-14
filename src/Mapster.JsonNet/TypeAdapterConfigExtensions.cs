@@ -6,7 +6,7 @@ namespace Mapster
     {
         public static void EnableJsonMapping(this ITypeAdapterConfig config)
         {
-            config.MappingCache.AddAdapterRule(new JsonAdapter());
+            config.AddAdapter(new JsonAdapter());
         }
     }
 }
