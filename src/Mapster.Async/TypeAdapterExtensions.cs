@@ -122,7 +122,7 @@ namespace Mapster
         /// <param name="builder"></param>
         /// <param name="config">Configuration</param>
         /// <returns>Type of destination object that mapped.</returns>
-        public static async Task<TDestination> AdaptAsync<TDestination>(this object? source, TypeAdapterConfig config)
+        public static async Task<TDestination> AdaptAsync<TDestination>(this object? source, ITypeAdapterConfig config)
         {
             return await source.BuildAdapter(config).AdaptToTypeAsync<TDestination>();
         }

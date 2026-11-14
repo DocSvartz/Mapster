@@ -16,7 +16,7 @@ namespace Mapster
             return source.Provider.CreateQuery<TDestination>(sourceCall);
         }
 
-        public static IQueryable ProjectToType(this IQueryable source, Type destinationType, TypeAdapterConfig? config = null)
+        public static IQueryable ProjectToType(this IQueryable source, Type destinationType, ITypeAdapterConfig? config = null)
         {
             config ??= MapsterGlobalConfig.GlobalSettings;
             var mockCall = config.GetSnapshot.GetProjectionCallExpression(source.ElementType, destinationType);

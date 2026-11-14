@@ -6,7 +6,7 @@ namespace MapsterMapper
 {
     public interface IMapper
     {
-        TypeAdapterConfig Config { get; }
+        ITypeAdapterConfig Config { get; }
 
 
 		/// <summary>
