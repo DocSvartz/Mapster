@@ -5,6 +5,7 @@ using Mapster.Utils;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -40,7 +41,7 @@ namespace Mapster
         [Obsolete($"This will be removed in version 11. Use {nameof(MappingCache)}.Rules")]
         public IList<TypeAdapterRule> Rules => MappingCache.Rules.ToList();
         public DefaultOnlySetter Default => MappingCache.GetForTypeSetter(_defaultSetterTuple, this);
-        public ConcurrentDictionary<TypeTuple, TypeAdapterRule> RuleMap { get; internal set; } = new ConcurrentDictionary<TypeTuple, TypeAdapterRule>();
+        //public ConcurrentDictionary<TypeTuple, TypeAdapterRule> RuleMap { get; internal set; } = new ConcurrentDictionary<TypeTuple, TypeAdapterRule>();
 
         public TypeAdapterConfig()
         {
@@ -53,6 +54,14 @@ namespace Mapster
         {
             MappingCache = new(snapshot, this);
         }
+
+        #region SettingsState
+        private ImmutableArray<TypeAdapterRule> DefaultSettingsRules { get; init; }
+        private ConcurrentBag<TypeAdapterRule> AdapterRules { get; init; }
+        private ConcurrentBag<TypeAdapterRule> CustomSettingsRules { get; init; }
+        private ConcurrentDictionary<TypeTuple, TypeAdapterRule> RuleMap { get; init; }
+        
+        #endregion SettingsState
 
         #region SetterSettings
 
