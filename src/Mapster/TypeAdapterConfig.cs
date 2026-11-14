@@ -54,6 +54,8 @@ namespace Mapster
             MappingCache = new(snapshot, this);
         }
 
+        #region SetterSettings
+
         /// <summary>
         /// allows you to specify conditions for when a mapping should occur based on source and destination types and the mapping type.
         /// </summary>
@@ -166,7 +168,9 @@ namespace Mapster
             //var settings = GetSettings(key);
             return MappingCache.GetForDestinationTypeSetter(new TypeTuple(typeof(void), destinationType), this);
         }
+        #endregion SetterSettings
 
+        #region Compile
         /// <summary>
         /// Validates and cache mapping instructions.
         /// </summary>
@@ -249,8 +253,9 @@ namespace Mapster
             var tuple = new TypeTuple(sourceType, destinationType);
             //  _projectionDict[tuple] = CreateProjectionCallExpression(tuple);
         }
+        #endregion Compile
 
-
+        #region Scan&Apply
         /// <summary>
         /// Scans and registers mappings from specified assemblies.
         /// </summary>
@@ -302,8 +307,9 @@ namespace Mapster
                 register.Register(this);
             }
         }
+        #endregion Scan&Apply
 
-
+        #region Clear
         /// <summary>
         /// Clears all type mapping rules and settings
         /// </summary>
@@ -333,15 +339,9 @@ namespace Mapster
             //_projectionDict.TryRemove(key, out _);
             //_dynamicMapDict.TryRemove(key, out _);
         }
+        #endregion Clear
 
-        //private s
-
-        //private static readonly Lazy<TypeAdapterConfig> _cloneConfig = new Lazy<TypeAdapterConfig>(() =>
-        //{
-        //    return new TypeAdapterConfig(this.GetSnapshot);
-        //});
-
-
+        #region Clone&Fork
         /// <summary>
         /// Clones the current TypeAdapterConfig.
         /// </summary>
@@ -355,9 +355,7 @@ namespace Mapster
 
             // throw new NotImplementedException();
         }
-
-
-
+                
         public ITypeAdapterConfig Fork(Action<ITypeAdapterConfig> action,
 #if !NET40
             [CallerFilePath]
@@ -377,6 +375,7 @@ namespace Mapster
 
             // throw new NotImplementedException();
         }
+        #endregion Clone&Fork
 
         public TypeAdapterConfigSnapshot GetSnapshot => MappingCache.CurrentSnapshot;
     }
