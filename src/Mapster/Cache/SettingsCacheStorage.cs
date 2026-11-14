@@ -141,14 +141,14 @@ namespace Mapster.Cache
             _config = config;
         }
 
-        internal SettingsCacheStorage(TypeAdapterConfigSnapshot configSnapshot, ITypeAdapterConfig config)
+        internal SettingsCacheStorage(ITypeAdapterConfigSnapshot configSnapshot, ITypeAdapterConfig config)
         {
             _Version = configSnapshot.Version;
             DefaultSettingsRule = configSnapshot.DefaultSettingsRule;
-            AdapterRules = configSnapshot.AdapterRules;
-            RuleMap = configSnapshot.RuleMap;
-            BoolSettings = configSnapshot.BoolSettings;
-            CompiledRule = configSnapshot.CompiledRule;
+            AdapterRules = configSnapshot.AdapterRules.ToImmutableArray();
+            RuleMap = configSnapshot.RuleMap.ToImmutableDictionary();
+            BoolSettings = configSnapshot.BoolSettings.ToImmutableDictionary();
+            //CompiledRule = configSnapshot.CompiledRule;
             TypeMemberModelsCache = configSnapshot.TypeMemberModelsCache;
             _config = config;
         }
@@ -305,7 +305,7 @@ namespace Mapster.Cache
                         AdapterRules = this.AdapterRules,
                         DefaultSettingsRule = this.DefaultSettingsRule,
                         RuleMap = this.RuleMap,
-                        CompiledRule = this.CompiledRule, // need refactoring
+                       // CompiledRule = this.CompiledRule, // need refactoring
                         Compiler = _config.Compiler,
                         Config = _config,
                         TypeMemberModelsCache = this.TypeMemberModelsCache,

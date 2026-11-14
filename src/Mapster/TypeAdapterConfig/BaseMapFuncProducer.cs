@@ -1,4 +1,5 @@
-﻿using Mapster.Models;
+﻿using Mapster.Cache;
+using Mapster.Models;
 using Mapster.Utils;
 using System;
 using System.Collections.Concurrent;
@@ -10,19 +11,18 @@ using System.Reflection;
 
 namespace Mapster
 {
-    public partial class TypeAdapterConfigSnapshot
+    public abstract class BaseMapFuncProducer
     {
-        public ITypeAdapterConfig Config { get; init; }
-
-        internal TypeAdapterRule DefaultSettingsRule;
-        internal ImmutableArray<TypeAdapterRule> AdapterRules { get; init;}
-        internal ImmutableDictionary<TypeTuple, TypeAdapterRule> RuleMap;
-        internal ImmutableDictionary<string, bool> BoolSettings;
+        internal ImmutableDictionary<string, bool> BoolSettings { get; init; }
+        public bool GetBoolSetting(string name) { BoolSettings.TryGetValue(name, out var data); return data; }
         internal Func<LambdaExpression, Delegate> Compiler { get; init; }
 
-        public ulong Version { get; init; }
-        public bool GetBoolSetting(string name) { BoolSettings.TryGetValue(name, out var data); return data; }
-        public IReadOnlyCollection<TypeAdapterRule> Rules => this;
+        internal ConcurrentDictionary<Type, MappingTypeModel> TypeMemberModelsCache { get; init; } = new();
+        internal ConcurrentDictionary<TypeTuple, CompiledSettingsCacheItem> CacheCompiledTypesSettings { get; init; } = new();
+        internal protected readonly ConcurrentDictionary<TypeTuple, Delegate> _mapDict = new ConcurrentDictionary<TypeTuple, Delegate>();
+        internal protected ConcurrentDictionary<TypeTuple, Delegate> _mapToTargetDict = new ConcurrentDictionary<TypeTuple, Delegate>();
+        internal protected ConcurrentDictionary<TypeTuple, MethodCallExpression> _projectionDict = new ConcurrentDictionary<TypeTuple, MethodCallExpression>();
+        internal protected ConcurrentDictionary<TypeTuple, Delegate> _dynamicMapDict = new ConcurrentDictionary<TypeTuple, Delegate>();
 
         private T AddToHash<T>(ConcurrentDictionary<TypeTuple, T> hash, TypeTuple key, Func<TypeTuple, T> func)
         {
@@ -38,7 +38,6 @@ namespace Mapster
             });
         }
 
-       // private readonly ConcurrentDictionary<TypeTuple, Delegate> _mapDict = new ConcurrentDictionary<TypeTuple, Delegate>();
         public Func<TSource, TDestination> GetMapFunction<TSource, TDestination>()
         {
             return (Func<TSource, TDestination>)GetMapFunction(typeof(TSource), typeof(TDestination));
@@ -51,7 +50,7 @@ namespace Mapster
             return del;
         }
 
-        //private readonly ConcurrentDictionary<TypeTuple, Delegate> _mapToTargetDict = new ConcurrentDictionary<TypeTuple, Delegate>();
+
         public Func<TSource, TDestination, TDestination> GetMapToTargetFunction<TSource, TDestination>()
         {
             return (Func<TSource, TDestination, TDestination>)GetMapToTargetFunction(typeof(TSource), typeof(TDestination));
@@ -63,8 +62,7 @@ namespace Mapster
                 del = AddToHash(_mapToTargetDict, key, tuple => Compiler(CreateMapExpression(tuple, MapType.MapToTarget)));
             return del;
         }
-
-        //private readonly ConcurrentDictionary<TypeTuple, MethodCallExpression> _projectionDict = new ConcurrentDictionary<TypeTuple, MethodCallExpression>();
+                
         internal Expression<Func<TSource, TDestination>> GetProjectionExpression<TSource, TDestination>()
         {
             var del = GetProjectionCallExpression(typeof(TSource), typeof(TDestination));
@@ -79,7 +77,6 @@ namespace Mapster
             return del;
         }
 
-        //private readonly ConcurrentDictionary<TypeTuple, Delegate> _dynamicMapDict = new ConcurrentDictionary<TypeTuple, Delegate>();
         public Func<object, TDestination> GetDynamicMapFunction<TDestination>(Type sourceType)
         {
             var key = new TypeTuple(sourceType, typeof(TDestination));
@@ -96,7 +93,7 @@ namespace Mapster
                 return Expression.Constant(this);
         }
 
-        internal Expression CreateDynamicMapInvokeExpressionBody(Type destinationType, Expression p1)
+        internal protected Expression CreateDynamicMapInvokeExpressionBody(Type destinationType, Expression p1)
         {
             var method = (from m in typeof(TypeAdapterConfigSnapshot).GetMethods(BindingFlags.Instance | BindingFlags.Public)
                           where m.Name == nameof(GetDynamicMapFunction)
@@ -106,37 +103,9 @@ namespace Mapster
             return Expression.Call(invoker, "Invoke", null, p1);
         }
 
-        public LambdaExpression CreateMapExpression(TypeTuple tuple, MapType mapType)
-        {
-            var context = new CompileContext(this);
-            context.Running.Add(tuple);
-            Action<ITypeAdapterConfig>? fork = null;
-            try
-            {
-                var arg = GetCompileArgument(tuple, mapType, context);
-                fork = arg.Settings.Fork;
-                if (fork != null)
-                {
-                    var cloned = Config.Clone();
-                    fork(cloned);
-                    context.Configs.Push(cloned.GetSnapshot);
-                    arg.Settings = context.GetMergedSettings(tuple, mapType); // rebuild
-                }
+        public abstract LambdaExpression CreateMapExpression(TypeTuple tuple, MapType mapType);
 
-               // this.MappingCache.CollectCompileRules(context.CompiledRules);
-
-                return CreateMapExpression(arg);
-            }
-            finally
-            {
-               // context.AttributeMetadata.Complete();
-                if (fork != null)
-                    context.Configs.Pop();
-                context.Running.Remove(tuple);
-            }
-        }
-
-        private MethodCallExpression CreateProjectionCallExpression(TypeTuple tuple)
+        internal protected MethodCallExpression CreateProjectionCallExpression(TypeTuple tuple)
         {
             var lambda = CreateMapExpression(tuple, MapType.Projection);
             var source = Expression.Parameter(typeof(IQueryable<>).MakeGenericType(tuple.Source));
@@ -148,7 +117,7 @@ namespace Mapster
             return Expression.Call(methodInfo, source, Expression.Quote(lambda));
         }
 
-        private static LambdaExpression CreateMapExpression(CompileArgument arg)
+        internal protected static LambdaExpression CreateMapExpression(CompileArgument arg)
         {
             var fn = arg.MapType == MapType.MapToTarget
                 ? arg.Settings.ConverterToTargetFactory
@@ -239,7 +208,7 @@ namespace Mapster
                 pNew);
         }
 
-        internal LambdaExpression CreateInlineMapExpression(Type sourceType, Type destinationType, MapType mapType, CompileContext context, MemberMapping? mapping = null)
+        internal protected LambdaExpression CreateInlineMapExpression(Type sourceType, Type destinationType, MapType mapType, CompileContext context, MemberMapping? mapping = null)
         {
             var tuple = new TypeTuple(sourceType, destinationType);
             var subFunction = context.IsSubFunction();
@@ -317,7 +286,7 @@ namespace Mapster
             return Expression.Lambda(invoke, p);
         }
 
-        internal Expression CreateMapInvokeExpressionBody(Type sourceType, Type destinationType, Expression p)
+        internal protected Expression CreateMapInvokeExpressionBody(Type sourceType, Type destinationType, Expression p)
         {
             if (GetBoolSetting(nameof(TypeAdapterConfig.RequireExplicitMapping)) || GetBoolSetting(nameof(TypeAdapterConfig.RequireExplicitMappingPrimitive)))
             {
@@ -340,7 +309,7 @@ namespace Mapster
             return Expression.Call(invoker, "Invoke", null, p);
         }
 
-        internal Expression CreateMapToTargetInvokeExpressionBody(Type sourceType, Type destinationType, Expression p1, Expression p2)
+        internal protected Expression CreateMapToTargetInvokeExpressionBody(Type sourceType, Type destinationType, Expression p1, Expression p2)
         {
             if (GetBoolSetting(nameof(TypeAdapterConfig.RequireExplicitMapping)) || GetBoolSetting(nameof(TypeAdapterConfig.RequireExplicitMappingPrimitive)))
             {
@@ -392,7 +361,7 @@ namespace Mapster
         {
             return GetCompileArgument(new TypeTuple(sourcetype, destintaiontype), mapType, context);
         }
-        private CompileArgument GetCompileArgument(TypeTuple tuple, MapType mapType, CompileContext context)
+        internal protected CompileArgument GetCompileArgument(TypeTuple tuple, MapType mapType, CompileContext context)
         {
             var setting = context.GetMergedSettings(tuple, mapType);
             return new CompileArgument
@@ -407,45 +376,7 @@ namespace Mapster
         }
 
 
-        /// <summary>
-        /// Validates and cache mapping instructions.
-        /// </summary>
-        /// <param name="failFast">A boolean parameter that determines whether exceptions should be thrown immediately when mapping errors occur or whether to collect and aggregate them. The default value is true.</param>
-        /// <exception cref="AggregateException"></exception>
-        public void Compile(bool failFast = true)
-        {
-            var exceptions = new List<Exception>();
-            var keys = RuleMap.Keys.ToList();
-
-            foreach (var key in keys)
-            {
-                try
-                {
-                    if (key.Source == typeof(void))
-                        continue;
-
-                    if (key.Source.ContainsGenericParameters || key.Destination.ContainsGenericParameters)
-                        continue;
-
-                    _mapDict[key] = Compiler(CreateMapExpression(key, MapType.Map));
-                    _mapToTargetDict[key] = Compiler(CreateMapExpression(key, MapType.MapToTarget));
-                }
-                catch (Exception ex)
-                {
-                    if (failFast)
-                    {
-                        throw;
-                    }
-
-                    exceptions.Add(ex);
-                }
-            }
-
-            if (exceptions.Count > 0)
-            {
-                throw new AggregateException(exceptions);
-            }
-        }
+        
 
 
         /// <summary>
@@ -466,17 +397,7 @@ namespace Mapster
         }
 
 
-        /// <summary>
-        /// Validates and cache mapping instructions for queryable.
-        /// </summary>
-        public void CompileProjection()
-        {
-            var keys = RuleMap.Keys.ToList();
-            foreach (var key in keys)
-            {
-                _projectionDict[key] = CreateProjectionCallExpression(key);
-            }
-        }
+        
 
 
         /// <summary>
