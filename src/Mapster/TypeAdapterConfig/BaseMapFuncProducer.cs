@@ -13,6 +13,7 @@ namespace Mapster
 {
     public abstract class BaseMapFuncProducer
     {
+        internal ITypeAdapterConfig Config { get; init; }
         internal ImmutableDictionary<string, bool> BoolSettings { get; init; }
         public bool GetBoolSetting(string name) { BoolSettings.TryGetValue(name, out var data); return data; }
         internal Func<LambdaExpression, Delegate> Compiler { get; init; }
@@ -294,18 +295,20 @@ namespace Mapster
                 Compiler(CreateMapExpression(key, MapType.Map));
             }
             Expression invoker;
-            //if (this == GlobalSettings)
-            //{
-            //    var field = typeof(TypeAdapter<,>).MakeGenericType(sourceType, destinationType).GetField("Map");
-            //    invoker = Expression.Field(null, field);
-            //}
-            //else
-            //{
+            //Critical performance section
+            if (this.Config == MapsterGlobalConfig.GlobalSettings)
+            {
+                var property = typeof(TypeAdapter<,>).MakeGenericType(sourceType, destinationType).GetField("Map");
+                invoker = Expression.Field(null, property);
+            }
+             // Fork Invoke call
+            else
+            {
                 var method = (from m in typeof(ITypeAdapterConfigSnapshot).GetMethods(BindingFlags.Instance | BindingFlags.Public)
                               where m.Name == nameof(GetMapFunction)
                               select m).First().MakeGenericMethod(sourceType, destinationType);
                 invoker = Expression.Call(CreateSelfExpression(), method);
-            //}
+            }
             return Expression.Call(invoker, "Invoke", null, p);
         }
 
@@ -389,16 +392,14 @@ namespace Mapster
             var tuple = new TypeTuple(sourceType, destinationType);
             _mapDict[tuple] = Compiler(CreateMapExpression(tuple, MapType.Map));
             _mapToTargetDict[tuple] = Compiler(CreateMapExpression(tuple, MapType.MapToTarget));
-            //if (this == GlobalSettings)
-            //{
-            //    var field = typeof(TypeAdapter<,>).MakeGenericType(sourceType, destinationType).GetField("Map");
-            //    field!.SetValue(null, _mapDict[tuple]);
-            //}
+            
+            //Critical performance section
+            if (this.Config == MapsterGlobalConfig.GlobalSettings)
+            {
+                var field = typeof(TypeAdapter<,>).MakeGenericType(sourceType, destinationType).GetField("Map");
+                field!.SetValue(null, _mapDict[tuple]);
+            }
         }
-
-
-        
-
 
         /// <summary>
         /// Validates and cache mapping instructions for queryable.

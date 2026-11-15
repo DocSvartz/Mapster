@@ -35,14 +35,14 @@ namespace Mapster
 
 
 
-
         public Func<LambdaExpression, Delegate> Compiler { get; set; } = lambda => lambda.Compile();
 
-        [Obsolete($"This will be removed in version 11. Use {nameof(MappingCache)}.Rules")]
-        public IList<TypeAdapterRule> Rules => MappingCache.Rules.ToList();
+        [Obsolete($"This will be removed in version 11. Use {nameof(ITypeAdapterConfigSnapshot)}.Rules")]
+        public IList<TypeAdapterRule> Rules => GetSnapshot.Rules.ToImmutableList();
         public DefaultOnlySetter Default => MappingCache.GetForTypeSetter(_defaultSetterTuple, this);
-        //public ConcurrentDictionary<TypeTuple, TypeAdapterRule> RuleMap { get; internal set; } = new ConcurrentDictionary<TypeTuple, TypeAdapterRule>();
 
+        [Obsolete($"This will be removed in version 11. Use {nameof(ITypeAdapterConfigSnapshot.RuleMap)}")]
+        public IReadOnlyDictionary<TypeTuple, TypeAdapterRule> RuleMap => GetSnapshot.RuleMap;
         public TypeAdapterConfig()
         {
             MappingCache = new(MapsterGlobalConfig.RulesTemplate, this);
@@ -56,10 +56,7 @@ namespace Mapster
         }
 
         #region SettingsState
-        private ImmutableArray<TypeAdapterRule> DefaultSettingsRules { get; init; }
-        private ConcurrentBag<TypeAdapterRule> AdapterRules { get; init; }
-        private ConcurrentBag<TypeAdapterRule> CustomSettingsRules { get; init; }
-        private ConcurrentDictionary<TypeTuple, TypeAdapterRule> RuleMap { get; init; }
+       
         
         #endregion SettingsState
 
@@ -187,40 +184,7 @@ namespace Mapster
         /// <exception cref="AggregateException"></exception>
         public void Compile(bool failFast = true)
         {
-            var exceptions = new List<Exception>();
-            var conf = GetSnapshot;
-
-            var keys = conf.RuleMap.Keys.ToList();
-
-            foreach (var key in keys)
-            {
-                try
-                {
-                    if (key.Source == typeof(void))
-                        continue;
-
-                    if (key.Source.ContainsGenericParameters || key.Destination.ContainsGenericParameters)
-                        continue;
-                    Compiler(conf.CreateMapExpression(key, MapType.Map));
-                    Compiler(conf.CreateMapExpression(key, MapType.MapToTarget));
-                    //_mapDict[key] = Compiler(CreateMapExpression(key, MapType.Map));
-                    //_mapToTargetDict[key] = Compiler(CreateMapExpression(key, MapType.MapToTarget));
-                }
-                catch (Exception ex)
-                {
-                    if (failFast)
-                    {
-                        throw;
-                    }
-
-                    exceptions.Add(ex);
-                }
-            }
-
-            if (exceptions.Count > 0)
-            {
-                throw new AggregateException(exceptions);
-            }
+            GetSnapshot.Compile(failFast);
         }
 
 
@@ -231,11 +195,11 @@ namespace Mapster
         /// <param name="destinationType">Destination type to compile.</param>
         public void Compile(Type sourceType, Type destinationType)
         {
-            var tuple = new TypeTuple(sourceType, destinationType);
+            //var tuple = new TypeTuple(sourceType, destinationType);
+            GetSnapshot.Compile(sourceType, destinationType);
 
-
-            Compiler(GetSnapshot.CreateMapExpression(tuple, MapType.Map));
-            Compiler(GetSnapshot.CreateMapExpression(tuple, MapType.MapToTarget));
+           // Compiler(GetSnapshot.CreateMapExpression(tuple, MapType.Map));
+           //Compiler(GetSnapshot.CreateMapExpression(tuple, MapType.MapToTarget));
         }
 
 

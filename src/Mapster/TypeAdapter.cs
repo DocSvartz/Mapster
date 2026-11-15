@@ -2,9 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Reflection;
-using Mapster.Models;
-using Mapster.Utils;
 
 namespace Mapster
 {
@@ -57,12 +54,12 @@ namespace Mapster
         /// <returns>Adapted destination type.</returns>
         public static TDestination Adapt<TSource, TDestination>(this TSource source)
         {
-            var config = MapsterGlobalConfig.GlobalSettings.GetSnapshot;
-            var fn = config.GetMapFunction<TSource, TDestination>();
+           // var config = MapsterGlobalConfig.GlobalSettings.GetSnapshot;
+           // var fn = config.GetMapFunction<TSource, TDestination>();
 
-            return fn(source);
+           // return fn(source);
 
-            //return TypeAdapter<TSource, TDestination>.Map(source);
+            return TypeAdapter<TSource, TDestination>.Map(source);
         }
 
         /// <summary>

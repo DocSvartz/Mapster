@@ -23,7 +23,7 @@ namespace Mapster
         
         
        
-        ConcurrentDictionary<TypeTuple, TypeAdapterRule> RuleMap { get; }
+        IReadOnlyDictionary<TypeTuple, TypeAdapterRule> RuleMap { get; }
         IList<TypeAdapterRule> Rules { get; }
         public SettingsCacheStorage MappingCache { get; }
 

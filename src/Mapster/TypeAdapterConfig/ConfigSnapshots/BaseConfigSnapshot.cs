@@ -22,7 +22,6 @@ namespace Mapster
 
         public TypeAdapterRule DefaultSettingsRule { get; init; }
         public IReadOnlyCollection<TypeAdapterRule> Rules => this;
-        internal ITypeAdapterConfig Config { get; init; }
 
         public override LambdaExpression CreateMapExpression(TypeTuple tuple, MapType mapType)
         {
