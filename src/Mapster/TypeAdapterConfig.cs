@@ -3,7 +3,6 @@ using Mapster.Models;
 using Mapster.TypeAdapterSetters;
 using Mapster.Utils;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -15,10 +14,10 @@ namespace Mapster
 {
     public class TypeAdapterConfig : ITypeAdapterConfig
     {
-        [Obsolete($"This will be removed in version 11. Use {nameof(MapsterGlobalConfig)}.RulesTemplate")]
+        [Obsolete($"This will be removed in version 11. Use {nameof(MapsterGlobalConfig)}.{nameof(MapsterGlobalConfig.RulesTemplate)}")]
         public static IReadOnlyCollection<TypeAdapterRule> RulesTemplate => MapsterGlobalConfig.RulesTemplate;
 
-        [Obsolete($"This will be removed in version 11. Use {nameof(MapsterGlobalConfig)}.GlobalSettings")]
+        [Obsolete($"This will be removed in version 11. Use {nameof(MapsterGlobalConfig)}.{nameof(MapsterGlobalConfig.GlobalSettings)}")]
         public static TypeAdapterConfig GlobalSettings => MapsterGlobalConfig.GlobalSettings;
 
         private readonly TypeTuple _defaultSetterTuple = TypeTuple.Create<MapsterCacheMarker, DefaultOnlySetter>();
@@ -37,11 +36,11 @@ namespace Mapster
 
         public Func<LambdaExpression, Delegate> Compiler { get; set; } = lambda => lambda.Compile();
 
-        [Obsolete($"This will be removed in version 11. Use {nameof(ITypeAdapterConfigSnapshot)}.Rules")]
+        [Obsolete($"This will be removed in version 11. Use {nameof(GetSnapshot)}.{nameof(ITypeAdapterConfigSnapshot.Rules)}")]
         public IList<TypeAdapterRule> Rules => GetSnapshot.Rules.ToImmutableList();
         public DefaultOnlySetter Default => MappingCache.GetForTypeSetter(_defaultSetterTuple, this);
 
-        [Obsolete($"This will be removed in version 11. Use {nameof(ITypeAdapterConfigSnapshot.RuleMap)}")]
+        [Obsolete($"This will be removed in version 11. Use {nameof(GetSnapshot)}.{nameof(ITypeAdapterConfigSnapshot.RuleMap)}")]
         public IReadOnlyDictionary<TypeTuple, TypeAdapterRule> RuleMap => GetSnapshot.RuleMap;
         public TypeAdapterConfig()
         {
