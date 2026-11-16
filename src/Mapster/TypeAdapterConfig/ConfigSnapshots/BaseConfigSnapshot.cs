@@ -1,12 +1,15 @@
-﻿using Mapster.Models;
+﻿using Mapster.Cache;
+using Mapster.Models;
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq.Expressions;
 
 namespace Mapster
 {
-    public abstract class BaseConfigSnapshot : BaseMapFuncProducer, ITypeAdapterMappingFuncProducer, ITypeAdapterSettingsConsumer, IGetReadOnlyRules
+    public abstract class BaseConfigSnapshot : BaseMapFuncProducer, ITypeAdapterConfigSnapshot
     {
         public ulong Version { get; init; }
 
@@ -103,5 +106,10 @@ namespace Mapster
                             + AdapterRules.Count
                             + CustomSettingsRules.Count
                             + RuleMap.Count;
+
+        ITypeAdapterConfig ITypeAdapterConfigSnapshot.Config { get => Config; init => Config = value; }
+        ConcurrentDictionary<Type, MappingTypeModel> ITypeAdapterConfigSnapshot.TypeMemberModelsCache { get => TypeMemberModelsCache; init => TypeMemberModelsCache = value; }
+        ConcurrentDictionary<TypeTuple, CompiledSettingsCacheItem> ITypeAdapterConfigSnapshot.CacheCompiledTypesSettings { get => CacheCompiledTypesSettings; init => CacheCompiledTypesSettings = value; }
+        ImmutableDictionary<string, bool> ITypeAdapterConfigSnapshot.BoolSettings { get => BoolSettings; init => BoolSettings = value; }
     }
 }
