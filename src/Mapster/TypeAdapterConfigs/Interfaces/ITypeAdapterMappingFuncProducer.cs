@@ -6,6 +6,8 @@ namespace Mapster
 {
     public interface ITypeAdapterMappingFuncProducer
     {
+        public bool GetBoolSetting(string name);
+
         internal Func<LambdaExpression, Delegate> Compiler { get; init; }
         internal Delegate GetMapFunction(Type sourceType, Type destinationType);
         internal Delegate GetMapToTargetFunction(Type sourceType, Type destinationType);

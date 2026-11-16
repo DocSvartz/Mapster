@@ -5,6 +5,7 @@ using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Linq.Expressions;
 
 namespace Mapster
@@ -51,7 +52,48 @@ namespace Mapster
                     context.Configs.Pop();
                 context.Running.Remove(tuple);
             }
-        }    
+        }
+
+        /// <summary>
+        /// Validates and cache mapping instructions.
+        /// </summary>
+        /// <param name="failFast">A boolean parameter that determines whether exceptions should be thrown immediately when mapping errors occur or whether to collect and aggregate them. The default value is true.</param>
+        /// <exception cref="AggregateException"></exception>
+        public void Compile(bool failFast = true)
+        {
+            var exceptions = new List<Exception>();
+            var keys = RuleMap.Keys.ToList();
+
+            foreach (var key in keys)
+            {
+                try
+                {
+                    if (key.Source == typeof(void))
+                        continue;
+
+                    if (key.Source.ContainsGenericParameters || key.Destination.ContainsGenericParameters)
+                        continue;
+
+                    _mapDict[key] = Compiler(CreateMapExpression(key, MapType.Map));
+                    _mapToTargetDict[key] = Compiler(CreateMapExpression(key, MapType.MapToTarget));
+                }
+                catch (Exception ex)
+                {
+                    if (failFast)
+                    {
+                        throw;
+                    }
+
+                    exceptions.Add(ex);
+                }
+            }
+
+            if (exceptions.Count > 0)
+            {
+                throw new AggregateException(exceptions);
+            }
+        }
+
         Expression ITypeAdapterMappingFuncProducer.CreateMapInvokeExpressionBody(Type sourceType, Type destinationType, Expression p)
         {
             return CreateMapInvokeExpressionBody(sourceType, destinationType, p);

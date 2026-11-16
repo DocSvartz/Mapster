@@ -12,7 +12,7 @@ using System.Runtime.CompilerServices;
 
 namespace Mapster
 {
-    public class TypeAdapterConfig2 : ITypeAdapterConfig
+    public class TypeAdapterConfig : ITypeAdapterConfig
     {
         [Obsolete($"This will be removed in version 11. Use {nameof(MapsterGlobalConfig)}.{nameof(MapsterGlobalConfig.RulesTemplate)}")]
         public static IReadOnlyCollection<TypeAdapterRule> RulesTemplate => MapsterGlobalConfig.RulesTemplate;
