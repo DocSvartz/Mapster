@@ -14,8 +14,8 @@ namespace Mapster
     {
         public bool IsExplicitMapping (TypeTuple types) => ConfigSnapshot.RuleMap.ContainsKey(types);
         public HashSet<TypeTuple> Running { get; } = new();
-        public Stack<ITypeAdapterConfigSnapshot> Configs { get; } = new();
-        public ITypeAdapterConfigSnapshot ConfigSnapshot => Configs.Peek();
+        public Stack<ITypeAdapterMappingFuncProducer> Configs { get; } = new();
+        public ITypeAdapterMappingFuncProducer ConfigSnapshot => Configs.Peek();
         public int? MaxDepth { get; set; }
         public int Depth { get; set; }
         public HashSet<ParameterExpression> ExtraParameters { get; } = new();
@@ -26,7 +26,7 @@ namespace Mapster
         {
             return MaxDepth.HasValue || ExtraParameters.Count > 0;
         }
-        public CompileContext(ITypeAdapterConfigSnapshot snapshot)
+        public CompileContext(ITypeAdapterMappingFuncProducer snapshot)
         {
             Configs.Push(snapshot);
         }

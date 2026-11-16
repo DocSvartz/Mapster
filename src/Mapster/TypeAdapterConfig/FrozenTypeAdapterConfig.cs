@@ -28,7 +28,7 @@ namespace Mapster
 
         public DefaultOnlySetter Default => throw new NotImplementedException();
 
-        public ITypeAdapterConfigSnapshot GetSnapshot => throw new NotImplementedException();
+        public ITypeAdapterMappingFuncProducer GetSnapshot => throw new NotImplementedException();
 
         public void Apply(IEnumerable<IRegister> registers)
         {

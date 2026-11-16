@@ -36,11 +36,11 @@ namespace Mapster
 
         public Func<LambdaExpression, Delegate> Compiler { get; set; } = lambda => lambda.Compile();
 
-        [Obsolete($"This will be removed in version 11. Use {nameof(GetSnapshot)}.{nameof(ITypeAdapterConfigSnapshot.Rules)}")]
+        [Obsolete($"This will be removed in version 11. Use {nameof(GetSnapshot)}.{nameof(ITypeAdapterMappingFuncProducer.Rules)}")]
         public IList<TypeAdapterRule> Rules => GetSnapshot.Rules.ToImmutableList();
         public DefaultOnlySetter Default => MappingCache.GetForTypeSetter(_defaultSetterTuple, this);
 
-        [Obsolete($"This will be removed in version 11. Use {nameof(GetSnapshot)}.{nameof(ITypeAdapterConfigSnapshot.RuleMap)}")]
+        [Obsolete($"This will be removed in version 11. Use {nameof(GetSnapshot)}.{nameof(ITypeAdapterMappingFuncProducer.RuleMap)}")]
         public IReadOnlyDictionary<TypeTuple, TypeAdapterRule> RuleMap => GetSnapshot.RuleMap;
         public TypeAdapterConfig()
         {
@@ -49,7 +49,7 @@ namespace Mapster
             MappingCache.SetBoolSetting(nameof(AllowImplicitSourceInheritance), true);
         }
 
-        internal TypeAdapterConfig(ITypeAdapterConfigSnapshot snapshot)
+        internal TypeAdapterConfig(ITypeAdapterMappingFuncProducer snapshot)
         {
             MappingCache = new(snapshot, this);
         }
@@ -349,7 +349,7 @@ namespace Mapster
         }
         #endregion Clone&Fork
 
-        public ITypeAdapterConfigSnapshot GetSnapshot => MappingCache.CurrentSnapshot;
+        public ITypeAdapterMappingFuncProducer GetSnapshot => MappingCache.CurrentSnapshot;
     }
 
     public static class TypeAdapterConfig<TSource, TDestination>

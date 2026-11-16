@@ -11,7 +11,7 @@ namespace Mapster
 {
     public static class TypeAdapterUsedSnapshot
     {
-        private static TDestination UpdateFuncFromPackedinObject<TSource, TDestination>(TSource source, TDestination destination, ITypeAdapterConfigSnapshot config, Type sourceType, Type destinationType)
+        private static TDestination UpdateFuncFromPackedinObject<TSource, TDestination>(TSource source, TDestination destination, ITypeAdapterMappingFuncProducer config, Type sourceType, Type destinationType)
         {
             var del = config.GetMapToTargetFunction(sourceType, destinationType);
             var canUseDynamic = sourceType.GetTypeInfo().IsVisible && destinationType.GetTypeInfo().IsVisible;
@@ -27,7 +27,7 @@ namespace Mapster
         /// <param name="config">Configuration</param>
         /// <returns>Adapted destination type.</returns>
         [return: NotNullIfNotNull(nameof(source))]
-        public static TDestination? Adapt<TDestination>(this object? source, ITypeAdapterConfigSnapshot config)
+        public static TDestination? Adapt<TDestination>(this object? source, ITypeAdapterMappingFuncProducer config)
         {
             // ReSharper disable once ConditionIsAlwaysTrueOrFalse
             Type? type;
@@ -49,7 +49,7 @@ namespace Mapster
         /// <param name="source">Source object to adapt.</param>
         /// <param name="config">Configuration</param>
         /// <returns>Adapted destination type.</returns>
-        public static TDestination Adapt<TSource, TDestination>(this TSource source, ITypeAdapterConfigSnapshot config)
+        public static TDestination Adapt<TSource, TDestination>(this TSource source, ITypeAdapterMappingFuncProducer config)
         {
             var fn = config.GetMapFunction<TSource, TDestination>();
             return fn(source);
@@ -64,7 +64,7 @@ namespace Mapster
         /// <param name="destination">The destination object to populate.</param>
         /// <param name="config">Configuration</param>
         /// <returns>Adapted destination type.</returns>
-        public static TDestination Adapt<TSource, TDestination>(this TSource source, TDestination destination, ITypeAdapterConfigSnapshot config)
+        public static TDestination Adapt<TSource, TDestination>(this TSource source, TDestination destination, ITypeAdapterMappingFuncProducer config)
         {
             var sourceType = source?.GetType();
             var destinationType = destination?.GetType();
@@ -88,7 +88,7 @@ namespace Mapster
         /// <param name="destinationType">The type of the destination object.</param>
         /// <param name="config">Configuration</param>
         /// <returns>Adapted destination type.</returns>
-        public static object? Adapt(this object source, Type sourceType, Type destinationType, ITypeAdapterConfigSnapshot config)
+        public static object? Adapt(this object source, Type sourceType, Type destinationType, ITypeAdapterMappingFuncProducer config)
         {
             var del = config.GetMapFunction(sourceType, destinationType);
             var canUseDynamic = sourceType.GetTypeInfo().IsVisible && destinationType.GetTypeInfo().IsVisible;
@@ -106,7 +106,7 @@ namespace Mapster
         /// <param name="destinationType">The type of the destination object.</param>
         /// <param name="config">Configuration</param>
         /// <returns>Adapted destination type.</returns>
-        public static object? Adapt(this object source, object destination, Type sourceType, Type destinationType, ITypeAdapterConfigSnapshot config)
+        public static object? Adapt(this object source, object destination, Type sourceType, Type destinationType, ITypeAdapterMappingFuncProducer config)
         {
             var del = config.GetMapToTargetFunction(sourceType, destinationType);
             var canUseDynamic = sourceType.GetTypeInfo().IsVisible && destinationType.GetTypeInfo().IsVisible;

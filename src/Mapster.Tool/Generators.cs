@@ -657,7 +657,7 @@ namespace Mapster.Tool
 
         private static void GenerateExtensionMethods(
             MapType mapType,
-            ITypeAdapterConfigSnapshot config,
+            ITypeAdapterMappingFuncProducer config,
             TypeTuple tuple,
             ExpressionTranslator translator,
             Type entityType,

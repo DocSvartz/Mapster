@@ -11,7 +11,7 @@ using System.Reflection;
 
 namespace Mapster
 {
-    public abstract class BaseMapFuncProducer
+    public abstract class BaseMapFuncProducer 
     {
         internal ITypeAdapterConfig Config { get; init; }
         internal ImmutableDictionary<string, bool> BoolSettings { get; init; }
@@ -96,7 +96,7 @@ namespace Mapster
 
         internal protected Expression CreateDynamicMapInvokeExpressionBody(Type destinationType, Expression p1)
         {
-            var method = (from m in typeof(ITypeAdapterConfigSnapshot).GetMethods(BindingFlags.Instance | BindingFlags.Public)
+            var method = (from m in typeof(ITypeAdapterMappingFuncProducer).GetMethods(BindingFlags.Instance | BindingFlags.Public)
                           where m.Name == nameof(GetDynamicMapFunction)
                           select m).First().MakeGenericMethod(destinationType);
             var getType = typeof(object).GetMethod(nameof(GetType));
@@ -304,7 +304,7 @@ namespace Mapster
              // Fork Invoke call
             else
             {
-                var method = (from m in typeof(ITypeAdapterConfigSnapshot).GetMethods(BindingFlags.Instance | BindingFlags.Public)
+                var method = (from m in typeof(ITypeAdapterMappingFuncProducer).GetMethods(BindingFlags.Instance | BindingFlags.Public)
                               where m.Name == nameof(GetMapFunction)
                               select m).First().MakeGenericMethod(sourceType, destinationType);
                 invoker = Expression.Call(CreateSelfExpression(), method);
@@ -319,7 +319,7 @@ namespace Mapster
                 var key = new TypeTuple(sourceType, destinationType);
                 _mapToTargetDict[key] = Compiler(CreateMapExpression(key, MapType.MapToTarget));
             }
-            var method = (from m in typeof(ITypeAdapterConfigSnapshot).GetMethods(BindingFlags.Instance | BindingFlags.Public)
+            var method = (from m in typeof(ITypeAdapterMappingFuncProducer).GetMethods(BindingFlags.Instance | BindingFlags.Public)
                           where m.Name == nameof(GetMapToTargetFunction)
                           select m).First().MakeGenericMethod(sourceType, destinationType);
             var invoker = Expression.Call(CreateSelfExpression(), method);
