@@ -43,7 +43,4 @@
   <ItemGroup>
     <ProjectReference Include="..\Mapster.Core\Mapster.Core.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="TypeAdapterConfigs\Interfaces\" />
-  </ItemGroup>
 </Project>

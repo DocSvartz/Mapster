@@ -2,7 +2,6 @@
 using Mapster.Models;
 using Mapster.TypeAdapterSetters;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -10,7 +9,7 @@ using System.Runtime.CompilerServices;
 
 namespace Mapster
 {
-    public interface ITypeAdapterConfig
+    public interface ITypeAdapterConfig : ITypeAdapterConfigGetSnapshot
     {
         bool ActivateCustomConvertersSrcNullPropagation { get; set; }
         bool AllowImplicitDestinationInheritance { get; set; }
@@ -48,6 +47,5 @@ namespace Mapster
         void CompileProjection();
         void CompileProjection(Type sourceType, Type destinationType);
 
-        ITypeAdapterConfigSnapshot GetSnapshot { get; }
     }
 }
