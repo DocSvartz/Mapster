@@ -12,7 +12,7 @@ using System.Runtime.CompilerServices;
 
 namespace Mapster
 {
-    public class TypeAdapterConfig : ITypeAdapterConfig
+    public class TypeAdapterConfig2 : ITypeAdapterConfig
     {
         [Obsolete($"This will be removed in version 11. Use {nameof(MapsterGlobalConfig)}.{nameof(MapsterGlobalConfig.RulesTemplate)}")]
         public static IReadOnlyCollection<TypeAdapterRule> RulesTemplate => MapsterGlobalConfig.RulesTemplate;
@@ -36,11 +36,11 @@ namespace Mapster
 
         public Func<LambdaExpression, Delegate> Compiler { get; set; } = lambda => lambda.Compile();
 
-        [Obsolete($"This will be removed in version 11. Use {nameof(GetSnapshot)}.{nameof(ITypeAdapterMappingFuncProducer.Rules)}")]
+        [Obsolete($"This will be removed in version 11. Use {nameof(GetSnapshot)}.{nameof(ITypeAdapterConfigSnapshot.Rules)}")]
         public IList<TypeAdapterRule> Rules => GetSnapshot.Rules.ToImmutableList();
         public DefaultOnlySetter Default => MappingCache.GetForTypeSetter(_defaultSetterTuple, this);
 
-        [Obsolete($"This will be removed in version 11. Use {nameof(GetSnapshot)}.{nameof(ITypeAdapterMappingFuncProducer.RuleMap)}")]
+        [Obsolete($"This will be removed in version 11. Use {nameof(GetSnapshot)}.{nameof(ITypeAdapterConfigSnapshot.RuleMap)}")]
         public IReadOnlyDictionary<TypeTuple, TypeAdapterRule> RuleMap => GetSnapshot.RuleMap;
         public TypeAdapterConfig()
         {
@@ -49,7 +49,7 @@ namespace Mapster
             MappingCache.SetBoolSetting(nameof(AllowImplicitSourceInheritance), true);
         }
 
-        internal TypeAdapterConfig(ITypeAdapterMappingFuncProducer snapshot)
+        internal TypeAdapterConfig(ITypeAdapterConfigSnapshot snapshot)
         {
             MappingCache = new(snapshot, this);
         }
@@ -349,7 +349,7 @@ namespace Mapster
         }
         #endregion Clone&Fork
 
-        public ITypeAdapterMappingFuncProducer GetSnapshot => MappingCache.CurrentSnapshot;
+        public ITypeAdapterConfigSnapshot GetSnapshot => MappingCache.CurrentSnapshot;
     }
 
     public static class TypeAdapterConfig<TSource, TDestination>

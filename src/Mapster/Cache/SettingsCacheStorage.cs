@@ -23,7 +23,7 @@ namespace Mapster.Cache
 
         private readonly ConcurrentDictionary<Type, MappingTypeModel> TypeMemberModelsCache = new();
 
-        private ITypeAdapterMappingFuncProducer? _cachedSnapShot;
+        private ITypeAdapterConfigSnapshot? _cachedSnapShot;
         
         private readonly Dictionary<TypeTuple, Delegate> _mapCache = new();
         private readonly Dictionary<TypeTuple, Delegate> _mapToTargetCache = new();
@@ -141,7 +141,7 @@ namespace Mapster.Cache
             _config = config;
         }
 
-        internal SettingsCacheStorage(ITypeAdapterMappingFuncProducer configSnapshot, ITypeAdapterConfig config)
+        internal SettingsCacheStorage(ITypeAdapterConfigSnapshot configSnapshot, ITypeAdapterConfig config)
         {
             _Version = configSnapshot.Version;
             DefaultSettingsRule = configSnapshot.DefaultSettingsRule;
@@ -293,7 +293,7 @@ namespace Mapster.Cache
             }
         }
 
-        private ITypeAdapterMappingFuncProducer GetSnapShot() 
+        private ITypeAdapterConfigSnapshot GetSnapShot() 
         {
             lock ( _lock)
             {
@@ -317,6 +317,6 @@ namespace Mapster.Cache
 
          
 
-        public ITypeAdapterMappingFuncProducer CurrentSnapshot => GetSnapShot();
+        public ITypeAdapterConfigSnapshot CurrentSnapshot => GetSnapShot();
     }
 }

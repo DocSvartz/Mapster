@@ -12,6 +12,7 @@ namespace Mapster
         ulong Version { get; init; }
         internal ITypeAdapterConfig Config { get; init; }
         IReadOnlyCollection<TypeAdapterRule> Rules { get; }
+        public TypeAdapterRule DefaultSettingsRule { get; init; }
 
         internal ConcurrentDictionary<Type, MappingTypeModel> TypeMemberModelsCache { get; init; }
         internal ConcurrentDictionary<TypeTuple, CompiledSettingsCacheItem> CacheCompiledTypesSettings { get; init; }
