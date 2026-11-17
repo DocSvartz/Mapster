@@ -349,7 +349,9 @@ namespace Mapster
         }
         #endregion Clone&Fork
 
-        public ITypeAdapterConfigSnapshot GetSnapshot => MappingCache.CurrentSnapshot;
+        public TypeAdapterConfigSnapshot GetSnapshot => MappingCache.CurrentSnapshot;
+
+        ITypeAdapterConfigSnapshot ITypeAdapterConfigGetSnapshot.GetSnapshot => GetSnapshot;
     }
 
     public static class TypeAdapterConfig<TSource, TDestination>
