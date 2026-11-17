@@ -1140,12 +1140,12 @@ namespace Mapster
 
         public void Compile()
         {
-            Config.Compile(typeof(TSource), typeof(TDestination));
+            Config.CompileToSettingsSetters(typeof(TSource), typeof(TDestination));
         }
 
         public void CompileProjection()
         {
-            Config.CompileProjection(typeof(TSource), typeof(TDestination));
+            Config.CompileProjectionToSettingsSetters(typeof(TSource), typeof(TDestination));
         }
     }
 
@@ -1156,8 +1156,8 @@ namespace Mapster
 
         public TwoWaysTypeAdapterSetter(ITypeAdapterConfigRuleProducer config)
         {
-            SourceToDestinationSetter = config.ForType<TSource, TDestination>();
-            DestinationToSourceSetter = config.ForType<TDestination, TSource>();
+            SourceToDestinationSetter = config.TwoWaysForType<TSource, TDestination>();
+            DestinationToSourceSetter = config.TwoWaysForType<TDestination, TSource>();
 
             DestinationToSourceSetter.Unflattening(true);
             DestinationToSourceSetter.Settings.SkipDestinationMemberCheck = true;

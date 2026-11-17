@@ -18,10 +18,9 @@ namespace Mapster.EFCore
 
             if (config == null)
             {
-                config = MapsterGlobalConfig.GlobalSettings
-                .Clone()
-                .ForType(source.ElementType, typeof(TDestination))
-                .Config;
+                config = MapsterGlobalConfig.GlobalSettings.Clone();
+                config.ForType(source.ElementType, typeof(TDestination));
+               // .Config;
 
                 var mapTuple = new TypeTuple(source.ElementType, typeof(TDestination));
 
@@ -50,9 +49,9 @@ namespace Mapster.EFCore
             }
             else
             {
-                config = config.Clone()
-                    .ForType(source.ElementType, typeof(TDestination))
-                    .Config;
+                config = config.Clone();
+                config.ForType(source.ElementType, typeof(TDestination));
+                   // .Config;
             }
             
             return source.ProjectToType<TDestination>(config);

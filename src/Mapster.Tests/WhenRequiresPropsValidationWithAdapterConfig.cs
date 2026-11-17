@@ -28,7 +28,7 @@ namespace Mapster.Tests
             var adapterSettings = TypeAdapterConfig<Product, ProductDTO>.NewConfig()
                 .Map(dest => dest.CreatedUserName, src => $"{src.CreatedUser.Name} {src.CreatedUser.Surname}");
 
-            var dto = product.ValidateAndAdapt<Product, ProductDTO>(adapterSettings.Config);
+            var dto = product.ValidateAndAdapt<Product, ProductDTO>(MapsterGlobalConfig.GlobalSettings);
 
             dto.ShouldNotBeNull();
             dto.CreatedUserName.ShouldBe($"{product.CreatedUser.Name} {product.CreatedUser.Surname}");
@@ -44,7 +44,7 @@ namespace Mapster.Tests
             ProductDTO productDtoRef;
             var notExistingPropName = nameof(productDtoRef.CreatedUserName);
 
-            var ex = Should.Throw<Exception>(() => product.ValidateAndAdapt<Product, ProductDTO>(adapterSettings.Config));
+            var ex = Should.Throw<Exception>(() => product.ValidateAndAdapt<Product, ProductDTO>(/*adapterSettings.Config*/));
             
             ex.Message.ShouldContain(notExistingPropName);
             ex.Message.ShouldContain(nameof(Product));

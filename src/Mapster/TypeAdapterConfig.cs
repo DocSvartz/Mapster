@@ -212,7 +212,7 @@ namespace Mapster
         /// </summary>
         /// <param name="sourceType">Source type to compile.</param>
         /// <param name="destinationType">Destination type to compile.</param>
-        public void Compile(Type sourceType, Type destinationType)
+        public void CompileToSettingsSetters(Type sourceType, Type destinationType)
         {
             //var tuple = new TypeTuple(sourceType, destinationType);
             GetSnapshot.Compile(sourceType, destinationType);
@@ -240,7 +240,7 @@ namespace Mapster
         /// </summary>
         /// <param name="sourceType">Source type to compile.</param>
         /// <param name="destinationType">Destination type to compile.</param>
-        public void CompileProjection(Type sourceType, Type destinationType)
+        public void CompileProjectionToSettingsSetters(Type sourceType, Type destinationType)
         {
             var tuple = new TypeTuple(sourceType, destinationType);
             //  _projectionDict[tuple] = CreateProjectionCallExpression(tuple);
@@ -367,7 +367,12 @@ namespace Mapster
 
             // throw new NotImplementedException();
         }
-               
+
+        public TypeAdapterSetter<TSource, TDestination> TwoWaysForType<TSource, TDestination>()
+        {
+           return this.ForType<TSource, TDestination>();
+        }
+
         #endregion Clone&Fork
 
         public TypeAdapterConfigSnapshot GetSnapshot => MappingCache.CurrentSnapshot;

@@ -57,17 +57,6 @@ namespace Mapster.TypeAdapterConfigs.Builders.BuilderTypeAdapterConfigs
         {
             InsertCustomRules.AddRange(rules);
         }
-
-        public void Compile(Type sourceType, Type destinationType)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void CompileProjection(Type sourceType, Type destinationType)
-        {
-            throw new NotImplementedException();
-        }
-
         public DestinationTypeOnlySetter ForDestinationType(Type destinationType)
         {
             var tuple = new TypeTuple(typeof(void), destinationType);
@@ -131,5 +120,22 @@ namespace Mapster.TypeAdapterConfigs.Builders.BuilderTypeAdapterConfigs
         }
 
         #endregion ProduceSettings
+
+        #region UnSupprotedinBuilder
+        public TypeAdapterSetter<TSource, TDestination> TwoWaysForType<TSource, TDestination>()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void CompileToSettingsSetters(Type sourceType, Type destinationType)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void CompileProjectionToSettingsSetters(Type sourceType, Type destinationType)
+        {
+            throw new NotImplementedException();
+        }
+        #endregion UnSupprotedinBuilder
     }
 }

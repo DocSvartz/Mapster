@@ -10,8 +10,8 @@ namespace Mapster
         public void AddRulesRange(IEnumerable<TypeAdapterRule> rules);
         public void AddAdapter(BaseAdapter adapter);
         public void AddAdapterssRange(IEnumerable<BaseAdapter> adapters);
-        TypeAdapterSetter<TSource, TDestination> ForType<TSource, TDestination>();
-        void Compile(Type sourceType, Type destinationType);
-        void CompileProjection(Type sourceType, Type destinationType);
+        TypeAdapterSetter<TSource, TDestination> TwoWaysForType<TSource, TDestination>();
+        void CompileToSettingsSetters(Type sourceType, Type destinationType);
+        void CompileProjectionToSettingsSetters(Type sourceType, Type destinationType);
     }
 }

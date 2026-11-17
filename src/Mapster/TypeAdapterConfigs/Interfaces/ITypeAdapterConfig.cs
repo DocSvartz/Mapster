@@ -31,9 +31,9 @@ namespace Mapster
         void Apply(params IRegister[] registers);
         
         void Compile(bool failFast = true);
-        void Compile(Type sourceType, Type destinationType);
+        void CompileToSettingsSetters(Type sourceType, Type destinationType);
         void CompileProjection();
-        void CompileProjection(Type sourceType, Type destinationType);
+        void CompileProjectionToSettingsSetters(Type sourceType, Type destinationType);
 
     }
 }
