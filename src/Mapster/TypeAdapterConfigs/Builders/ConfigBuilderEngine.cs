@@ -1,30 +1,32 @@
-﻿using Mapster;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Mapster
+namespace Mapster.TypeAdapterConfigs.Builders
 {
     /// <summary>
-    /// Lazy builder for Mapster's TypeAdapterConfig.
+    /// Kind of a mapping step: needed to distinguish direction
+    /// and to control whether ForType is allowed on top of NewConfig.
+    /// </summary>
+    public enum MappingKind
+    {
+        NewConfig,          // replaces rules for the pair
+        ForType,            // enhances rules for the pair
+        DestinationType,    // destination-only rule (keyed by destination type)
+        DefaultSetter,      // fallback settings for unmapped pairs (config-level)
+    }
+
+    /// <summary>
+    /// Lazy builder engine for Mapster's TypeAdapterConfig.
     /// Collects configuration steps without applying them.
+    /// Shared by all builder flavors; owns all guards and the step pipeline.
     /// Guards:
     ///   - each config property can be set only once;
     ///   - each type pair can have only one mapping rule
     ///     (NewConfig and ForType for the same pair conflict with each other).
     /// </summary>
-    public sealed partial class TypeAdapterConfigBuilder
+    internal sealed class ConfigBuilderEngine
     {
-        // Kind of a mapping step: needed to distinguish direction
-        // and to control whether ForType is allowed on top of NewConfig.
-        private enum MappingKind
-        {
-            NewConfig,          // replaces rules for the pair
-            ForType,            // enhances rules for the pair
-            DestinationType,    // destination-only rule (keyed by destination type)
-            DefaultSetter,            // fallback settings for unmapped pairs (config-level)
-        }
-
         private readonly List<(string Name, Action<TypeAdapterConfig> Apply)> _steps = new();
 
         // Properties already set — each may appear at most once.
@@ -35,10 +37,6 @@ namespace Mapster
         // so that a reverse NewConfig cannot silently overwrite the original.
         private readonly HashSet<string> _appliedMappings = new(StringComparer.Ordinal);
 
-        private TypeAdapterConfigBuilder() { }
-
-        public static TypeAdapterConfigBuilder Create() => new();
-
         // ------------------------------------------------------------------
         // Registration core: two entry points with duplicate guards.
         // ------------------------------------------------------------------
@@ -47,7 +45,7 @@ namespace Mapster
         /// Registers a CONFIG PROPERTY step (boolean/int/compiler etc.).
         /// Throws if the same property is already configured.
         /// </summary>
-        private TypeAdapterConfigBuilder AddPropertyStep<T>(
+        public void AddPropertyStep<T>(
             string propertyKey,
             string displayValue,
             T value,
@@ -62,14 +60,13 @@ namespace Mapster
 
             var name = $"{propertyKey} = {displayValue}";
             _steps.Add((name, cfg => apply(cfg, value)));
-            return this;
         }
 
         /// <summary>
         /// Registers a MAPPING step keyed by (source, destination) types.
         /// Throws if the same pair is already registered in any direction.
         /// </summary>
-        private TypeAdapterConfigBuilder AddMappingStep(
+        public void AddMappingStep(
             MappingKind kind,
             string name,
             Type sourceType,
@@ -94,7 +91,33 @@ namespace Mapster
             }
 
             _steps.Add((name, apply));
-            return this;
+        }
+
+        /// <summary>
+        /// Registers a free-form step without any pair-key guard.
+        /// Used for conditional rules (When) and other coexisting steps.
+        /// </summary>
+        public void AddStep(string name, Action<TypeAdapterConfig> apply)
+        {
+            _steps.Add((name, apply));
+        }
+
+        public IReadOnlyList<string> GetSteps() =>
+            _steps.Select(s => s.Name).ToList().AsReadOnly();
+
+        public (TypeAdapterConfig Config, IReadOnlyList<string> Steps) Build()
+        {
+            var config = new TypeAdapterConfig();
+            var history = new List<string>();
+
+            foreach (var (name, apply) in _steps)
+            {
+                history.Add(name);
+                apply(config);
+            }
+
+            history.Add("Build completed");
+            return (config, history.AsReadOnly());
         }
 
         /// <summary>
@@ -133,40 +156,5 @@ namespace Mapster
             var arrow = twoWays ? " <-> " : " -> ";
             return $"{kind}({src}{arrow}{dst})";
         }
-
-        // ------------------------------------------------------------------
-        // Shape of the public step methods (not implemented here).
-        // Each of them delegates to one of the two entry points:
-        //
-        //   - property steps  -> AddPropertyStep(key, displayValue, value, apply)
-        //   - mapping steps   -> AddMappingStep(kind, name, src, dest, twoWays, apply)
-        //
-        // Examples of keys produced:
-        //   NewConfig<User, UserDto>            -> "Ns.User|Ns.UserDto"
-        //   NewConfig with TwoWays              -> "Ns.User|Ns.UserDto" + "Ns.UserDto|Ns.User"
-        //   ForType<User, UserDto>              -> same key as NewConfig — collision, rejected
-        //   ForDestinationType<UserDto>         -> "Destination:Ns.UserDto"
-        // ------------------------------------------------------------------
-
-        // ---- History & build ----
-
-        public IReadOnlyList<string> GetSteps() =>
-            _steps.Select(s => s.Name).ToList().AsReadOnly();
-
-        public (TypeAdapterConfig Config, IReadOnlyList<string> Steps) Build()
-        {
-            var config = new TypeAdapterConfig();
-            var history = new List<string>();
-
-            foreach (var (name, apply) in _steps)
-            {
-                history.Add(name);
-                apply(config);
-            }
-
-            history.Add("Build completed");
-            return (config, history.AsReadOnly());
-        }
     }
-
 }
