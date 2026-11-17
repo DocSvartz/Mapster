@@ -1,7 +1,9 @@
-﻿using Mapster.Models;
+﻿using Mapster.Cache;
+using Mapster.Models;
+using Mapster.TypeAdapterSetters;
 using System;
 
-namespace Mapster.TypeAdapterSettings
+namespace Mapster
 {
     internal static class CreateRuleHelper
     {
@@ -43,6 +45,40 @@ namespace Mapster.TypeAdapterSettings
             return settings is null
                 ? new TypeAdapterRule(priority)
                 : new TypeAdapterRule(priority, settings);
+        }
+
+        internal static TypeAdapterRule CreateWhenRule(Func<Type, Type, MapType, bool> canMap)
+        {
+            var rule = new TypeAdapterRule
+            {
+                Priority = arg => canMap(arg.SourceType, arg.DestinationType, arg.MapType) ? (int?)25 : null
+            };
+
+            return rule;
+        }
+
+        internal static TypeAdapterRule CreateWhenRule(Func<PreCompileArgument, bool> canMap)
+        {
+            var rule = new TypeAdapterRule
+            {
+                Priority = arg => canMap(arg) ? (int?)25 : null
+            };
+
+            return rule;
+        }
+
+        internal static TypeAdapterRule CreateRuleForTypeConfigBuilder(TypeTuple types, ITypeAdapterConfigSettings settings)
+        {
+            if (types.Source == typeof(MapsterCacheMarker)
+                && types.Destination == typeof(DefaultOnlySetter))
+                return CreateDefaultRule();
+
+            else if (types.Source == typeof(void))
+                return CreateDestinationTypeRule(types);
+            else
+                return CreateTypeTupleRule(types,
+                    settings.AllowImplicitDestinationInheritance,
+                    settings.AllowImplicitSourceInheritance);
         }
     }
 }

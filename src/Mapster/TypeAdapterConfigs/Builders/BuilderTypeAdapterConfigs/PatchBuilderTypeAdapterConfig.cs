@@ -60,42 +60,64 @@ namespace Mapster.TypeAdapterConfigs.Builders.BuilderTypeAdapterConfigs
 
         public DestinationTypeOnlySetter ForDestinationType(Type destinationType)
         {
-            throw new NotImplementedException();
+            var tuple = new TypeTuple(typeof(void), destinationType);
+            var rule = CreateRuleHelper.CreateRuleForTypeConfigBuilder(tuple, this);
+            UpdateRuleMaps[tuple] = CreateRuleHelper.CreateRuleForTypeConfigBuilder(tuple, this);
+            return new DestinationTypeOnlySetter(rule.Settings, this);
         }
 
         public TypeAdapterSetter<TDestination> ForDestinationType<TDestination>()
         {
-            throw new NotImplementedException();
+            var tuple = new TypeTuple(typeof(void), typeof(TDestination));
+            var rule = CreateRuleHelper.CreateRuleForTypeConfigBuilder(tuple, this);
+            UpdateRuleMaps[tuple] = CreateRuleHelper.CreateRuleForTypeConfigBuilder(tuple, this);
+            return new TypeAdapterSetter<TDestination>(rule.Settings, this);
         }
 
         public TypeAdapterSetter ForType(Type sourceType, Type destinationType)
         {
-            throw new NotImplementedException();
+            var tuple = new TypeTuple(sourceType, destinationType);
+            var rule = CreateRuleHelper.CreateRuleForTypeConfigBuilder(tuple, this);
+            UpdateRuleMaps[tuple] = CreateRuleHelper.CreateRuleForTypeConfigBuilder(tuple, this);
+            return new TypeAdapterSetter(rule.Settings,this);
         }
 
         public TypeAdapterSetter<TSource, TDestination> ForType<TSource, TDestination>()
         {
-            throw new NotImplementedException();
+            var tuple = TypeTuple.Create<TSource,TDestination>();
+            var rule = CreateRuleHelper.CreateRuleForTypeConfigBuilder(tuple, this);
+            UpdateRuleMaps[tuple] = CreateRuleHelper.CreateRuleForTypeConfigBuilder(tuple, this);
+            return new TypeAdapterSetter<TSource,TDestination>(rule.Settings, this);
         }
 
         public TypeAdapterSetter NewConfig(Type sourceType, Type destinationType)
         {
-            throw new NotImplementedException();
+            var tuple = new TypeTuple(sourceType, destinationType);
+            var rule = CreateRuleHelper.CreateRuleForTypeConfigBuilder(tuple, this);
+            NewRuleMaps[tuple] = CreateRuleHelper.CreateRuleForTypeConfigBuilder(tuple, this);
+            return new TypeAdapterSetter(rule.Settings, this);
         }
 
         public TypeAdapterSetter<TSource, TDestination> NewConfig<TSource, TDestination>()
         {
-            throw new NotImplementedException();
+            var tuple = TypeTuple.Create<TSource,TDestination>();
+            var rule = CreateRuleHelper.CreateRuleForTypeConfigBuilder(tuple, this);
+            NewRuleMaps[tuple] = CreateRuleHelper.CreateRuleForTypeConfigBuilder(tuple, this);
+            return new TypeAdapterSetter<TSource,TDestination>(rule.Settings, this);
         }
 
         public TypeAdapterSetter When(Func<PreCompileArgument, bool> canMap)
         {
-            throw new NotImplementedException();
+            var rule = CreateRuleHelper.CreateWhenRule(canMap);
+            InsertCustomRules.Add(rule);
+            return new TypeAdapterSetter(rule.Settings, this);
         }
 
         public TypeAdapterSetter When(Func<Type, Type, MapType, bool> canMap)
         {
-            throw new NotImplementedException();
+            var rule = CreateRuleHelper.CreateWhenRule(canMap);
+            InsertCustomRules.Add(rule);
+            return new TypeAdapterSetter(rule.Settings, this);
         }
 
         #endregion ProduceSettings
