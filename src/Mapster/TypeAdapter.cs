@@ -37,7 +37,7 @@ namespace Mapster
         /// <param name="config">Configuration</param>
         /// <returns>Adapted destination type.</returns>
         [return: NotNullIfNotNull(nameof(source))]
-        public static TDestination? Adapt<TDestination>(this object? source, ITypeAdapterConfig config)
+        public static TDestination? Adapt<TDestination>(this object? source, ITypeAdapterConfigGetSnapshot config)
         {
             // ReSharper disable once ConditionIsAlwaysTrueOrFalse
 
@@ -70,7 +70,7 @@ namespace Mapster
         /// <param name="source">Source object to adapt.</param>
         /// <param name="config">Configuration</param>
         /// <returns>Adapted destination type.</returns>
-        public static TDestination Adapt<TSource, TDestination>(this TSource source, ITypeAdapterConfig config)
+        public static TDestination Adapt<TSource, TDestination>(this TSource source, ITypeAdapterConfigGetSnapshot config)
         {
             var fn = config.GetSnapshot.GetMapFunction<TSource, TDestination>();
             return fn(source);
@@ -98,7 +98,7 @@ namespace Mapster
         /// <param name="destination">The destination object to populate.</param>
         /// <param name="config">Configuration</param>
         /// <returns>Adapted destination type.</returns>
-        public static TDestination Adapt<TSource, TDestination>(this TSource source, TDestination destination, ITypeAdapterConfig config)
+        public static TDestination Adapt<TSource, TDestination>(this TSource source, TDestination destination, ITypeAdapterConfigGetSnapshot config)
         {
             var snapshot = config.GetSnapshot;
             return source.Adapt<TSource, TDestination>(destination,snapshot);
@@ -130,7 +130,7 @@ namespace Mapster
         /// <param name="destinationType">The type of the destination object.</param>
         /// <param name="config">Configuration</param>
         /// <returns>Adapted destination type.</returns>
-        public static object? Adapt(this object source, Type sourceType, Type destinationType, ITypeAdapterConfig config)
+        public static object? Adapt(this object source, Type sourceType, Type destinationType, ITypeAdapterConfigGetSnapshot config)
         {
             var snapshot = config.GetSnapshot;
 
@@ -159,7 +159,7 @@ namespace Mapster
         /// <param name="destinationType">The type of the destination object.</param>
         /// <param name="config">Configuration</param>
         /// <returns>Adapted destination type.</returns>
-        public static object? Adapt(this object source, object destination, Type sourceType, Type destinationType, ITypeAdapterConfig config)
+        public static object? Adapt(this object source, object destination, Type sourceType, Type destinationType, ITypeAdapterConfigGetSnapshot config)
         {
             var snapshot = config.GetSnapshot;
             
@@ -197,7 +197,7 @@ namespace Mapster
         /// <param name="source">Source object to adapt.</param>
         /// <param name="config">Configuration</param>
         /// <returns>Adapted destination type.</returns>
-        public static TDestination ValidateAndAdapt<TSource, TDestination>(this TSource source, ITypeAdapterConfig config)
+        public static TDestination ValidateAndAdapt<TSource, TDestination>(this TSource source, ITypeAdapterConfigGetSnapshot config)
         {
             var snapshot = config.GetSnapshot;
             return source.ValidateAndAdapt<TSource, TDestination>(snapshot);
