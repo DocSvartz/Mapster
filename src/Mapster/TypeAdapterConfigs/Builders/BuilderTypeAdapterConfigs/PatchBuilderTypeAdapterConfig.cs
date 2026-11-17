@@ -4,6 +4,7 @@ using Mapster.TypeAdapterConfigs.Builders.Interfaces;
 using Mapster.TypeAdapterSetters;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 
 namespace Mapster.TypeAdapterConfigs.Builders.BuilderTypeAdapterConfigs
@@ -36,25 +37,25 @@ namespace Mapster.TypeAdapterConfigs.Builders.BuilderTypeAdapterConfigs
         #endregion SettingsStorage
 
 
-
+        #region ProduceSettings
         public void AddAdapter(BaseAdapter adapter)
         {
-            throw new NotImplementedException();
+            InsertCustomRules.Add(adapter.CreateRule());
         }
 
         public void AddAdapterssRange(IEnumerable<BaseAdapter> adapters)
         {
-            throw new NotImplementedException();
+            InsertAdapterRules.AddRange(adapters.Select(x => x.CreateRule()));
         }
 
         public void AddRule(TypeAdapterRule rule)
         {
-            throw new NotImplementedException();
+            InsertCustomRules.Add(rule);
         }
 
         public void AddRulesRange(IEnumerable<TypeAdapterRule> rules)
         {
-            throw new NotImplementedException();
+            InsertCustomRules.AddRange(rules);
         }
 
         public DestinationTypeOnlySetter ForDestinationType(Type destinationType)
@@ -96,5 +97,7 @@ namespace Mapster.TypeAdapterConfigs.Builders.BuilderTypeAdapterConfigs
         {
             throw new NotImplementedException();
         }
+
+        #endregion ProduceSettings
     }
 }
