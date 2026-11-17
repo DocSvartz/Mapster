@@ -18,7 +18,7 @@ namespace Mapster
 
         public new ISourceToDestinationTypeAdapterSettings Settings => OriginSettings;
        // public readonly TypeAdapterConfig Config;
-        public TypeAdapterSetter(TypeAdapterSettings OriginSettings, ITypeAdapterConfig config): base(OriginSettings,config)
+        public TypeAdapterSetter(TypeAdapterSettings OriginSettings, ITypeAdapterConfigRuleProducer config): base(OriginSettings,config)
         {
            
         }
@@ -343,7 +343,7 @@ namespace Mapster
                     throw new InvalidCastException("In order to use inherits, TDestination must be inherited from TBaseDestination.");
             }
 
-            setter.Config.MappingCache.AddRule(
+            setter.Config.AddRule(
                 new ReadOnlyTypeAdapterRule(
                         (arg =>
                         arg.SourceType == sourceType &&
@@ -433,7 +433,7 @@ namespace Mapster
 
     public class TypeAdapterSetter<TDestination> : DestinationTypeOnlySetter
     {
-        internal TypeAdapterSetter(TypeAdapterSettings settings, ITypeAdapterConfig parentConfig)
+        internal TypeAdapterSetter(TypeAdapterSettings settings, ITypeAdapterConfigRuleProducer parentConfig)
             : base(settings, parentConfig)
         { }
 
@@ -599,7 +599,7 @@ namespace Mapster
     {
         public new ISourceToDestinationTypeAdapterSettings Settings => OriginSettings;
 
-        internal TypeAdapterSetter(TypeAdapterSettings settings, ITypeAdapterConfig parentConfig)
+        internal TypeAdapterSetter(TypeAdapterSettings settings, ITypeAdapterConfigRuleProducer parentConfig)
             : base(settings, parentConfig)
         { }
 
@@ -1067,7 +1067,7 @@ namespace Mapster
                     throw new InvalidCastException("In order to use inherits, TDestination must be inherited from TBaseDestination.");
             }
 
-            Config.MappingCache.AddRule(new ReadOnlyTypeAdapterRule
+            Config.AddRule(new ReadOnlyTypeAdapterRule
             (
                 (arg =>
                 arg.SourceType == sourceType &&
@@ -1154,7 +1154,7 @@ namespace Mapster
         public TypeAdapterSetter<TSource, TDestination> SourceToDestinationSetter { get; }
         public TypeAdapterSetter<TDestination, TSource> DestinationToSourceSetter { get; }
 
-        public TwoWaysTypeAdapterSetter(ITypeAdapterConfig config)
+        public TwoWaysTypeAdapterSetter(ITypeAdapterConfigRuleProducer config)
         {
             SourceToDestinationSetter = config.ForType<TSource, TDestination>();
             DestinationToSourceSetter = config.ForType<TDestination, TSource>();

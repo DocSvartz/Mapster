@@ -6,7 +6,7 @@ namespace Mapster.TypeAdapterConfigs.Builders.Interfaces
     internal interface ITypeAdapterConfigSettingsBuildOnlyCreator:
         ITypeAdapterConfigSettings,
         ITypeAdapterConfigRuleMapBuildOnlyProducer,
-        ITypeAdapterConfigCustomRuleProducer
+        ITypeAdapterConfigCustomWhenRuleProducer
     {
         public void AddRule(TypeAdapterRule rule);
         public void AddRulesRange(IEnumerable<TypeAdapterRule> rules);

@@ -58,6 +58,16 @@ namespace Mapster.TypeAdapterConfigs.Builders.BuilderTypeAdapterConfigs
             InsertCustomRules.AddRange(rules);
         }
 
+        public void Compile(Type sourceType, Type destinationType)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void CompileProjection(Type sourceType, Type destinationType)
+        {
+            throw new NotImplementedException();
+        }
+
         public DestinationTypeOnlySetter ForDestinationType(Type destinationType)
         {
             var tuple = new TypeTuple(typeof(void), destinationType);

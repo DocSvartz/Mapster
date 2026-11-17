@@ -6,10 +6,10 @@ using System.Reflection;
 
 namespace Mapster
 {
-    public interface ITypeAdapterConfig : 
-        ITypeAdapterConfigSettings,
+    public interface ITypeAdapterConfig :
+        ITypeAdapterConfigRuleProducer,
         ITypeAdapterConfigRuleMapProducer,
-        ITypeAdapterConfigCustomRuleProducer,
+        ITypeAdapterConfigCustomWhenRuleProducer,
         ITypeAdapterConfigAdapterConsumer,
         ITypeAdapterConfigCloneable,
         ITypeAdapterConfigForkable,

@@ -1,10 +1,12 @@
-﻿using Mapster.Cache;
+﻿using Mapster.Adapters;
+using Mapster.Cache;
 using Mapster.Models;
 using Mapster.TypeAdapterSetters;
 using Mapster.Utils;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -55,8 +57,26 @@ namespace Mapster
         }
 
         #region SettingsState
-       
-        
+        public void AddRule(TypeAdapterRule rule)
+        {
+            MappingCache.AddRule(rule);
+        }
+
+        public void AddRulesRange(IEnumerable<TypeAdapterRule> rules)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void AddAdapter(BaseAdapter adapter)
+        {
+            MappingCache.AddAdapterRule(adapter);
+        }
+
+        public void AddAdapterssRange(IEnumerable<BaseAdapter> adapters)
+        {
+            throw new NotImplementedException();
+        }
+
         #endregion SettingsState
 
         #region SetterSettings
@@ -347,6 +367,7 @@ namespace Mapster
 
             // throw new NotImplementedException();
         }
+               
         #endregion Clone&Fork
 
         public TypeAdapterConfigSnapshot GetSnapshot => MappingCache.CurrentSnapshot;
