@@ -12,6 +12,7 @@ namespace Mapster
         ITypeAdapterConfigCustomRuleProducer,
         ITypeAdapterConfigAdapterConsumer,
         ITypeAdapterConfigCloneable,
+        ITypeAdapterConfigForkable,
         ITypeAdapterConfigGetSnapshot
     {
         
