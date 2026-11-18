@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Mapster.Adapters;
+using System;
 using System.Collections.Generic;
 
 namespace Mapster.TypeAdapterConfigs.Builders
@@ -25,8 +26,13 @@ namespace Mapster.TypeAdapterConfigs.Builders
         void IConfigBuilderStepsCore.RegisterStep(string name, Action<BuilderTypeAdapterConfig> apply)
             => _engine.AddStep(name, apply);
 
+        public void RegisterAdapterStep<TAdapter>(string name, Func<TAdapter> adapterFactory, Action<BuilderTypeAdapterConfig, TAdapter> apply) where TAdapter : BaseAdapter
+            => _engine.AddAdapterStep(name, adapterFactory, apply);
+
         public IReadOnlyList<string> GetSteps() => _engine.GetSteps();
 
         public (BuilderTypeAdapterConfig Config, IReadOnlyList<string> Steps) Build() => _engine.Build();
+
+        
     }
 }

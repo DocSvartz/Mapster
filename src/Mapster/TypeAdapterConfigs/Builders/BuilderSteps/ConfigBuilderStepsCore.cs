@@ -1,4 +1,5 @@
-﻿using Mapster.Cache;
+﻿using Mapster.Adapters;
+using Mapster.Cache;
 using Mapster.TypeAdapterSetters;
 using System;
 using System.Linq.Expressions;
@@ -384,5 +385,46 @@ namespace Mapster.TypeAdapterConfigs.Builders
             self.RegisterStep($"Compiler({description})", cfg => cfg.Compiler = compiler);
             return self;
         }
+
+        // ---- Adapters ----
+
+        /// <summary>
+        /// Adds an ADAPTER step. Uniqueness is by the adapter TYPE:
+        /// the same adapter type cannot be added twice, even with
+        /// different instances. The instance is captured and the rule
+        /// is created at Build() time.
+        /// </summary>
+        internal static TSelf RegisterAddAdapter<TAdapter, TSelf>(
+            this TSelf self,
+            TAdapter adapter)
+            where TSelf : IConfigBuilderStepsCore
+            where TAdapter : BaseAdapter
+        {
+            self.RegisterAdapterStep(
+                $"AddAdapter<{typeof(TAdapter).Name}>",
+                () => adapter,
+                (cfg, a) => cfg.AddAdapter(a));
+            return self;
+        }
+
+        /// <summary>
+        /// Same as the instance overload, but the adapter is created lazily
+        /// inside Build() via its parameterless constructor.
+        /// Fits the deferred-registration philosophy: nothing runs
+        /// until Build() is called.
+        /// </summary>
+        internal static TSelf RegisterAddAdapter<TAdapter, TSelf>(
+            this TSelf self)
+            where TSelf : IConfigBuilderStepsCore
+            where TAdapter : BaseAdapter, new()
+        {
+            self.RegisterAdapterStep(
+                $"AddAdapter<{typeof(TAdapter).Name}> (deferred)",
+                () => new TAdapter(),
+                (cfg, a) => cfg.AddAdapter(a));
+            return self;
+        }
+
+
     }
 }

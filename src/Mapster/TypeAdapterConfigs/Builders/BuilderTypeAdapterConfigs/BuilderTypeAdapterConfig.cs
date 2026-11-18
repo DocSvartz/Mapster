@@ -48,7 +48,7 @@ namespace Mapster.TypeAdapterConfigs.Builders
         #region ProduceSettings
         public void AddAdapter(BaseAdapter adapter)
         {
-            InsertCustomRules.Add(adapter.CreateRule());
+            InsertAdapterRules.Add(adapter.CreateRule());
         }
 
         public void AddAdapterssRange(IEnumerable<BaseAdapter> adapters)

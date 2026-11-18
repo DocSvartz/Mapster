@@ -1,4 +1,5 @@
-﻿using Mapster.TypeAdapterSetters;
+﻿using Mapster.Adapters;
+using Mapster.TypeAdapterSetters;
 using System;
 using System.Linq.Expressions;
 
@@ -61,6 +62,16 @@ namespace Mapster.TypeAdapterConfigs.Builders
 
         public TypeAdapterConfigInitBuilder Default(Action<DefaultOnlySetter> setup)
             => this.RegisterDefault(setup);
+
+        // ---- Adapters ----
+
+        public TypeAdapterConfigInitBuilder AddAdapter<TAdapter>(TAdapter adapter)
+            where TAdapter : BaseAdapter
+            => this.RegisterAddAdapter<TAdapter, TypeAdapterConfigInitBuilder>(adapter);
+
+        public TypeAdapterConfigInitBuilder AddAdapter<TAdapter>()
+            where TAdapter : BaseAdapter, new()
+            => this.RegisterAddAdapter<TAdapter, TypeAdapterConfigInitBuilder>();
 
         // ---- Settings ----
 

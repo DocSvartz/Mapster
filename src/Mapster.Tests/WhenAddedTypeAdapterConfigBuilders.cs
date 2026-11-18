@@ -1,9 +1,11 @@
-﻿using Mapster.Models;
+﻿using Mapster.Adapters;
+using Mapster.Models;
 using Mapster.TypeAdapterConfigs.Builders;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Shouldly;
 using System;
 using System.Linq;
+using System.Linq.Expressions;
 
 namespace Mapster.Tests
 {
@@ -23,6 +25,7 @@ namespace Mapster.Tests
                     s.Map(dest => dest.NameProxy, src => src.Name);
                     s.Map(dest => dest.AddressProxy, src => src.Address);
                 })
+                .AddAdapter<TestAdapter>()
                 .When(
                     canMap: (srcType, destType, mapType) => destType == typeof(ForBuilderDest), 
                     setup: s => { s.Settings.EnableNonPublicConstructors = true; })
@@ -36,7 +39,7 @@ namespace Mapster.Tests
 
                 config.Config.NewRuleMaps.Count.ShouldBe(1);
                 config.Config.UpdateRuleMaps.Count.ShouldBe(0);
-                config.Config.InsertAdapterRules.Count.ShouldBe(0);
+                config.Config.InsertAdapterRules.Count.ShouldBe(1);
                 config.Config.InsertCustomRules.Count.ShouldBe(1);
 
                 var key = TypeTuple.Create<ForBuilderSrc, ForBuilderDest>();
@@ -54,7 +57,9 @@ namespace Mapster.Tests
                 var WhenRule1 = config.Config.InsertCustomRules.First();
                 WhenRule1.Settings.EnableNonPublicConstructors.ShouldBe(true);
 
-
+                //AddAdapterCheck
+                var adapterRule = config.Config.InsertAdapterRules.First();
+                adapterRule.Settings.DestinationType.ShouldBe(typeof(TestAdapter));
 
                 //resolvers[0].
 
@@ -75,6 +80,24 @@ namespace Mapster.Tests
             public string NameProxy { get; set; }
 
             public string AddressProxy { get; set; }
+        }
+
+        internal class TestAdapter : BaseAdapter
+        {
+            protected override bool CanMap(PreCompileArgument arg)
+            {
+                throw new NotImplementedException();
+            }
+
+            protected override Expression CreateBlockExpression(Expression source, Expression destination, CompileArgument arg)
+            {
+                throw new NotImplementedException();
+            }
+
+            protected override Expression CreateInlineExpression(Expression source, CompileArgument arg)
+            {
+                throw new NotImplementedException();
+            }
         }
 
 

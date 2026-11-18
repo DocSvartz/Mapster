@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Mapster.Adapters;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -36,6 +37,10 @@ namespace Mapster.TypeAdapterConfigs.Builders
         // For TwoWays mappings the pair is registered in both directions,
         // so that a reverse NewConfig cannot silently overwrite the original.
         private readonly HashSet<string> _appliedMappings = new(StringComparer.Ordinal);
+
+        // Adapter types already registered — each adapter type may appear at most once,
+        // regardless of the instance passed (two instances of one adapter type collide).
+        private readonly HashSet<string> _appliedAdapters = new(StringComparer.Ordinal);
 
         // ------------------------------------------------------------------
         // Registration core: two entry points with duplicate guards.
@@ -92,6 +97,37 @@ namespace Mapster.TypeAdapterConfigs.Builders
 
             _steps.Add((name, apply));
         }
+
+        /// <summary>
+        /// Registers an ADAPTER step keyed by the adapter type.
+        /// Throws if the same adapter type is already registered.
+        /// The factory is deferred until Build(), consistent with the lazy builder.
+        /// </summary>
+        public void AddAdapterStep<TAdapter>(
+            string name,
+            Func<TAdapter> adapterFactory,
+            Action<BuilderTypeAdapterConfig, TAdapter> apply)
+            where TAdapter : BaseAdapter
+        {
+            // Uniqueness is by adapter TYPE, not by instance:
+            // two different instances of the same adapter type are still a conflict.
+            var key = $"Adapter:{typeof(TAdapter).FullName}";
+
+            if (!_appliedAdapters.Add(key))
+            {
+                throw new InvalidOperationException(
+                    $"Adapter '{typeof(TAdapter).Name}' is already registered in this builder. " +
+                    "Each adapter type can be added only once to keep the configuration deterministic.");
+            }
+
+            _steps.Add((name, cfg =>
+            {
+                var adapter = adapterFactory();
+                apply(cfg, adapter);
+            }
+            ));
+        }
+
 
         /// <summary>
         /// Registers a free-form step without any pair-key guard.
