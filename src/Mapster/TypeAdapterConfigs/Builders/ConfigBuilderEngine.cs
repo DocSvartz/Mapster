@@ -27,7 +27,7 @@ namespace Mapster.TypeAdapterConfigs.Builders
     /// </summary>
     internal sealed class ConfigBuilderEngine
     {
-        private readonly List<(string Name, Action<TypeAdapterConfig> Apply)> _steps = new();
+        private readonly List<(string Name, Action<BuilderTypeAdapterConfig> Apply)> _steps = new();
 
         // Properties already set — each may appear at most once.
         private readonly HashSet<string> _appliedProperties = new(StringComparer.Ordinal);
@@ -49,7 +49,7 @@ namespace Mapster.TypeAdapterConfigs.Builders
             string propertyKey,
             string displayValue,
             T value,
-            Action<TypeAdapterConfig, T> apply)
+            Action<BuilderTypeAdapterConfig, T> apply)
         {
             if (!_appliedProperties.Add(propertyKey))
             {
@@ -72,7 +72,7 @@ namespace Mapster.TypeAdapterConfigs.Builders
             Type sourceType,
             Type destinationType,
             bool twoWays,
-            Action<TypeAdapterConfig> apply)
+            Action<BuilderTypeAdapterConfig> apply)
         {
             var keys = BuildPairKeys(kind, sourceType, destinationType, twoWays);
 
@@ -97,7 +97,7 @@ namespace Mapster.TypeAdapterConfigs.Builders
         /// Registers a free-form step without any pair-key guard.
         /// Used for conditional rules (When) and other coexisting steps.
         /// </summary>
-        public void AddStep(string name, Action<TypeAdapterConfig> apply)
+        public void AddStep(string name, Action<BuilderTypeAdapterConfig> apply)
         {
             _steps.Add((name, apply));
         }
@@ -105,9 +105,9 @@ namespace Mapster.TypeAdapterConfigs.Builders
         public IReadOnlyList<string> GetSteps() =>
             _steps.Select(s => s.Name).ToList().AsReadOnly();
 
-        public (TypeAdapterConfig Config, IReadOnlyList<string> Steps) Build()
+        public (BuilderTypeAdapterConfig Config, IReadOnlyList<string> Steps) Build()
         {
-            var config = new TypeAdapterConfig();
+            var config = new BuilderTypeAdapterConfig();
             var history = new List<string>();
 
             foreach (var (name, apply) in _steps)

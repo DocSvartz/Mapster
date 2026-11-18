@@ -7,9 +7,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 
-namespace Mapster.TypeAdapterConfigs.Builders.BuilderTypeAdapterConfigs
+namespace Mapster.TypeAdapterConfigs.Builders
 {
-    internal class PatchBuilderTypeAdapterConfig : ITypeAdapterConfigSettingsCreator
+    public sealed class BuilderTypeAdapterConfig : ITypeAdapterConfigSettingsCreator
     {
         public bool ActivateCustomConvertersSrcNullPropagation {  get; set; }
         public bool AllowImplicitDestinationInheritance { get; set; }
@@ -119,13 +119,15 @@ namespace Mapster.TypeAdapterConfigs.Builders.BuilderTypeAdapterConfigs
             return new TypeAdapterSetter(rule.Settings, this);
         }
 
+        public TypeAdapterSetter<TSource, TDestination> TwoWaysForType<TSource, TDestination>()
+        {
+            return ForType<TSource, TDestination>();
+        }
+
         #endregion ProduceSettings
 
         #region UnSupprotedinBuilder
-        public TypeAdapterSetter<TSource, TDestination> TwoWaysForType<TSource, TDestination>()
-        {
-            throw new NotImplementedException();
-        }
+
 
         public void CompileToSettingsSetters(Type sourceType, Type destinationType)
         {

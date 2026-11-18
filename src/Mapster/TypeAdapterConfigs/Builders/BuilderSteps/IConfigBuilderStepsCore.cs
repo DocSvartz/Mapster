@@ -10,10 +10,10 @@ namespace Mapster.TypeAdapterConfigs.Builders
     /// </summary>
     public interface IConfigBuilderStepsCore
     {
-        void RegisterPropertyStep<T>(string propertyKey, string displayValue, T value, Action<TypeAdapterConfig, T> apply);
-        void RegisterMappingStep(MappingKind kind, string name, Type sourceType, Type destinationType, bool twoWays, Action<TypeAdapterConfig> apply);
-        void RegisterStep(string name, Action<TypeAdapterConfig> apply);
+        void RegisterPropertyStep<T>(string propertyKey, string displayValue, T value, Action<BuilderTypeAdapterConfig, T> apply);
+        void RegisterMappingStep(MappingKind kind, string name, Type sourceType, Type destinationType, bool twoWays, Action<BuilderTypeAdapterConfig> apply);
+        void RegisterStep(string name, Action<BuilderTypeAdapterConfig> apply);
         IReadOnlyList<string> GetSteps();
-        (TypeAdapterConfig Config, IReadOnlyList<string> Steps) Build();
+        (BuilderTypeAdapterConfig Config, IReadOnlyList<string> Steps) Build();
     }
 }

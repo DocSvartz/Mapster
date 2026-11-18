@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace Mapster.TypeAdapterConfigs.Builders
 {
@@ -14,18 +13,18 @@ namespace Mapster.TypeAdapterConfigs.Builders
         private readonly ConfigBuilderEngine _engine = new();
 
         void IConfigBuilderStepsCore.RegisterPropertyStep<T>(
-            string propertyKey, string displayValue, T value, Action<TypeAdapterConfig, T> apply)
+            string propertyKey, string displayValue, T value, Action<BuilderTypeAdapterConfig, T> apply)
             => _engine.AddPropertyStep(propertyKey, displayValue, value, apply);
 
         void IConfigBuilderStepsCore.RegisterMappingStep(
-            MappingKind kind, string name, Type sourceType, Type destinationType, bool twoWays, Action<TypeAdapterConfig> apply)
+            MappingKind kind, string name, Type sourceType, Type destinationType, bool twoWays, Action<BuilderTypeAdapterConfig> apply)
             => _engine.AddMappingStep(kind, name, sourceType, destinationType, twoWays, apply);
 
-        void IConfigBuilderStepsCore.RegisterStep(string name, Action<TypeAdapterConfig> apply)
+        void IConfigBuilderStepsCore.RegisterStep(string name, Action<BuilderTypeAdapterConfig> apply)
             => _engine.AddStep(name, apply);
 
         public IReadOnlyList<string> GetSteps() => _engine.GetSteps();
 
-        public (TypeAdapterConfig Config, IReadOnlyList<string> Steps) Build() => _engine.Build();
+        public (BuilderTypeAdapterConfig Config, IReadOnlyList<string> Steps) Build() => _engine.Build();
     }
 }

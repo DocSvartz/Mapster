@@ -306,7 +306,7 @@ namespace Mapster.TypeAdapterConfigs.Builders
             this TSelf self,
             string propertyKey,
             bool value,
-            Action<TypeAdapterConfig, bool> apply)
+            Action<BuilderTypeAdapterConfig, bool> apply)
             where TSelf : IConfigBuilderStepsCore
         {
             self.RegisterPropertyStep(propertyKey, value.ToString(), value, apply);
