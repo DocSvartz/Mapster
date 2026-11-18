@@ -43,11 +43,11 @@ namespace Mapster.TypeAdapterConfigs.Builders
 
         // ---- TwoWays ----
 
-        public TypeAdapterConfigPatchBuilder AddTwoWaysMapping<TSource, TDestination>(
+        public TypeAdapterConfigPatchBuilder TwoWays<TSource, TDestination>(
             Action<TwoWaysTypeAdapterSetter<TSource, TDestination>> setup)
             => this.RegisterTwoWaysMapping<TSource, TDestination, TypeAdapterConfigPatchBuilder>(setup);
 
-        public TypeAdapterConfigPatchBuilder AddTwoWaysMapping<TSource, TDestination>(
+        public TypeAdapterConfigPatchBuilder TwoWays<TSource, TDestination>(
             Action<TypeAdapterSetter<TSource, TDestination>> forwardSetup,
             Action<TwoWaysTypeAdapterSetter<TSource, TDestination>> twoWaysSetup)
             => this.RegisterTwoWaysMapping<TSource, TDestination, TypeAdapterConfigPatchBuilder>(forwardSetup, twoWaysSetup);
@@ -55,20 +55,20 @@ namespace Mapster.TypeAdapterConfigs.Builders
         // ---- When ----
 
         public TypeAdapterConfigPatchBuilder When(
-            string description,
             Func<Type, Type, MapType, bool> canMap,
-            Action<TypeAdapterSetter> setup)
-            => this.RegisterWhen(description, canMap, setup);
+            Action<TypeAdapterSetter>? setup = null,
+            string description = "When Func<Type, Type, MapType, bool> Step")
+            => this.RegisterWhen(description, canMap, setup ?? WhenSetupActionEmpty);
 
         public TypeAdapterConfigPatchBuilder When(
-            string description,
             Func<PreCompileArgument, bool> canMap,
-            Action<TypeAdapterSetter> setup)
-            => this.RegisterWhen(description, canMap, setup);
+            Action<TypeAdapterSetter>? setup = null,
+            string description = "When Func<PreCompileArgument, bool> Step")
+            => this.RegisterWhen(description, canMap, setup ?? WhenSetupActionEmpty);
 
         // ---- Default ----
 
-        public TypeAdapterConfigPatchBuilder AddDefault(Action<DefaultOnlySetter> setup)
+        public TypeAdapterConfigPatchBuilder Default(Action<DefaultOnlySetter> setup)
             => this.RegisterDefault(setup);
 
         // ---- Settings ----

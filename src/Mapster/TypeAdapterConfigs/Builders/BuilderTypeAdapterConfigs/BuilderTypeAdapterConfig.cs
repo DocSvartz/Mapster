@@ -20,9 +20,17 @@ namespace Mapster.TypeAdapterConfigs.Builders
         public bool SelfContainedCodeGeneration { get; set; }
         public Func<LambdaExpression, Delegate> Compiler { get; set; }
 
-        public DefaultOnlySetter Default => throw new NotImplementedException();
+        public DefaultOnlySetter Default { get; }
+
+        public BuilderTypeAdapterConfig()
+        {
+            DefaultRule = CreateRuleHelper.CreateDefaultRule();
+            Default = new DefaultOnlySetter(DefaultRule.Settings, this);
+        }
 
         #region SettingsStorage
+
+        public TypeAdapterRule DefaultRule;
 
         // Try update existing settings. If none exist, create new ones.
         // ForType()
@@ -61,7 +69,7 @@ namespace Mapster.TypeAdapterConfigs.Builders
         {
             var tuple = new TypeTuple(typeof(void), destinationType);
             var rule = CreateRuleHelper.CreateRuleForTypeConfigBuilder(tuple, this);
-            UpdateRuleMaps[tuple] = CreateRuleHelper.CreateRuleForTypeConfigBuilder(tuple, this);
+            UpdateRuleMaps[tuple] = rule;
             return new DestinationTypeOnlySetter(rule.Settings, this);
         }
 
@@ -69,7 +77,7 @@ namespace Mapster.TypeAdapterConfigs.Builders
         {
             var tuple = new TypeTuple(typeof(void), typeof(TDestination));
             var rule = CreateRuleHelper.CreateRuleForTypeConfigBuilder(tuple, this);
-            UpdateRuleMaps[tuple] = CreateRuleHelper.CreateRuleForTypeConfigBuilder(tuple, this);
+            UpdateRuleMaps[tuple] = rule;
             return new TypeAdapterSetter<TDestination>(rule.Settings, this);
         }
 
@@ -77,7 +85,7 @@ namespace Mapster.TypeAdapterConfigs.Builders
         {
             var tuple = new TypeTuple(sourceType, destinationType);
             var rule = CreateRuleHelper.CreateRuleForTypeConfigBuilder(tuple, this);
-            UpdateRuleMaps[tuple] = CreateRuleHelper.CreateRuleForTypeConfigBuilder(tuple, this);
+            UpdateRuleMaps[tuple] = rule;
             return new TypeAdapterSetter(rule.Settings,this);
         }
 
@@ -85,7 +93,7 @@ namespace Mapster.TypeAdapterConfigs.Builders
         {
             var tuple = TypeTuple.Create<TSource,TDestination>();
             var rule = CreateRuleHelper.CreateRuleForTypeConfigBuilder(tuple, this);
-            UpdateRuleMaps[tuple] = CreateRuleHelper.CreateRuleForTypeConfigBuilder(tuple, this);
+            UpdateRuleMaps[tuple] = rule;
             return new TypeAdapterSetter<TSource,TDestination>(rule.Settings, this);
         }
 
@@ -93,7 +101,7 @@ namespace Mapster.TypeAdapterConfigs.Builders
         {
             var tuple = new TypeTuple(sourceType, destinationType);
             var rule = CreateRuleHelper.CreateRuleForTypeConfigBuilder(tuple, this);
-            NewRuleMaps[tuple] = CreateRuleHelper.CreateRuleForTypeConfigBuilder(tuple, this);
+            NewRuleMaps[tuple] = rule;
             return new TypeAdapterSetter(rule.Settings, this);
         }
 
@@ -101,7 +109,7 @@ namespace Mapster.TypeAdapterConfigs.Builders
         {
             var tuple = TypeTuple.Create<TSource,TDestination>();
             var rule = CreateRuleHelper.CreateRuleForTypeConfigBuilder(tuple, this);
-            NewRuleMaps[tuple] = CreateRuleHelper.CreateRuleForTypeConfigBuilder(tuple, this);
+            NewRuleMaps[tuple] = rule;
             return new TypeAdapterSetter<TSource,TDestination>(rule.Settings, this);
         }
 

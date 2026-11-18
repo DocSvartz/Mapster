@@ -9,6 +9,7 @@ namespace Mapster.TypeAdapterConfigs.Builders
         public TypeAdapterConfigInitBuilder() {}
 
         public static TypeAdapterConfigInitBuilder Create() => new();
+                
 
         public TypeAdapterConfigInitBuilder NewConfig<TSource, TDestination>(
             Action<TypeAdapterSetter<TSource, TDestination>> setup)
@@ -33,11 +34,11 @@ namespace Mapster.TypeAdapterConfigs.Builders
 
         // ---- TwoWays ----
 
-        public TypeAdapterConfigInitBuilder AddTwoWaysMapping<TSource, TDestination>(
+        public TypeAdapterConfigInitBuilder TwoWays<TSource, TDestination>(
             Action<TwoWaysTypeAdapterSetter<TSource, TDestination>> setup)
             => this.RegisterTwoWaysMapping<TSource, TDestination, TypeAdapterConfigInitBuilder>(setup);
 
-        public TypeAdapterConfigInitBuilder AddTwoWaysMapping<TSource, TDestination>(
+        public TypeAdapterConfigInitBuilder TwoWays<TSource, TDestination>(
             Action<TypeAdapterSetter<TSource, TDestination>> forwardSetup,
             Action<TwoWaysTypeAdapterSetter<TSource, TDestination>> twoWaysSetup)
             => this.RegisterTwoWaysMapping<TSource, TDestination, TypeAdapterConfigInitBuilder>(forwardSetup, twoWaysSetup);
@@ -45,20 +46,20 @@ namespace Mapster.TypeAdapterConfigs.Builders
         // ---- When ----
 
         public TypeAdapterConfigInitBuilder When(
-            string description,
             Func<Type, Type, MapType, bool> canMap,
-            Action<TypeAdapterSetter> setup)
-            => this.RegisterWhen(description, canMap, setup);
+            Action<TypeAdapterSetter>? setup = null,
+            string description = "When Func<Type, Type, MapType, bool> Step")
+            => this.RegisterWhen(description, canMap, setup ?? WhenSetupActionEmpty);
 
         public TypeAdapterConfigInitBuilder When(
-            string description,
             Func<PreCompileArgument, bool> canMap,
-            Action<TypeAdapterSetter> setup)
-            => this.RegisterWhen(description, canMap, setup);
+            Action<TypeAdapterSetter>? setup = null,
+            string description = "When Func<PreCompileArgument, bool> Step")
+            => this.RegisterWhen(description, canMap, setup ?? WhenSetupActionEmpty);
 
         // ---- Default ----
 
-        public TypeAdapterConfigInitBuilder AddDefault(Action<DefaultOnlySetter> setup)
+        public TypeAdapterConfigInitBuilder Default(Action<DefaultOnlySetter> setup)
             => this.RegisterDefault(setup);
 
         // ---- Settings ----

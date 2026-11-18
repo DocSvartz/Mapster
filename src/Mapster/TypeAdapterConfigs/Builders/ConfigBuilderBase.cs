@@ -12,6 +12,8 @@ namespace Mapster.TypeAdapterConfigs.Builders
     {
         private readonly ConfigBuilderEngine _engine = new();
 
+        protected static Action<TypeAdapterSetter> WhenSetupActionEmpty = _ => { };
+
         void IConfigBuilderStepsCore.RegisterPropertyStep<T>(
             string propertyKey, string displayValue, T value, Action<BuilderTypeAdapterConfig, T> apply)
             => _engine.AddPropertyStep(propertyKey, displayValue, value, apply);
