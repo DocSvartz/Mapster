@@ -29,6 +29,10 @@ namespace Mapster.Tests
                 .When(
                     canMap: (srcType, destType, mapType) => destType == typeof(ForBuilderDest), 
                     setup: s => { s.Settings.EnableNonPublicConstructors = true; })
+                .TwoWays<TwoWaysSrc, TwoWaysDest>(cfg =>
+                {
+                    cfg.ShallowCopyForSameType(true);
+                })
                 .Build();
 
 
@@ -37,7 +41,7 @@ namespace Mapster.Tests
                 config.Config.Default.ShouldNotBeNull();
                 config.Config.DefaultRule.Settings.IgnoreNullValues.ShouldBe(true);
 
-                config.Config.NewRuleMaps.Count.ShouldBe(1);
+                config.Config.NewRuleMaps.Count.ShouldBe(3);
                 config.Config.UpdateRuleMaps.Count.ShouldBe(0);
                 config.Config.InsertAdapterRules.Count.ShouldBe(1);
                 config.Config.InsertCustomRules.Count.ShouldBe(1);
@@ -61,8 +65,15 @@ namespace Mapster.Tests
                 var adapterRule = config.Config.InsertAdapterRules.First();
                 adapterRule.Settings.DestinationType.ShouldBe(typeof(TestAdapter));
 
-                //resolvers[0].
+                //TwoWays
+                config.Config.NewRuleMaps.ContainsKey(TypeTuple.Create<TwoWaysSrc, TwoWaysDest>()).ShouldBeTrue();
+                config.Config.NewRuleMaps.ContainsKey(TypeTuple.Create<TwoWaysDest, TwoWaysSrc>()).ShouldBeTrue();
+                
+                var DirectRule = config.Config.NewRuleMaps[TypeTuple.Create<TwoWaysSrc, TwoWaysDest>()];
+                var ReverseWayRule = config.Config.NewRuleMaps[TypeTuple.Create<TwoWaysSrc, TwoWaysDest>()];
 
+                DirectRule.Settings.ShallowCopyForSameType.ShouldBe(true);
+                ReverseWayRule.Settings.ShallowCopyForSameType.ShouldBe(true);
             });
         }
 
@@ -82,6 +93,19 @@ namespace Mapster.Tests
             public string AddressProxy { get; set; }
         }
 
+        public class TwoWaysSrc
+        {
+            public string TwoWaySrc { get; set; }
+
+        }
+
+        public class TwoWaysDest
+        {
+            public string TwoWayDest { get; set; }
+
+        }
+
+
         internal class TestAdapter : BaseAdapter
         {
             protected override bool CanMap(PreCompileArgument arg)
@@ -99,6 +123,8 @@ namespace Mapster.Tests
                 throw new NotImplementedException();
             }
         }
+
+
 
 
         #endregion TestClases

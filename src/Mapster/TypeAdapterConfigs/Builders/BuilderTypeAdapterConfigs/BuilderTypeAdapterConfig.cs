@@ -32,7 +32,7 @@ namespace Mapster.TypeAdapterConfigs.Builders
 
         public TypeAdapterRule DefaultRule;
 
-        // Try update existing settings. If none exist, create new ones.
+        // AddOrUpdate existing settings. If none exist, create new ones.
         // ForType()
         public Dictionary<TypeTuple, TypeAdapterRule> UpdateRuleMaps { get; init; } = new();
 
@@ -129,7 +129,7 @@ namespace Mapster.TypeAdapterConfigs.Builders
 
         public TypeAdapterSetter<TSource, TDestination> TwoWaysForType<TSource, TDestination>()
         {
-            return ForType<TSource, TDestination>();
+            return NewConfig<TSource, TDestination>();
         }
 
         #endregion ProduceSettings
