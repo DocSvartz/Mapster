@@ -142,10 +142,62 @@ namespace Mapster.Tests
                 DirectRule.Settings.ShallowCopyForSameType.ShouldBe(true);
                 ReverseWayRule.Settings.ShallowCopyForSameType.ShouldBe(true);
             });
+        }
 
+        [TestMethod]
+        public void TypeAdapterConfigBuilder_ThrowException_WhenAdded_Dublicate_Settings()
+        {
+            var s = new object();
 
+            s.ShouldSatisfyAllConditions(() =>
+            {
+                Should.Throw<InvalidOperationException>(() => {
+                    TypeAdapterConfigInitBuilder.Create()
+                    .Default(cfg =>{})
+                    .NewConfig<ForBuilderSrc, ForBuilderDest>(s =>{})
+                    .Default(cfg =>{}) // dublicate
+                    .Build();
+                });
 
+                Should.Throw<InvalidOperationException>(() => {
+                    TypeAdapterConfigInitBuilder.Create()
+                    .NewConfig<ForBuilderSrc, ForBuilderDest>(s => { })
+                    .Default(cfg => { })
+                    .NewConfig<ForBuilderSrc, ForBuilderDest>(s => { }) // dublicate
+                    .Build();
+                });
 
+                Should.Throw<InvalidOperationException>(() => {
+                    TypeAdapterConfigInitBuilder.Create()
+                    .NewConfig<ForBuilderSrc, ForBuilderDest>(s => { })
+                    .TwoWays<ForBuilderSrc, ForBuilderDest> (s => { }) // dublicate
+                    .Build();
+                });
+
+                Should.Throw<InvalidOperationException>(() => {
+                    TypeAdapterConfigPatchBuilder.Create()
+                    .NewConfig<ForBuilderSrc, ForBuilderDest>(s => { })
+                    .ForType<ForBuilderSrc, ForBuilderDest>(s => { }) // dublicate
+                    .Build();
+                });
+
+                Should.Throw<InvalidOperationException>(() => {
+                    TypeAdapterConfigPatchBuilder.Create()
+                    .AllowImplicitDestinationInheritance(true)
+                    .Default(cfg => { })
+                    .AllowImplicitDestinationInheritance(false) // dublicate
+                    .Build();
+                });
+
+                Should.Throw<InvalidOperationException>(() => {
+                    TypeAdapterConfigPatchBuilder.Create()
+                    .AddAdapter<TestAdapter>()
+                    .Default(cfg => { })
+                    .AddAdapter(new TestAdapter()) // dublicate
+                    .Build();
+                });
+
+            });
         }
 
         #region TestClases
