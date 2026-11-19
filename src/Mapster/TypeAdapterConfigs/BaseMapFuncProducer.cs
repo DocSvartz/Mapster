@@ -11,7 +11,7 @@ using System.Reflection;
 
 namespace Mapster
 {
-    public abstract class BaseMapFuncProducer 
+    public abstract partial class BaseMapFuncProducer 
     {
         internal ITypeAdapterConfig Config { get; init; }
         internal ImmutableDictionary<string, bool> BoolSettings { get; init; }
@@ -46,9 +46,9 @@ namespace Mapster
         internal protected Delegate GetMapFunction(Type sourceType, Type destinationType)
         {
             var key = new TypeTuple(sourceType, destinationType);
-            if (!_mapDict.TryGetValue(key, out var del))
-                del = AddToHash(_mapDict, key, tuple => Compiler(CreateMapExpression(tuple, MapType.Map)));
-            return del;
+            //if (!_mapDict.TryGetValue(key, out var del))
+            //    del = AddToHash(_mapDict, key, tuple => Compiler(CreateMapExpression(tuple, MapType.Map)));
+            return AddOrGetMapFuncFromCache(key);
         }
 
 
@@ -59,9 +59,9 @@ namespace Mapster
         internal protected Delegate GetMapToTargetFunction(Type sourceType, Type destinationType)
         {
             var key = new TypeTuple(sourceType, destinationType);
-            if (!_mapToTargetDict.TryGetValue(key, out var del))
-                del = AddToHash(_mapToTargetDict, key, tuple => Compiler(CreateMapExpression(tuple, MapType.MapToTarget)));
-            return del;
+            //if (!_mapToTargetDict.TryGetValue(key, out var del))
+            //    del = AddToHash(_mapToTargetDict, key, tuple => Compiler(CreateMapExpression(tuple, MapType.MapToTarget)));
+            return AddOrGetMapToTargetFuncFromCache(key);
         }
                 
         internal Expression<Func<TSource, TDestination>> GetProjectionExpression<TSource, TDestination>()
@@ -73,17 +73,17 @@ namespace Mapster
         internal protected MethodCallExpression GetProjectionCallExpression(Type sourceType, Type destinationType)
         {
             var key = new TypeTuple(sourceType, destinationType);
-            if (!_projectionDict.TryGetValue(key, out var del))
-                del = AddToHash(_projectionDict, key, CreateProjectionCallExpression);
-            return del;
+            //if (!_projectionDict.TryGetValue(key, out var del))
+            //    del = AddToHash(_projectionDict, key, CreateProjectionCallExpression);
+            return AddOrGetProjectionFuncFromCache(key);
         }
 
         public Func<object, TDestination> GetDynamicMapFunction<TDestination>(Type sourceType)
         {
             var key = new TypeTuple(sourceType, typeof(TDestination));
-            if (!_dynamicMapDict.TryGetValue(key, out var del))
-                del = AddToHash(_dynamicMapDict, key, tuple => Compiler(CreateDynamicMapExpression(tuple)));
-            return (Func<object, TDestination>)del;
+            //if (!_dynamicMapDict.TryGetValue(key, out var del))
+            //    del = AddToHash(_dynamicMapDict, key, tuple => Compiler(CreateDynamicMapExpression(tuple)));
+            return AddOrGetGetDynamicMapFunction<TDestination>(sourceType);
         }
 
         private Expression CreateSelfExpression()
@@ -317,7 +317,10 @@ namespace Mapster
             if (GetBoolSetting(nameof(TypeAdapterConfig.RequireExplicitMapping)) || GetBoolSetting(nameof(TypeAdapterConfig.RequireExplicitMappingPrimitive)))
             {
                 var key = new TypeTuple(sourceType, destinationType);
-                _mapToTargetDict[key] = Compiler(CreateMapExpression(key, MapType.MapToTarget));
+
+                AddOrGetMapToTargetFuncFromCache(key, true);
+
+               // _mapToTargetDict[key] = Compiler(CreateMapExpression(key, MapType.MapToTarget));
             }
             var method = (from m in typeof(ITypeAdapterMappingFuncProducer).GetMethods(BindingFlags.Instance | BindingFlags.Public)
                           where m.Name == nameof(GetMapToTargetFunction)
@@ -390,8 +393,11 @@ namespace Mapster
         public void Compile(Type sourceType, Type destinationType)
         {
             var tuple = new TypeTuple(sourceType, destinationType);
-            _mapDict[tuple] = Compiler(CreateMapExpression(tuple, MapType.Map));
-            _mapToTargetDict[tuple] = Compiler(CreateMapExpression(tuple, MapType.MapToTarget));
+
+            AddOrGetMapFuncFromCache(tuple, true);
+            AddOrGetMapToTargetFuncFromCache(tuple, true);
+            //_mapDict[tuple] = Compiler(CreateMapExpression(tuple, MapType.Map));
+            //_mapToTargetDict[tuple] = Compiler(CreateMapExpression(tuple, MapType.MapToTarget));
             
             //Critical performance section
             if (this.Config == MapsterGlobalConfig.GlobalSettings)
@@ -409,7 +415,9 @@ namespace Mapster
         public void CompileProjection(Type sourceType, Type destinationType)
         {
             var tuple = new TypeTuple(sourceType, destinationType);
-            _projectionDict[tuple] = CreateProjectionCallExpression(tuple);
+
+            AddOrGetProjectionFuncFromCache(tuple, true);
+            //_projectionDict[tuple] = CreateProjectionCallExpression(tuple);
         }
     }
 }
