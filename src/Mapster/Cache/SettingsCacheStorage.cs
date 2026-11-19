@@ -1,11 +1,11 @@
 ﻿using Mapster.Adapters;
 using Mapster.Models;
 using Mapster.TypeAdapterSetters;
-using Mapster.Utils;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq.Expressions;
 
 namespace Mapster.Cache
 {
@@ -15,21 +15,28 @@ namespace Mapster.Cache
         private readonly ITypeAdapterConfig _config;
         private readonly object _lock = new();
         private ulong _Version = 0;
+
+        private Func<LambdaExpression, Delegate> _Compiler;
         private TypeAdapterRule DefaultSettingsRule;
-        private ImmutableArray<TypeAdapterRule> AdapterRules;
+
+        #region Settings 
+        private ImmutableArray<TypeAdapterRule> TemplateRules;
+        private ImmutableArray<TypeAdapterRule> AdapterRules = ImmutableArray<TypeAdapterRule>.Empty;
+        private ImmutableList<TypeAdapterRule> CustomSettingsRules = ImmutableList<TypeAdapterRule>.Empty;
         private ImmutableDictionary<TypeTuple, TypeAdapterRule> RuleMap = ImmutableDictionary<TypeTuple, TypeAdapterRule>.Empty;
         private ImmutableDictionary<string, bool> BoolSettings = ImmutableDictionary<string, bool>.Empty;
-        private readonly Dictionary<CompiledTypesSettings, TypeAdapterRule> CompiledRule = new();
+        #endregion Settings
 
+        #region Cache
         private readonly ConcurrentDictionary<Type, MappingTypeModel> TypeMemberModelsCache = new();
-
         private TypeAdapterConfigSnapshot? _cachedSnapShot;
         
         private readonly Dictionary<TypeTuple, Delegate> _mapCache = new();
         private readonly Dictionary<TypeTuple, Delegate> _mapToTargetCache = new();
         private readonly Dictionary<TypeTuple, Delegate> _ProjectionCache = new();
         private readonly Dictionary<TypeTuple, Delegate> _dynamicMapCache = new();
-
+        #endregion Cache
+        
         private ulong UpdateAndGetVersion() { _Version = ++_Version; return _Version; }
         private void UpdateVersion() { _Version = ++_Version; }
 
@@ -99,7 +106,6 @@ namespace Mapster.Cache
 
             return ruleMap.Settings;
         }
-
         private TypeAdapterSettings GetDefaultSetterSettings(TypeTuple types, bool isForceNewConfig = false)
         {
             var clonedConfig = isForceNewConfig ? null :
@@ -136,7 +142,7 @@ namespace Mapster.Cache
         public IReadOnlyCollection<TypeAdapterRule> Rules => this;
         public SettingsCacheStorage(ImmutableArray<TypeAdapterRule> ruleTemplates, ITypeAdapterConfig config)
         {
-            AdapterRules = ruleTemplates;
+            TemplateRules = ruleTemplates;
             var setting = TypeAdapterSettings.CreateDefault;
             _config = config;
         }
@@ -145,9 +151,12 @@ namespace Mapster.Cache
         {
             _Version = configSnapshot.Version;
             DefaultSettingsRule = configSnapshot.DefaultSettingsRule;
+            TemplateRules = configSnapshot.TemplateRules;
             AdapterRules = configSnapshot.AdapterRules.ToImmutableArray();
+            CustomSettingsRules = configSnapshot.CustomSettingsRules.ToImmutableList();
             RuleMap = configSnapshot.RuleMap.ToImmutableDictionary();
             BoolSettings = configSnapshot.BoolSettings.ToImmutableDictionary();
+            _Compiler = configSnapshot.Compiler;
             //CompiledRule = configSnapshot.CompiledRule;
             TypeMemberModelsCache = configSnapshot.TypeMemberModelsCache;
             _config = config;
@@ -169,7 +178,17 @@ namespace Mapster.Cache
  
 
         public bool GetBoolSetting(string name) { BoolSettings.TryGetValue(name, out var data); return data; }
-                
+
+        public void SetCompiler(Func<LambdaExpression, Delegate> compiler)
+        {
+            lock (_lock)
+            {
+                _Compiler = compiler;
+            }
+        }
+
+        public Func<LambdaExpression, Delegate> GetCompiler => _Compiler;
+        
         public TypeAdapterSetter<TSource, TDestination> GetNewConfigSetter<TSource, TDestination>(TypeTuple tuple, ITypeAdapterConfig config)
         {
             lock (_lock)
@@ -222,7 +241,7 @@ namespace Mapster.Cache
 
 
 
-        public void AddAdapterRule(BaseAdapter adapter)
+        public void AddAdapter(BaseAdapter adapter)
         {
             lock (_lock)
             {
@@ -231,11 +250,11 @@ namespace Mapster.Cache
             }
         }
 
-        public void AddRule(TypeAdapterRule rule)
+        public void AddCustomRule(TypeAdapterRule rule)
         {
             lock (_lock)
             {
-                AdapterRules = AdapterRules.Add(rule);
+                CustomSettingsRules = CustomSettingsRules.Add(rule);
                 UpdateVersion();
             }
         }
@@ -262,19 +281,7 @@ namespace Mapster.Cache
 
             return ruleMap;
         }
-
-        public void CollectCompileRules(IEnumerable<TypeAdapterRule> rules)
-        {
-            lock (_lock)
-            {
-                foreach (var item in rules)
-                {
-                    if(item.Settings is CompiledTypesSettings settings)
-                        CompiledRule.TryAdd(settings, item);
-                }
-            }
-        }
-
+             
         public void Clear()
         {
             lock (_lock)
@@ -302,11 +309,14 @@ namespace Mapster.Cache
                     {
                         Version = this._Version,
                         BoolSettings = this.BoolSettings,
+
+                        TemplateRules = this.TemplateRules,
                         AdapterRules = this.AdapterRules,
-                        DefaultSettingsRule = this.DefaultSettingsRule,
+                        CustomSettingsRules = this.CustomSettingsRules,
                         RuleMap = this.RuleMap,
-                       // CompiledRule = this.CompiledRule, // need refactoring
-                        Compiler = _config.Compiler,
+                        DefaultSettingsRule = this.DefaultSettingsRule,
+                        
+                        Compiler = _Compiler,
                         Config = _config,
                         TypeMemberModelsCache = this.TypeMemberModelsCache,
                     };

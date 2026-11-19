@@ -513,6 +513,7 @@ namespace Mapster.Tool
             var config = MapsterGlobalConfig.GlobalSettings;
             config.SelfContainedCodeGeneration = true;
             config.Scan(assembly);
+            var snapShot = config.GetSnapshot;
             var codeGenConfig = new CodeGenerationConfig();
             codeGenConfig.Scan(assembly);
 
@@ -528,7 +529,7 @@ namespace Mapster.Tool
 
             // assemblies defines open generic only, so we have to add specialised types used in mappings
 
-            var ruleMap = config.MappingCache.GetRuleMap;
+            var ruleMap = snapShot.RuleMap;
 
             foreach (var (key, _) in ruleMap)
                 types.Add(key.Source);

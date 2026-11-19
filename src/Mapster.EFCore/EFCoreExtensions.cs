@@ -26,7 +26,9 @@ namespace Mapster.EFCore
 
                 TypeAdapterRule rule;
 
-                var ruleMap = config.MappingCache.GetRuleMap;
+                var snapshot = config.GetSnapshot;
+
+                var ruleMap = snapshot.RuleMap;
 
                 ruleMap.TryGetValue(mapTuple, out rule);
 

@@ -24,7 +24,7 @@ namespace Mapster
 
         private readonly TypeTuple _defaultSetterTuple = TypeTuple.Create<MapsterCacheMarker, DefaultOnlySetter>();
 
-        public SettingsCacheStorage MappingCache { get;}
+        internal SettingsCacheStorage MappingCache { get;}
 
         public bool RequireDestinationMemberSource { get => MappingCache.GetBoolSetting(nameof(RequireDestinationMemberSource)); set => MappingCache.SetBoolSetting(nameof(RequireDestinationMemberSource), value); }
         public bool RequireExplicitMapping { get => MappingCache.GetBoolSetting(nameof(RequireExplicitMapping)); set => MappingCache.SetBoolSetting(nameof(RequireExplicitMapping), value); }
@@ -36,7 +36,7 @@ namespace Mapster
 
 
 
-        public Func<LambdaExpression, Delegate> Compiler { get; set; } = lambda => lambda.Compile();
+        public Func<LambdaExpression, Delegate> Compiler { get => MappingCache.GetCompiler; set => MappingCache.SetCompiler(value); }
 
         [Obsolete($"This will be removed in version 11. Use {nameof(GetSnapshot)}.{nameof(ITypeAdapterConfigSnapshot.Rules)}")]
         public IList<TypeAdapterRule> Rules => GetSnapshot.Rules.ToImmutableList();
@@ -49,6 +49,7 @@ namespace Mapster
             MappingCache = new(MapsterGlobalConfig.RulesTemplate, this);
             MappingCache.GetNewConfigSetter(_defaultSetterTuple, this);
             MappingCache.SetBoolSetting(nameof(AllowImplicitSourceInheritance), true);
+            MappingCache.SetCompiler(lambda => lambda.Compile());
         }
 
         internal TypeAdapterConfig(ITypeAdapterConfigSnapshot snapshot)
@@ -59,7 +60,7 @@ namespace Mapster
         #region SettingsState
         public void AddRule(TypeAdapterRule rule)
         {
-            MappingCache.AddRule(rule);
+            MappingCache.AddCustomRule(rule);
         }
 
         public void AddRulesRange(IEnumerable<TypeAdapterRule> rules)
@@ -69,7 +70,7 @@ namespace Mapster
 
         public void AddAdapter(BaseAdapter adapter)
         {
-            MappingCache.AddAdapterRule(adapter);
+            MappingCache.AddAdapter(adapter);
         }
 
         public void AddAdapterssRange(IEnumerable<BaseAdapter> adapters)
@@ -93,7 +94,7 @@ namespace Mapster
                 Priority = arg => canMap(arg.SourceType, arg.DestinationType, arg.MapType) ? (int?)25 : null
             };
             //Rules.LockAdd(rule);
-            MappingCache.AddRule(rule);
+            MappingCache.AddCustomRule(rule);
             return new TypeAdapterSetter((TypeAdapterSettings)rule.Settings, this);
         }
 
@@ -110,7 +111,7 @@ namespace Mapster
                 Priority = arg => canMap(arg) ? (int?)25 : null
             };
             //Rules.LockAdd(rule);
-            MappingCache.AddRule(rule);
+            MappingCache.AddCustomRule(rule);
             return new TypeAdapterSetter((TypeAdapterSettings)rule.Settings, this);
         }
 

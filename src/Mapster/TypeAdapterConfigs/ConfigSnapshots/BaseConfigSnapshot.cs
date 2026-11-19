@@ -18,7 +18,7 @@ namespace Mapster
         public IReadOnlyCollection<TypeAdapterRule> Rules => this;
 
         Func<LambdaExpression, Delegate> ITypeAdapterMappingFuncProducer.Compiler { get => Compiler; init => Compiler = value; }
-        public abstract IReadOnlyCollection<TypeAdapterRule> DefaultSettingsRules { get; init; }
+        public ImmutableArray<TypeAdapterRule> TemplateRules { get; init; }
         public abstract IReadOnlyCollection<TypeAdapterRule> AdapterRules { get; init; }
         public abstract IReadOnlyCollection<TypeAdapterRule> CustomSettingsRules { get; init; }
         public abstract IReadOnlyDictionary<TypeTuple, TypeAdapterRule> RuleMap { get; init; }
@@ -138,6 +138,7 @@ namespace Mapster
 
         public IEnumerator<TypeAdapterRule> GetEnumerator()
         {
+            foreach (var x in TemplateRules) yield return x;
             foreach (var x in AdapterRules) yield return x;
             if (DefaultSettingsRule is not null) yield return DefaultSettingsRule;
             foreach (var x in CustomSettingsRules) yield return x;
@@ -145,6 +146,7 @@ namespace Mapster
         }
 
         public int Count => DefaultSettingsRule is not null ? 1 : 0
+                            + TemplateRules.Length
                             + AdapterRules.Count
                             + CustomSettingsRules.Count
                             + RuleMap.Count;

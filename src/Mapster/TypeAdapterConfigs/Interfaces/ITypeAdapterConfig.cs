@@ -1,5 +1,4 @@
-﻿using Mapster.Cache;
-using Mapster.Models;
+﻿using Mapster.Models;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -18,7 +17,7 @@ namespace Mapster
         
         IReadOnlyDictionary<TypeTuple, TypeAdapterRule> RuleMap { get; }
         IList<TypeAdapterRule> Rules { get; }
-        public SettingsCacheStorage MappingCache { get; }
+        //public SettingsCacheStorage MappingCache { get; }
 
        
         
