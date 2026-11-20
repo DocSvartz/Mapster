@@ -4,6 +4,7 @@ using Mapster.Models;
 using Mapster.TypeAdapterSetters;
 using Mapster.Utils;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Data;
@@ -353,7 +354,11 @@ namespace Mapster
 
             // throw new NotImplementedException();
         }
-                
+
+        private ConcurrentDictionary<string, ITypeAdapterConfig>? _inlineConfigs;
+        private ConcurrentDictionary<string, ITypeAdapterConfig> InlineConfigs =>
+            _inlineConfigs ??= new ConcurrentDictionary<string, ITypeAdapterConfig>();
+
         public ITypeAdapterConfig Fork(Action<ITypeAdapterConfig> action,
 #if !NET40
             [CallerFilePath]
@@ -367,9 +372,12 @@ namespace Mapster
             var key = $"{key1}|{key2}";
 
 
-            var cloned = Clone();
-            action(cloned);
-            return cloned;
+            return InlineConfigs.GetOrAdd(key, _ =>
+            {
+                var cloned = Clone();
+                action(cloned);
+                return cloned;
+            });
 
             // throw new NotImplementedException();
         }
