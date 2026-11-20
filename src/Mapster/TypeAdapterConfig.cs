@@ -222,7 +222,12 @@ namespace Mapster
            //Compiler(GetSnapshot.CreateMapExpression(tuple, MapType.MapToTarget));
         }
 
-
+        //Always for Benchmarks
+        [Obsolete($"SUse {nameof(TypeAdapterConfig.CompileToSettingsSetters)}")]
+        public void Compile(Type sourceType, Type destinationType)
+        {
+            CompileToSettingsSetters(sourceType, destinationType);
+        }
         /// <summary>
         /// Validates and cache mapping instructions for queryable.
         /// </summary>

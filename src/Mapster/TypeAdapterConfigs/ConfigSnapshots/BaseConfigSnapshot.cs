@@ -5,13 +5,20 @@ using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Linq.Expressions;
 
 namespace Mapster
 {
     public abstract class BaseConfigSnapshot : BaseMapFuncProducer, ITypeAdapterConfigSnapshot
     {
+        private bool? _RequireExplicitMapping;
+        private bool? _RequireExplicitMappingPrimitive;
+        private bool RequireExplicitMapping { get => _RequireExplicitMapping ?? GetBoolSetting(nameof(ITypeAdapterConfigSettings.RequireExplicitMapping)); }
+        private bool RequireExplicitMappingPrimitive { get => _RequireExplicitMappingPrimitive ?? GetBoolSetting(nameof(ITypeAdapterConfigSettings.RequireExplicitMappingPrimitive)); }
+        internal ITypeAdapterConfig Config { get; init; }
+        internal ImmutableDictionary<string, bool> BoolSettings { get; init; }
+        public bool GetBoolSetting(string name) { BoolSettings.TryGetValue(name, out var data); return data; }
+
         public ulong Version { get; init; }
 
         public TypeAdapterRule DefaultSettingsRule { get; init; }
@@ -19,10 +26,12 @@ namespace Mapster
 
         Func<LambdaExpression, Delegate> ITypeAdapterMappingFuncProducer.Compiler { get => Compiler; init => Compiler = value; }
         public ImmutableArray<TypeAdapterRule> TemplateRules { get; init; }
-        public abstract IReadOnlyCollection<TypeAdapterRule> AdapterRules { get; init; }
-        public abstract IReadOnlyCollection<TypeAdapterRule> CustomSettingsRules { get; init; }
-        public abstract IReadOnlyDictionary<TypeTuple, TypeAdapterRule> RuleMap { get; init; }
-        
+        public IReadOnlyCollection<TypeAdapterRule> AdapterRules { get; init; }
+        public IReadOnlyCollection<TypeAdapterRule> CustomSettingsRules { get; init; }
+        public IReadOnlyDictionary<TypeTuple, TypeAdapterRule> RuleMap { get; init; }
+
+        internal ConcurrentDictionary<Type, MappingTypeModel> TypeMemberModelsCache { get; init; } = new();
+        internal ConcurrentDictionary<TypeTuple, CompiledSettingsCacheItem> CacheCompiledTypesSettings { get; init; } = new(); 
 
         public override LambdaExpression CreateMapExpression(TypeTuple tuple, MapType mapType)
         {
@@ -54,85 +63,9 @@ namespace Mapster
             }
         }
 
-        /// <summary>
-        /// Validates and cache mapping instructions.
-        /// </summary>
-        /// <param name="failFast">A boolean parameter that determines whether exceptions should be thrown immediately when mapping errors occur or whether to collect and aggregate them. The default value is true.</param>
-        /// <exception cref="AggregateException"></exception>
-        public void Compile(bool failFast = true)
-        {
-            var exceptions = new List<Exception>();
-            var keys = RuleMap.Keys.ToList();
-
-            foreach (var key in keys)
-            {
-                try
-                {
-                    if (key.Source == typeof(void))
-                        continue;
-
-                    if (key.Source.ContainsGenericParameters || key.Destination.ContainsGenericParameters)
-                        continue;
-
-                    _mapDict[key] = Compiler(CreateMapExpression(key, MapType.Map));
-                    _mapToTargetDict[key] = Compiler(CreateMapExpression(key, MapType.MapToTarget));
-                }
-                catch (Exception ex)
-                {
-                    if (failFast)
-                    {
-                        throw;
-                    }
-
-                    exceptions.Add(ex);
-                }
-            }
-
-            if (exceptions.Count > 0)
-            {
-                throw new AggregateException(exceptions);
-            }
-        }
-
-        Expression ITypeAdapterMappingFuncProducer.CreateMapInvokeExpressionBody(Type sourceType, Type destinationType, Expression p)
-        {
-            return CreateMapInvokeExpressionBody(sourceType, destinationType, p);
-        }
-
-        Expression ITypeAdapterMappingFuncProducer.CreateDynamicMapInvokeExpressionBody(Type destinationType, Expression p1)
-        {
-            return CreateDynamicMapInvokeExpressionBody(destinationType, p1);
-        }
-
-        Expression ITypeAdapterMappingFuncProducer.CreateMapToTargetInvokeExpressionBody(Type sourceType, Type destinationType, Expression p1, Expression p2)
-        {
-            return CreateMapToTargetInvokeExpressionBody(sourceType, destinationType, p1, p2);
-        }
-
-        LambdaExpression ITypeAdapterMappingFuncProducer.CreateInlineMapExpression(Type sourceType, Type destinationType, MapType mapType, CompileContext context, MemberMapping? mapping)
-        {
-            return CreateInlineMapExpression(sourceType, destinationType, mapType, context, mapping);
-        }
-
-        Delegate ITypeAdapterMappingFuncProducer.GetMapToTargetFunction(Type sourceType, Type destinationType)
-        {
-            return GetMapToTargetFunction(sourceType, destinationType);
-        }
-
-        Delegate ITypeAdapterMappingFuncProducer.GetMapFunction(Type sourceType, Type destinationType)
-        {
-            return GetMapFunction(sourceType, destinationType);
-        }
-
-        MethodCallExpression ITypeAdapterMappingFuncProducer.GetProjectionCallExpression(Type sourceType, Type destinationType)
-        {
-            return GetProjectionCallExpression(sourceType, destinationType);
-        }
         
-        MethodCallExpression ITypeAdapterMappingFuncProducer.CreateProjectionCallExpression(TypeTuple tuple)
-        {
-            return CreateProjectionCallExpression(tuple);
-        }
+
+        
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
@@ -155,5 +88,87 @@ namespace Mapster
         ConcurrentDictionary<Type, MappingTypeModel> ITypeAdapterConfigSnapshot.TypeMemberModelsCache { get => TypeMemberModelsCache; init => TypeMemberModelsCache = value; }
         ConcurrentDictionary<TypeTuple, CompiledSettingsCacheItem> ITypeAdapterConfigSnapshot.CacheCompiledTypesSettings { get => CacheCompiledTypesSettings; init => CacheCompiledTypesSettings = value; }
         ImmutableDictionary<string, bool> ITypeAdapterConfigSnapshot.BoolSettings { get => BoolSettings; init => BoolSettings = value; }
+
+        #region MappingFuncProducerImplimentation
+        Expression ITypeAdapterMappingFuncProducer.CreateMapInvokeExpressionBody(Type sourceType, Type destinationType, Expression p)
+        {
+            var key = new TypeTuple(sourceType, destinationType);
+            if (RequireExplicitMapping || RequireExplicitMappingPrimitive)
+                Compiler(CreateMapExpression(key, MapType.Map));
+
+            return CreateMapInvokeExpressionBody(key, p);
+        }
+
+        Expression ITypeAdapterMappingFuncProducer.CreateDynamicMapInvokeExpressionBody(Type destinationType, Expression p1)
+        {
+            return CreateDynamicMapInvokeExpressionBody(destinationType, p1);
+        }
+
+        Expression ITypeAdapterMappingFuncProducer.CreateMapToTargetInvokeExpressionBody(Type sourceType, Type destinationType, Expression p1, Expression p2)
+        {
+            if (RequireExplicitMapping || RequireExplicitMappingPrimitive)
+            {
+                var key = new TypeTuple(sourceType, destinationType);
+                AddOrGetMapToTargetFuncFromCache(key, true);
+            }
+
+            return CreateMapToTargetInvokeExpressionBody(sourceType, destinationType, p1, p2);
+        }
+
+        LambdaExpression ITypeAdapterMappingFuncProducer.CreateInlineMapExpression(Type sourceType, Type destinationType, MapType mapType, CompileContext context, MemberMapping? mapping)
+        {
+            return CreateInlineMapExpression(sourceType, destinationType, mapType, context, mapping);
+        }
+
+        Delegate ITypeAdapterMappingFuncProducer.GetMapToTargetFunction(Type sourceType, Type destinationType)
+        {
+            var key = new TypeTuple(sourceType, destinationType);
+            return AddOrGetMapToTargetFuncFromCache(key);
+        }
+
+        Delegate ITypeAdapterMappingFuncProducer.GetMapFunction(Type sourceType, Type destinationType)
+        {
+            var key = new TypeTuple(sourceType, destinationType);
+            return AddOrGetMapFuncFromCache(key);
+        }
+
+        MethodCallExpression ITypeAdapterMappingFuncProducer.GetProjectionCallExpression(Type sourceType, Type destinationType)
+        {
+            var key = new TypeTuple(sourceType, destinationType);
+            return AddOrGetProjectionFuncFromCache(key);
+        }
+
+        MethodCallExpression ITypeAdapterMappingFuncProducer.CreateProjectionCallExpression(TypeTuple tuple)
+        {
+            return CreateProjectionCallExpression(tuple);
+        }
+
+        public Func<TSource, TDestination, TDestination> GetMapToTargetFunction<TSource, TDestination>()
+        {
+            var key = TypeTuple.Create<TSource, TDestination>();
+            return (Func<TSource, TDestination, TDestination>)AddOrGetMapToTargetFuncFromCache(key);
+        }
+
+        public Func<TSource, TDestination> GetMapFunction<TSource, TDestination>()
+        {
+            var key = TypeTuple.Create<TSource, TDestination>();
+            return (Func<TSource, TDestination>)AddOrGetMapFuncFromCache(key);
+        }
+
+        public Expression<Func<TSource, TDestination>> GetProjectionExpression<TSource, TDestination>()
+        {
+            var del = AddOrGetProjectionFuncFromCache(TypeTuple.Create<TSource, TDestination>());
+
+            return (Expression<Func<TSource, TDestination>>)((UnaryExpression)del.Arguments[1]).Operand;
+        }
+
+        public Func<object, TDestination> GetDynamicMapFunction<TDestination>(Type sourceType)
+        {
+            var key = new TypeTuple(sourceType, typeof(TDestination));
+            return AddOrGetGetDynamicMapFunction<TDestination>(sourceType);
+        }
+
+        #endregion MappingFuncProducerImplimentation
+
     }
 }

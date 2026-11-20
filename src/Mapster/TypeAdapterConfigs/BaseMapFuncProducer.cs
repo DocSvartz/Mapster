@@ -11,21 +11,20 @@ using System.Reflection;
 
 namespace Mapster
 {
-    public abstract partial class BaseMapFuncProducer 
+    public abstract class BaseMapFuncProducer 
     {
-        internal ITypeAdapterConfig Config { get; init; }
-        internal ImmutableDictionary<string, bool> BoolSettings { get; init; }
-        public bool GetBoolSetting(string name) { BoolSettings.TryGetValue(name, out var data); return data; }
+        
         internal Func<LambdaExpression, Delegate> Compiler { get; init; }
+                
 
-        internal ConcurrentDictionary<Type, MappingTypeModel> TypeMemberModelsCache { get; init; } = new();
-        internal ConcurrentDictionary<TypeTuple, CompiledSettingsCacheItem> CacheCompiledTypesSettings { get; init; } = new();
-        internal protected readonly ConcurrentDictionary<TypeTuple, Delegate> _mapDict = new ConcurrentDictionary<TypeTuple, Delegate>();
-        internal protected ConcurrentDictionary<TypeTuple, Delegate> _mapToTargetDict = new ConcurrentDictionary<TypeTuple, Delegate>();
-        internal protected ConcurrentDictionary<TypeTuple, MethodCallExpression> _projectionDict = new ConcurrentDictionary<TypeTuple, MethodCallExpression>();
-        internal protected ConcurrentDictionary<TypeTuple, Delegate> _dynamicMapDict = new ConcurrentDictionary<TypeTuple, Delegate>();
-
-        private T AddToHash<T>(ConcurrentDictionary<TypeTuple, T> hash, TypeTuple key, Func<TypeTuple, T> func)
+        #region CacheFunc 
+        protected abstract Delegate AddOrGetMapFuncFromCache(TypeTuple tuple, bool forceAdd = false);
+        protected abstract Delegate AddOrGetMapToTargetFuncFromCache(TypeTuple tuple, bool forceAdd = false);
+        protected abstract MethodCallExpression AddOrGetProjectionFuncFromCache(TypeTuple tuple, bool forceAdd = false);
+        protected abstract Func<object, TDestination> AddOrGetGetDynamicMapFunction<TDestination>(Type sourceType, bool forceAdd = false);
+        protected abstract void InvalidateGenericCacheMapFunc(TypeTuple tuple);
+        protected abstract bool TryGetInvokeGenericCacheMapFunc(TypeTuple tuple, out Expression? invoker);
+        protected T AddToHash<T>(ConcurrentDictionary<TypeTuple, T> hash, TypeTuple key, Func<TypeTuple, T> func)
         {
             return hash.GetOrAdd(key, types =>
             {
@@ -39,53 +38,8 @@ namespace Mapster
             });
         }
 
-        public Func<TSource, TDestination> GetMapFunction<TSource, TDestination>()
-        {
-            return (Func<TSource, TDestination>)GetMapFunction(typeof(TSource), typeof(TDestination));
-        }
-        internal protected Delegate GetMapFunction(Type sourceType, Type destinationType)
-        {
-            var key = new TypeTuple(sourceType, destinationType);
-            //if (!_mapDict.TryGetValue(key, out var del))
-            //    del = AddToHash(_mapDict, key, tuple => Compiler(CreateMapExpression(tuple, MapType.Map)));
-            return AddOrGetMapFuncFromCache(key);
-        }
-
-
-        public Func<TSource, TDestination, TDestination> GetMapToTargetFunction<TSource, TDestination>()
-        {
-            return (Func<TSource, TDestination, TDestination>)GetMapToTargetFunction(typeof(TSource), typeof(TDestination));
-        }
-        internal protected Delegate GetMapToTargetFunction(Type sourceType, Type destinationType)
-        {
-            var key = new TypeTuple(sourceType, destinationType);
-            //if (!_mapToTargetDict.TryGetValue(key, out var del))
-            //    del = AddToHash(_mapToTargetDict, key, tuple => Compiler(CreateMapExpression(tuple, MapType.MapToTarget)));
-            return AddOrGetMapToTargetFuncFromCache(key);
-        }
-                
-        internal Expression<Func<TSource, TDestination>> GetProjectionExpression<TSource, TDestination>()
-        {
-            var del = GetProjectionCallExpression(typeof(TSource), typeof(TDestination));
-
-            return (Expression<Func<TSource, TDestination>>)((UnaryExpression)del.Arguments[1]).Operand;
-        }
-        internal protected MethodCallExpression GetProjectionCallExpression(Type sourceType, Type destinationType)
-        {
-            var key = new TypeTuple(sourceType, destinationType);
-            //if (!_projectionDict.TryGetValue(key, out var del))
-            //    del = AddToHash(_projectionDict, key, CreateProjectionCallExpression);
-            return AddOrGetProjectionFuncFromCache(key);
-        }
-
-        public Func<object, TDestination> GetDynamicMapFunction<TDestination>(Type sourceType)
-        {
-            var key = new TypeTuple(sourceType, typeof(TDestination));
-            //if (!_dynamicMapDict.TryGetValue(key, out var del))
-            //    del = AddToHash(_dynamicMapDict, key, tuple => Compiler(CreateDynamicMapExpression(tuple)));
-            return AddOrGetGetDynamicMapFunction<TDestination>(sourceType);
-        }
-
+        #endregion CacheFunc
+        
         private Expression CreateSelfExpression()
         {
             //if (this == GlobalSettings)
@@ -94,10 +48,10 @@ namespace Mapster
                 return Expression.Constant(this);
         }
 
-        internal protected Expression CreateDynamicMapInvokeExpressionBody(Type destinationType, Expression p1)
+        internal Expression CreateDynamicMapInvokeExpressionBody(Type destinationType, Expression p1)
         {
             var method = (from m in typeof(ITypeAdapterMappingFuncProducer).GetMethods(BindingFlags.Instance | BindingFlags.Public)
-                          where m.Name == nameof(GetDynamicMapFunction)
+                          where m.Name == nameof(ITypeAdapterMappingFuncProducer.GetDynamicMapFunction)
                           select m).First().MakeGenericMethod(destinationType);
             var getType = typeof(object).GetMethod(nameof(GetType));
             var invoker = Expression.Call(CreateSelfExpression(), method, Expression.Call(p1, getType!));
@@ -106,7 +60,7 @@ namespace Mapster
 
         public abstract LambdaExpression CreateMapExpression(TypeTuple tuple, MapType mapType);
 
-        internal protected MethodCallExpression CreateProjectionCallExpression(TypeTuple tuple)
+        internal MethodCallExpression CreateProjectionCallExpression(TypeTuple tuple)
         {
             var lambda = CreateMapExpression(tuple, MapType.Projection);
             var source = Expression.Parameter(typeof(IQueryable<>).MakeGenericType(tuple.Source));
@@ -198,7 +152,7 @@ namespace Mapster
             return Expression.Lambda(body, lambda.Parameters);
         }
 
-        private LambdaExpression CreateDynamicMapExpression(TypeTuple tuple)
+        protected LambdaExpression CreateDynamicMapExpression(TypeTuple tuple)
         {
             var lambda = CreateMapExpression(tuple, MapType.Map);
             var pNew = Expression.Parameter(typeof(object));
@@ -209,7 +163,7 @@ namespace Mapster
                 pNew);
         }
 
-        internal protected LambdaExpression CreateInlineMapExpression(Type sourceType, Type destinationType, MapType mapType, CompileContext context, MemberMapping? mapping = null)
+        internal LambdaExpression CreateInlineMapExpression(Type sourceType, Type destinationType, MapType mapType, CompileContext context, MemberMapping? mapping = null)
         {
             var tuple = new TypeTuple(sourceType, destinationType);
             var subFunction = context.IsSubFunction();
@@ -220,7 +174,7 @@ namespace Mapster
                 {
                     if (mapType == MapType.Projection)
                         throw new InvalidOperationException("Projection does not support circular reference, please use MaxDepth setting");
-                    return CreateMapInvokeExpression(sourceType, destinationType, mapType);
+                    return CreateMapInvokeExpression(tuple, mapType);
                 }
                 context.Running.Add(tuple);
             }
@@ -273,67 +227,72 @@ namespace Mapster
             }
         }
 
-        internal LambdaExpression CreateMapInvokeExpression(Type sourceType, Type destinationType, MapType mapType)
+        internal LambdaExpression CreateMapInvokeExpression(TypeTuple tuple, MapType mapType)
         {
             return mapType == MapType.MapToTarget
-                ? CreateMapToTargetInvokeExpression(sourceType, destinationType)
-                : CreateMapInvokeExpression(sourceType, destinationType);
+                ? CreateMapToTargetInvokeExpression(tuple)
+                : CreateMapInvokeExpression(tuple);
         }
 
-        private LambdaExpression CreateMapInvokeExpression(Type sourceType, Type destinationType)
+        private LambdaExpression CreateMapInvokeExpression(TypeTuple tuple)
         {
-            var p = Expression.Parameter(sourceType);
-            var invoke = CreateMapInvokeExpressionBody(sourceType, destinationType, p);
+            var p = Expression.Parameter(tuple.Source);
+            var invoke = CreateMapInvokeExpressionBody(tuple, p);
             return Expression.Lambda(invoke, p);
         }
 
-        internal protected Expression CreateMapInvokeExpressionBody(Type sourceType, Type destinationType, Expression p)
+        internal Expression CreateMapInvokeExpressionBody(TypeTuple tuple, Expression p)
         {
-            if (GetBoolSetting(nameof(TypeAdapterConfig.RequireExplicitMapping)) || GetBoolSetting(nameof(TypeAdapterConfig.RequireExplicitMappingPrimitive)))
-            {
-                var key = new TypeTuple(sourceType, destinationType);
-                Compiler(CreateMapExpression(key, MapType.Map));
-            }
-            Expression invoker;
+            //var key = new TypeTuple(sourceType, destinationType);
+
+            //if (GetBoolSetting(nameof(TypeAdapterConfig.RequireExplicitMapping)) || GetBoolSetting(nameof(TypeAdapterConfig.RequireExplicitMappingPrimitive)))
+            //    Compiler(CreateMapExpression(key, MapType.Map));
+           
+            Expression? invoker;
+
             //Critical performance section
-            if (this.Config == MapsterGlobalConfig.GlobalSettings)
-            {
-                var property = typeof(TypeAdapter<,>).MakeGenericType(sourceType, destinationType).GetField("Map");
-                invoker = Expression.Field(null, property);
-            }
-             // Fork Invoke call
+            if (TryGetInvokeGenericCacheMapFunc(tuple, out invoker)) { }
+
+            //if (this.Config == MapsterGlobalConfig.GlobalSettings)
+            //{
+            //    var property = typeof(TypeAdapter<,>).MakeGenericType(sourceType, destinationType).GetField("Map");
+            //    invoker = Expression.Field(null, property);
+            //}
+
+            // Fork Invoke call
             else
             {
                 var method = (from m in typeof(ITypeAdapterMappingFuncProducer).GetMethods(BindingFlags.Instance | BindingFlags.Public)
-                              where m.Name == nameof(GetMapFunction)
-                              select m).First().MakeGenericMethod(sourceType, destinationType);
+                              where m.Name == nameof(ITypeAdapterMappingFuncProducer.GetMapFunction)
+                              select m).First().MakeGenericMethod(tuple.Source, tuple.Destination);
                 invoker = Expression.Call(CreateSelfExpression(), method);
             }
-            return Expression.Call(invoker, "Invoke", null, p);
+
+            return Expression.Call(invoker!, "Invoke", null, p);
         }
 
-        internal protected Expression CreateMapToTargetInvokeExpressionBody(Type sourceType, Type destinationType, Expression p1, Expression p2)
+        internal Expression CreateMapToTargetInvokeExpressionBody(Type sourceType, Type destinationType, Expression p1, Expression p2)
         {
-            if (GetBoolSetting(nameof(TypeAdapterConfig.RequireExplicitMapping)) || GetBoolSetting(nameof(TypeAdapterConfig.RequireExplicitMappingPrimitive)))
-            {
-                var key = new TypeTuple(sourceType, destinationType);
+            //if (GetBoolSetting(nameof(TypeAdapterConfig.RequireExplicitMapping)) || GetBoolSetting(nameof(TypeAdapterConfig.RequireExplicitMappingPrimitive)))
+            //{
+            //    var key = new TypeTuple(sourceType, destinationType);
 
-                AddOrGetMapToTargetFuncFromCache(key, true);
+            //    AddOrGetMapToTargetFuncFromCache(key, true);
 
-               // _mapToTargetDict[key] = Compiler(CreateMapExpression(key, MapType.MapToTarget));
-            }
+            //   // _mapToTargetDict[key] = Compiler(CreateMapExpression(key, MapType.MapToTarget));
+            //}
             var method = (from m in typeof(ITypeAdapterMappingFuncProducer).GetMethods(BindingFlags.Instance | BindingFlags.Public)
-                          where m.Name == nameof(GetMapToTargetFunction)
+                          where m.Name == nameof(ITypeAdapterMappingFuncProducer.GetMapToTargetFunction)
                           select m).First().MakeGenericMethod(sourceType, destinationType);
             var invoker = Expression.Call(CreateSelfExpression(), method);
             return Expression.Call(invoker, "Invoke", null, p1, p2);
         }
 
-        private LambdaExpression CreateMapToTargetInvokeExpression(Type sourceType, Type destinationType)
+        private LambdaExpression CreateMapToTargetInvokeExpression(TypeTuple tuple)
         {
-            var p1 = Expression.Parameter(sourceType);
-            var p2 = Expression.Parameter(destinationType);
-            var invoke = CreateMapToTargetInvokeExpressionBody(sourceType, destinationType, p1, p2);
+            var p1 = Expression.Parameter(tuple.Source);
+            var p2 = Expression.Parameter(tuple.Destination);
+            var invoke = CreateMapToTargetInvokeExpressionBody(tuple.Source, tuple.Destination, p1, p2);
             return Expression.Lambda(invoke, p1, p2);
         }
                 
@@ -398,13 +357,15 @@ namespace Mapster
             AddOrGetMapToTargetFuncFromCache(tuple, true);
             //_mapDict[tuple] = Compiler(CreateMapExpression(tuple, MapType.Map));
             //_mapToTargetDict[tuple] = Compiler(CreateMapExpression(tuple, MapType.MapToTarget));
-            
+
             //Critical performance section
-            if (this.Config == MapsterGlobalConfig.GlobalSettings)
-            {
-                var field = typeof(TypeAdapter<,>).MakeGenericType(sourceType, destinationType).GetField("Map");
-                field!.SetValue(null, _mapDict[tuple]);
-            }
+            InvalidateGenericCacheMapFunc(tuple);
+
+            //if (this.Config == MapsterGlobalConfig.GlobalSettings)
+            //{
+            //    var field = typeof(TypeAdapter<,>).MakeGenericType(sourceType, destinationType).GetField("Map");
+            //    field!.SetValue(null, _mapDict[tuple]);
+            //}
         }
 
         /// <summary>

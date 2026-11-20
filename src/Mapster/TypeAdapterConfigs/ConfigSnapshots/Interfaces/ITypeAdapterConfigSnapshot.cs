@@ -22,7 +22,7 @@ namespace Mapster
 
        
         void Compile(Type sourceType, Type destinationType);
-        void Compile(bool failFast);
+       // void Compile(bool failFast);
         void CompileProjection(Type sourceType, Type destinationType);
     }
 }
