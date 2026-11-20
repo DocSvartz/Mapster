@@ -199,6 +199,24 @@ namespace Mapster.Tests
 
             });
         }
+        
+        
+        [TestMethod]
+        public void TestPatchTypeAdapterConfig()
+        {
+            var config = new TypeAdapterConfig();
+
+            config.Patch
+                .NewConfig<ForBuilderSrc, ForBuilderDest>(cfg =>
+                {
+                    cfg.Map(dest => dest.NameProxy, src => src.Name);
+                    cfg.Map(dest => dest.AddressProxy, src => src.Address);
+                });
+
+            config.TryPatchApply(out var Snapshot);
+
+
+        }
 
         #region TestClases
 

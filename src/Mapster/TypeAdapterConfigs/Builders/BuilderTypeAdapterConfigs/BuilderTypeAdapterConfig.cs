@@ -11,25 +11,36 @@ namespace Mapster.TypeAdapterConfigs.Builders
 {
     public sealed class BuilderTypeAdapterConfig : ITypeAdapterConfigSettingsCreator
     {
-        public bool ActivateCustomConvertersSrcNullPropagation {  get; set; }
-        public bool AllowImplicitDestinationInheritance { get; set; }
-        public bool AllowImplicitSourceInheritance { get; set; }
-        public bool RequireDestinationMemberSource { get; set; }
-        public bool RequireExplicitMapping { get; set; }
-        public bool RequireExplicitMappingPrimitive { get; set; }
-        public bool SelfContainedCodeGeneration { get; set; }
+        public bool RequireDestinationMemberSource { get => GetBoolSetting(nameof(RequireDestinationMemberSource)); set => SetBoolSetting(nameof(RequireDestinationMemberSource), value); }
+        public bool RequireExplicitMapping { get => GetBoolSetting(nameof(RequireExplicitMapping)); set => SetBoolSetting(nameof(RequireExplicitMapping), value); }
+        public bool RequireExplicitMappingPrimitive { get => GetBoolSetting(nameof(RequireExplicitMappingPrimitive)); set => SetBoolSetting(nameof(RequireExplicitMappingPrimitive), value); }
+        public bool AllowImplicitDestinationInheritance { get => GetBoolSetting(nameof(AllowImplicitDestinationInheritance)); set => SetBoolSetting(nameof(AllowImplicitDestinationInheritance), value); }
+        public bool AllowImplicitSourceInheritance { get => GetBoolSetting(nameof(AllowImplicitSourceInheritance)); set => SetBoolSetting(nameof(AllowImplicitSourceInheritance), value); }
+        public bool SelfContainedCodeGeneration { get => GetBoolSetting(nameof(SelfContainedCodeGeneration)); set => SetBoolSetting(nameof(SelfContainedCodeGeneration), value); }
+        public bool ActivateCustomConvertersSrcNullPropagation { get => GetBoolSetting(nameof(ActivateCustomConvertersSrcNullPropagation)); set => SetBoolSetting(nameof(ActivateCustomConvertersSrcNullPropagation), value); }
         public Func<LambdaExpression, Delegate> Compiler { get; set; }
 
-        public DefaultOnlySetter Default { get; }
+        public DefaultOnlySetter Default 
+        {
+            get
+            {
+                if(DefaultRule is null)
+                {
+                    DefaultRule = CreateRuleHelper.CreateDefaultRule();
+                    _default = new DefaultOnlySetter(DefaultRule.Settings, this);
+                }
+
+                return _default;
+            } 
+        }
 
         public BuilderTypeAdapterConfig()
         {
-            DefaultRule = CreateRuleHelper.CreateDefaultRule();
-            Default = new DefaultOnlySetter(DefaultRule.Settings, this);
         }
 
         #region SettingsStorage
 
+        private DefaultOnlySetter _default;
         public TypeAdapterRule DefaultRule;
 
         // AddOrUpdate existing settings. If none exist, create new ones.
@@ -41,6 +52,10 @@ namespace Mapster.TypeAdapterConfigs.Builders
         public Dictionary<TypeTuple, TypeAdapterRule> NewRuleMaps { get; init; } = new(); 
         public List<TypeAdapterRule> InsertAdapterRules { get; init; } = new();
         public List<TypeAdapterRule> InsertCustomRules { get; init; } = new();
+
+        public Dictionary<string, bool> BoolSettings { get; init; } = new();
+        public bool GetBoolSetting(string name) { BoolSettings.TryGetValue(name, out var data); return data; }
+        private void SetBoolSetting(string name, bool value) => BoolSettings[name] = value;
 
         #endregion SettingsStorage
 

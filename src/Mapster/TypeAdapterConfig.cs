@@ -1,6 +1,7 @@
 ﻿using Mapster.Adapters;
 using Mapster.Cache;
 using Mapster.Models;
+using Mapster.TypeAdapterConfigs.Builders;
 using Mapster.TypeAdapterSetters;
 using Mapster.Utils;
 using System;
@@ -388,6 +389,34 @@ namespace Mapster
         }
 
         #endregion Clone&Fork
+
+        private ConcurrentQueue<TypeAdapterConfigPatchBuilder> _patches = new();
+
+        public TypeAdapterConfigPatchBuilder Patch 
+        { get
+            {
+                var patch = TypeAdapterConfigPatchBuilder.Create();
+                _patches.Enqueue(patch);
+                return patch;
+            } 
+        }
+
+        public bool TryPatchApply(out TypeAdapterConfigSnapshot snapshot)
+        {
+            if(_patches.TryDequeue(out var patch))
+            {
+                var result = patch.Build();
+                snapshot = MappingCache.ApplyPatch(result.Config);
+
+                return true;
+            }
+            else
+            {
+                snapshot = GetSnapshot;
+                return false;
+            }
+                
+        }
 
         public TypeAdapterConfigSnapshot GetSnapshot => MappingCache.CurrentSnapshot;
 

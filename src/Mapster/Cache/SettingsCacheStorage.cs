@@ -1,10 +1,12 @@
 ﻿using Mapster.Adapters;
 using Mapster.Models;
+using Mapster.TypeAdapterConfigs.Builders;
 using Mapster.TypeAdapterSetters;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Linq.Expressions;
 
 namespace Mapster.Cache
@@ -325,7 +327,82 @@ namespace Mapster.Cache
             }
         }
 
-         
+        internal TypeAdapterConfigSnapshot ApplyPatch(BuilderTypeAdapterConfig patch)
+        {
+            lock (_lock)
+            {
+                var version = UpdateAndGetVersion();
+
+                if(patch.NewRuleMaps.Count != 0 
+                    || patch.UpdateRuleMaps.Count != 0)
+                {
+                    foreach (var item in patch.NewRuleMaps)
+                    {
+                        item.Value.Settings.StorageVersion = version;
+                        item.Value.Settings.IsReadOnly = true;
+                    }
+
+                    foreach (var item in patch.UpdateRuleMaps)
+                    {
+                        if (RuleMap.TryGetValue(item.Key, out var rule))
+                        {
+                            var settingsClone = rule.Settings.Clone();
+                            settingsClone.Apply(item.Value.Settings);
+                            settingsClone.StorageVersion = version;
+                            settingsClone.IsReadOnly = true;
+                            item.Value.Settings = settingsClone;
+                        }
+                        else
+                        {
+                            item.Value.Settings.StorageVersion = version;
+                            item.Value.Settings.IsReadOnly = true;
+                        }
+                    }
+                    RuleMap = RuleMap.SetItems(patch.NewRuleMaps.Concat(patch.UpdateRuleMaps));
+                }
+
+
+                if(patch.DefaultRule != null)
+                {
+                    var cloneSettings = DefaultSettingsRule.Settings.Clone();
+                    cloneSettings.Apply(patch.DefaultRule.Settings);
+                    cloneSettings.StorageVersion = version;
+                    cloneSettings.IsReadOnly = true;
+                    DefaultSettingsRule = CreateRuleHelper.CreateDefaultRule(cloneSettings);
+                }
+
+                if(patch.Compiler != null)
+                    _Compiler = patch.Compiler;
+
+
+                if (patch.InsertAdapterRules.Count != 0)
+                {
+                    foreach (var item in patch.InsertAdapterRules)
+                    {
+                        item.Settings.StorageVersion = version;
+                        item.Settings.IsReadOnly = true;
+                    }
+
+                    AdapterRules = AdapterRules.AddRange(patch.InsertAdapterRules);
+                }
+
+                if (patch.InsertCustomRules.Count != 0)
+                {
+                    foreach (var item in patch.InsertCustomRules)
+                    {
+                        item.Settings.StorageVersion = version;
+                        item.Settings.IsReadOnly = true;
+                    }
+
+                    CustomSettingsRules = CustomSettingsRules.AddRange(patch.InsertCustomRules);
+                }
+
+                if(patch.BoolSettings.Count != 0)
+                    BoolSettings = BoolSettings.SetItems(patch.BoolSettings);
+
+               return GetSnapShot();
+            }
+        }
 
         public TypeAdapterConfigSnapshot CurrentSnapshot => GetSnapShot();
     }
