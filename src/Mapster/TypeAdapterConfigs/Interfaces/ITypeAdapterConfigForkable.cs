@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Runtime.CompilerServices;
 
 namespace Mapster
 {
     public interface ITypeAdapterConfigForkable
     {
-        ITypeAdapterConfig Fork(Action<ITypeAdapterConfig> action, [CallerFilePath] string key1 = "", [CallerLineNumber] int key2 = 0);
+        ITypeAdapterConfigGetSnapshot Fork(Action<ITypeAdapterConfigSettingsProducer> action, string key1, int key2);
     }
 }

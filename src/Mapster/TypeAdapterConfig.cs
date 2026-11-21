@@ -16,7 +16,7 @@ using System.Runtime.CompilerServices;
 
 namespace Mapster
 {
-    public class TypeAdapterConfig : ITypeAdapterConfig
+    public class TypeAdapterConfig : ITypeAdapterConfig, ITypeAdapterConfigSettingsProducer
     {
         [Obsolete($"This will be removed in version 11. Use {nameof(MapsterGlobalConfig)}.{nameof(MapsterGlobalConfig.RulesTemplate)}")]
         public static IReadOnlyCollection<TypeAdapterRule> RulesTemplate => MapsterGlobalConfig.RulesTemplate;
@@ -360,7 +360,7 @@ namespace Mapster
         private ConcurrentDictionary<string, ITypeAdapterConfig> InlineConfigs =>
             _inlineConfigs ??= new ConcurrentDictionary<string, ITypeAdapterConfig>();
 
-        public ITypeAdapterConfig Fork(Action<ITypeAdapterConfig> action,
+        public ITypeAdapterConfigGetSnapshot Fork(Action<ITypeAdapterConfigSettingsProducer> action,
 #if !NET40
             [CallerFilePath]
 #endif
@@ -382,6 +382,31 @@ namespace Mapster
 
             // throw new NotImplementedException();
         }
+
+        ITypeAdapterConfig ITypeAdapterConfig.Fork(Action<ITypeAdapterConfig> action,
+#if !NET40
+            [CallerFilePath]
+#endif
+            string key1 = "",
+#if !NET40
+            [CallerLineNumber]
+#endif
+            int key2 = 0)
+        {
+            var key = $"{key1}|{key2}";
+
+
+            return InlineConfigs.GetOrAdd(key, _ =>
+            {
+                var cloned = Clone();
+                action(cloned);
+                return cloned;
+            });
+
+            // throw new NotImplementedException();
+        }
+
+
 
         public TypeAdapterSetter<TSource, TDestination> TwoWaysForType<TSource, TDestination>()
         {

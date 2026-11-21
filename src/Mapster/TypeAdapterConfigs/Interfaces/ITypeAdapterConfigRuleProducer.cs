@@ -13,5 +13,7 @@ namespace Mapster
         TypeAdapterSetter<TSource, TDestination> TwoWaysForType<TSource, TDestination>();
         void CompileToSettingsSetters(Type sourceType, Type destinationType);
         void CompileProjectionToSettingsSetters(Type sourceType, Type destinationType);
+        void CompileProjection();
+        void Compile(bool failFast = true);
     }
 }

@@ -1,6 +1,6 @@
-﻿namespace Mapster.TypeAdapterConfigs.Builders.Interfaces
+﻿namespace Mapster
 {
-    internal interface ITypeAdapterConfigSettingsCreator :
+    public interface ITypeAdapterConfigSettingsProducer :
         ITypeAdapterConfigRuleProducer,
         ITypeAdapterConfigRuleMapProducer,
         ITypeAdapterConfigCustomWhenRuleProducer

@@ -6,33 +6,25 @@ using System.Reflection;
 namespace Mapster
 {
     public interface ITypeAdapterConfig :
-        ITypeAdapterConfigRuleProducer,
-        ITypeAdapterConfigRuleMapProducer,
-        ITypeAdapterConfigCustomWhenRuleProducer,
         ITypeAdapterConfigAdapterConsumer,
         ITypeAdapterConfigCloneable,
         ITypeAdapterConfigForkable,
-        ITypeAdapterConfigGetSnapshot
+        ITypeAdapterConfigGetSnapshot,
+        ITypeAdapterConfigSettingsProducer
     {
         
         IReadOnlyDictionary<TypeTuple, TypeAdapterRule> RuleMap { get; }
         IList<TypeAdapterRule> Rules { get; }
-        //public SettingsCacheStorage MappingCache { get; }
 
-       
-        
-        
 
-        
+
+         internal ITypeAdapterConfig Fork(Action<ITypeAdapterConfig> action, string key1, int key2);
+
+
+
         IList<IRegister> Scan(params Assembly[] assemblies);
         void Apply(IEnumerable<IRegister> registers);
         void Apply(IEnumerable<Lazy<IRegister>> registers);
         void Apply(params IRegister[] registers);
-        
-        void Compile(bool failFast = true);
-        void CompileToSettingsSetters(Type sourceType, Type destinationType);
-        void CompileProjection();
-        void CompileProjectionToSettingsSetters(Type sourceType, Type destinationType);
-
     }
 }

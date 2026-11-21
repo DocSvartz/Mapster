@@ -1,6 +1,5 @@
 ﻿using Mapster.Adapters;
 using Mapster.Models;
-using Mapster.TypeAdapterConfigs.Builders.Interfaces;
 using Mapster.TypeAdapterSetters;
 using System;
 using System.Collections.Generic;
@@ -9,7 +8,7 @@ using System.Linq.Expressions;
 
 namespace Mapster.TypeAdapterConfigs.Builders
 {
-    public sealed class BuilderTypeAdapterConfig : ITypeAdapterConfigSettingsCreator
+    public sealed class BuilderTypeAdapterConfig : ITypeAdapterConfigSettingsProducer
     {
         public bool RequireDestinationMemberSource { get => GetBoolSetting(nameof(RequireDestinationMemberSource)); set => SetBoolSetting(nameof(RequireDestinationMemberSource), value); }
         public bool RequireExplicitMapping { get => GetBoolSetting(nameof(RequireExplicitMapping)); set => SetBoolSetting(nameof(RequireExplicitMapping), value); }
@@ -158,6 +157,16 @@ namespace Mapster.TypeAdapterConfigs.Builders
         }
 
         public void CompileProjectionToSettingsSetters(Type sourceType, Type destinationType)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void CompileProjection()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Compile(bool failFast = true)
         {
             throw new NotImplementedException();
         }
