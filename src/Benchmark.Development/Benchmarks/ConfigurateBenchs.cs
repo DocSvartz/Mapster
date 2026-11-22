@@ -35,7 +35,7 @@ namespace Mapster.Benchmark.Development.Benchmarks
         public void InvalidateCacheAndMap_NotUsingStaticCache()
         {
 
-            TypeAdapterConfig.GlobalSettings.NewConfig<Customer, CustomerDTO>().Compile();
+            TypeAdapterConfig.GlobalSettings.NewConfig<Customer, CustomerDTO>();
 
             var result = _customerInstance.Adapt<CustomerDTO>();
 
