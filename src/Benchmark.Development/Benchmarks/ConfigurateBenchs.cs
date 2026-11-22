@@ -5,8 +5,7 @@ namespace Mapster.Benchmark.Development.Benchmarks
 {
     public class ConfigurateBenchs
     {
-        private Foo _fooInstance;
-        private Customer _customerInstance;
+        private Customer _customerInstance = TestAdaptHelper.SetupCustomerInstance();
 
         [Params(100_000)]//, 1_000_000)]
         public int Iterations { get; set; }
@@ -35,7 +34,7 @@ namespace Mapster.Benchmark.Development.Benchmarks
         public void InvalidateCacheAndMap_NotUsingStaticCache()
         {
 
-            TypeAdapterConfig.GlobalSettings.NewConfig<Customer, CustomerDTO>();
+           TypeAdapterConfig.GlobalSettings.NewConfig<Customer, CustomerDTO>();
 
             var result = _customerInstance.Adapt<CustomerDTO>();
 
@@ -54,13 +53,7 @@ namespace Mapster.Benchmark.Development.Benchmarks
         [GlobalSetup(Target = nameof(ConfigurateBenchs))]
         public void SetupMapster()
         {
-            _fooInstance = TestAdaptHelper.SetupFooInstance();
-            _customerInstance = TestAdaptHelper.SetupCustomerInstance();
-
             TypeAdapterConfig.GlobalSettings.NewConfig<Customer, CustomerDTO>();
-
-           // TestAdaptHelper.ConfigureMapster(_fooInstance, MapsterCompilerType.Default);
-           // TestAdaptHelper.ConfigureMapster(_customerInstance, MapsterCompilerType.Default);
         }
 
 

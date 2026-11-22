@@ -317,10 +317,19 @@ namespace Mapster.Cache
                         CustomSettingsRules = this.CustomSettingsRules,
                         RuleMap = this.RuleMap,
                         DefaultSettingsRule = this.DefaultSettingsRule,
-                        
+
                         Compiler = _Compiler,
                         Config = _config,
                         TypeMemberModelsCache = this.TypeMemberModelsCache,
+
+                        //CacheCompiledTypesSettings = 
+                        //_cachedSnapShot != null 
+                        //    && _cachedSnapShot?.DefaultSettingsRule == DefaultSettingsRule
+                        //    ? new(
+                        //        _cachedSnapShot.CacheCompiledTypesSettings
+                        //        .Where(x => !RuleMap.ContainsKey(x.Key))
+                        //        )
+                        //    : new()
                     };
 
                 return _cachedSnapShot;
