@@ -53,6 +53,7 @@ namespace Mapster.Benchmark.Development.Benchmarks
                 .WithId("developer"));
 
             Options |= ConfigOptions.JoinSummary;
+            AddLogicalGroupRules(BenchmarkLogicalGroupRule.ByJob);
         }
     }
 }

@@ -6,6 +6,7 @@ var switcher = new BenchmarkSwitcher(new[]
                 typeof(TestSimpleTypes),
                 typeof(TestComplexTypes),
                 typeof(TestAll),
+                typeof(ConfigurateBenchs),
             });
 
 switcher.Run(args, new Config());
