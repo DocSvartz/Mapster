@@ -7,7 +7,7 @@ namespace Mapster.Benchmark.Development.Benchmarks
     {
         private Customer _customerInstance = TestAdaptHelper.SetupCustomerInstance();
 
-        [Params(100_000)]//, 1_000_000)]
+        [Params(1_000_000)]//, 1_000_000)]
         public int Iterations { get; set; }
 
         [Benchmark]

@@ -6,7 +6,7 @@
         internal static string[] Get() =>
              [
                 "7.4.0",
-                "10.0.0"
+                "10.0.14"
              ];
     }
 }
