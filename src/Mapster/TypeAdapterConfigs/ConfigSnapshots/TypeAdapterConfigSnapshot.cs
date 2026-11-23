@@ -28,7 +28,7 @@ namespace Mapster
 
         protected override void InvalidateGenericCacheMapFunc(TypeTuple tuple)
         {
-            if (CacheMarker.IsAttached())
+            if (CacheMarker != SnapshotCacheMarker.Detached)
             {
                 var field = typeof(TypeAdapter<,>).MakeGenericType(tuple.Source, tuple.Destination).GetField("Map");
                 field!.SetValue(null, _mapDict[tuple]);
@@ -37,7 +37,7 @@ namespace Mapster
 
         protected override bool TryGetInvokeGenericCacheMapFunc(TypeTuple tuple, out Expression? invoker)
         {
-            if (CacheMarker.IsAttached())
+            if (CacheMarker != SnapshotCacheMarker.Detached)
             {
                 var property = typeof(TypeAdapter<,>).MakeGenericType(tuple.Source, tuple.Destination).GetField("Map");
                 invoker = Expression.Field(null, property);
