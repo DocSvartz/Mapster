@@ -206,14 +206,49 @@ namespace Mapster.Tests
         {
             var config = new TypeAdapterConfig();
 
+            var src = new ForBuilderSrc { Address = "Default street", Name = "John" };
+
             config.Patch
+                .NewConfig<ForBuilderSrc, ForBuilderDest>(cfg =>
+                {
+                    cfg.Map(dest => dest.NameProxy, src => src.Address);
+                    cfg.Map(dest => dest.AddressProxy, src => src.Name);
+                });
+
+            MapsterGlobalConfig.GlobalSettings
+                .Patch
                 .NewConfig<ForBuilderSrc, ForBuilderDest>(cfg =>
                 {
                     cfg.Map(dest => dest.NameProxy, src => src.Name);
                     cfg.Map(dest => dest.AddressProxy, src => src.Address);
                 });
+            
 
-            config.TryPatchApply(out var Snapshot);
+            new object().ShouldSatisfyAllConditions(() =>
+            {
+                config.TryPatchApply(out var Snapshot).ShouldBeTrue();
+                MapsterGlobalConfig.GlobalSettings.TryPatchApply(out _);
+
+                var result = src.Adapt<ForBuilderSrc, ForBuilderDest>();
+                var snapResult = src.Adapt<ForBuilderDest>(MapsterGlobalConfig.GlobalSettings.GetSnapshot);
+
+                var localResult = src.Adapt<ForBuilderSrc, ForBuilderDest>(config);
+                var snapLocalResult = src.Adapt<ForBuilderDest>(config.GetSnapshot);
+
+                result.AddressProxy.ShouldBe(src.Address);
+                snapResult.AddressProxy.ShouldBe(src.Address);
+                result.NameProxy.ShouldBe(src.Name);
+                snapResult.NameProxy.ShouldBe(src.Name);
+
+                localResult.AddressProxy.ShouldBe(src.Name);
+                snapLocalResult.AddressProxy.ShouldBe(src.Name);
+                localResult.NameProxy.ShouldBe(src.Address);
+                snapLocalResult.NameProxy.ShouldBe(src.Address);
+
+            });
+
+
+            
 
 
         }
