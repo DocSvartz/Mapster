@@ -417,7 +417,7 @@ namespace Mapster
 
         private ConcurrentQueue<TypeAdapterConfigPatchBuilder> _patches = new();
 
-        public TypeAdapterConfigPatchBuilder Patch 
+        internal TypeAdapterConfigPatchBuilder Patch 
         { get
             {
                 var patch = TypeAdapterConfigPatchBuilder.Create();
@@ -426,7 +426,7 @@ namespace Mapster
             } 
         }
 
-        public bool TryPatchApply(out TypeAdapterConfigSnapshot snapshot)
+        internal bool TryPatchApply(out TypeAdapterConfigSnapshot snapshot)
         {
             if(_patches.TryDequeue(out var patch))
             {
