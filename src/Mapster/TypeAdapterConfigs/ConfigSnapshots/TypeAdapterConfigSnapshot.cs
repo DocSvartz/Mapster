@@ -1,4 +1,5 @@
 ﻿using Mapster.Models;
+using Mapster.TypeAdapterConfigs;
 using Mapster.TypeAdapterConfigs.ConfigSnapshots;
 using System.Linq.Expressions;
 
@@ -7,10 +8,27 @@ namespace Mapster
     public class TypeAdapterConfigSnapshot : BaseNotStrictConfigSnapshot
     {
         #region CacheFunc
-        
+        private SnapshotCacheMarker _cacheMarker = SnapshotCacheMarker.Attached;
+
+        public SnapshotCacheMarker CacheMarker 
+        { 
+            get { 
+                    if(_cacheMarker == SnapshotCacheMarker.Detached)
+                        return _cacheMarker;
+                    else if(_cacheMarker == SnapshotCacheMarker.Attached)
+                    {
+                        if (this.Config == MapsterGlobalConfig.GlobalSettings
+                            && this.Version == MapsterGlobalConfig.GlobalSettings.MappingCache.Version);
+                        else
+                            _cacheMarker = SnapshotCacheMarker.Detached;
+                    }
+                return this._cacheMarker;
+            } 
+        }
+
         protected override void InvalidateGenericCacheMapFunc(TypeTuple tuple)
         {
-            if (this.Config == MapsterGlobalConfig.GlobalSettings)
+            if (CacheMarker.IsAttached())
             {
                 var field = typeof(TypeAdapter<,>).MakeGenericType(tuple.Source, tuple.Destination).GetField("Map");
                 field!.SetValue(null, _mapDict[tuple]);
@@ -19,7 +37,7 @@ namespace Mapster
 
         protected override bool TryGetInvokeGenericCacheMapFunc(TypeTuple tuple, out Expression? invoker)
         {
-            if (this.Config == MapsterGlobalConfig.GlobalSettings)
+            if (CacheMarker.IsAttached())
             {
                 var property = typeof(TypeAdapter<,>).MakeGenericType(tuple.Source, tuple.Destination).GetField("Map");
                 invoker = Expression.Field(null, property);

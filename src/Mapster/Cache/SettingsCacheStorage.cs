@@ -141,6 +141,7 @@ namespace Mapster.Cache
         #endregion PrivateMembers
 
 
+        public ulong Version => _Version;
         public IReadOnlyCollection<TypeAdapterRule> Rules => this;
         public SettingsCacheStorage(ImmutableArray<TypeAdapterRule> ruleTemplates, ITypeAdapterConfig config)
         {
