@@ -443,6 +443,16 @@ namespace Mapster
                 
         }
 
+        public void PatchApply(out TypeAdapterConfigSnapshot snapshot, Action<TypeAdapterConfigPatchBuilder> patchAction)
+        {
+            var patch = TypeAdapterConfigPatchBuilder.Create();
+            patchAction(patch);
+            var result = patch.Build();
+
+            snapshot = MappingCache.ApplyPatch(result.Config);
+        }
+
+
         public TypeAdapterConfigSnapshot GetSnapshot => MappingCache.CurrentSnapshot;
 
         ITypeAdapterConfigSnapshot ITypeAdapterConfigGetSnapshot.GetSnapshot => GetSnapshot;

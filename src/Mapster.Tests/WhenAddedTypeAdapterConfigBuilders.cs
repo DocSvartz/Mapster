@@ -205,7 +205,6 @@ namespace Mapster.Tests
         public void TestPatchTypeAdapterConfig()
         {
             var config = new TypeAdapterConfig();
-
             var src = new ForBuilderSrc { Address = "Default street", Name = "John" };
 
             config.Patch
@@ -246,10 +245,52 @@ namespace Mapster.Tests
                 snapLocalResult.NameProxy.ShouldBe(src.Address);
 
             });
+        }
+
+        [TestMethod]
+        public void TestPatchApplyTypeAdapterConfig()
+        {
+            var config = new TypeAdapterConfig();
+            var src = new ForBuilderSrc { Address = "Default street", Name = "John" };
 
 
-            
+            config.PatchApply(out var Snapshot, patch =>
+            {
+                patch.NewConfig<ForBuilderSrc, ForBuilderDest>(cfg =>
+                 {
+                     cfg.Map(dest => dest.NameProxy, src => src.Address);
+                     cfg.Map(dest => dest.AddressProxy, src => src.Name);
+                 });
+            });
 
+            MapsterGlobalConfig.GlobalSettings.PatchApply(out var GlobalSnapShot, patch =>
+            {
+                patch.NewConfig<ForBuilderSrc, ForBuilderDest>(cfg =>
+                {
+                    cfg.Map(dest => dest.NameProxy, src => src.Name);
+                    cfg.Map(dest => dest.AddressProxy, src => src.Address);
+                });
+            });
+
+
+            new object().ShouldSatisfyAllConditions(() =>
+            {
+                var result = src.Adapt<ForBuilderSrc, ForBuilderDest>();
+                var snapResult = src.Adapt<ForBuilderDest>(MapsterGlobalConfig.GlobalSettings.GetSnapshot);
+
+                var localResult = src.Adapt<ForBuilderSrc, ForBuilderDest>(config);
+                var snapLocalResult = src.Adapt<ForBuilderDest>(config.GetSnapshot);
+
+                result.AddressProxy.ShouldBe(src.Address);
+                snapResult.AddressProxy.ShouldBe(src.Address);
+                result.NameProxy.ShouldBe(src.Name);
+                snapResult.NameProxy.ShouldBe(src.Name);
+
+                localResult.AddressProxy.ShouldBe(src.Name);
+                snapLocalResult.AddressProxy.ShouldBe(src.Name);
+                localResult.NameProxy.ShouldBe(src.Address);
+                snapLocalResult.NameProxy.ShouldBe(src.Address);
+            });
 
         }
 
