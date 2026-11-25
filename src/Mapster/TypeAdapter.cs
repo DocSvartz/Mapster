@@ -59,7 +59,9 @@ namespace Mapster
 
            // return fn(source);
 
-            return TypeAdapter<TSource, TDestination>.Map(source);
+           // return TypeAdapter<TSource, TDestination>.Map(source);
+
+           return MapsterGlobalConfig.GlobalSettings.GetGlobalSnapshot.GetMapFunction<TSource, TDestination>()(source);
         }
 
         /// <summary>
@@ -243,6 +245,6 @@ namespace Mapster
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Minor Code Smell", "S1104:Fields should not have public accessibility", Justification = "<Pending>")]
     public static class TypeAdapter<TSource, TDestination>
     {
-        public static Func<TSource, TDestination> Map = MapsterGlobalConfig.GlobalSettings.GetSnapshot.GetMapFunction<TSource, TDestination>();
+        public static Func<TSource, TDestination> Map = MapsterGlobalConfig.GlobalSettings.GetGlobalSnapshot.GetMapFunction<TSource, TDestination>();
     }
 }

@@ -6,7 +6,13 @@ namespace Mapster
 {
     public sealed class TypeAdapterGlobalConfigSnapshot : BaseNotStrictConfigSnapshot
     {
+        private static readonly Expression _self = 
+           Expression.Property(
+               Expression.Property(null, typeof(MapsterGlobalConfig).GetProperty(nameof(MapsterGlobalConfig.GlobalSettings))!), 
+               nameof(MapsterGlobalConfig.GlobalSettings.GetGlobalSnapshot));
+
         #region CacheFunc
+        protected override Expression CreateSelfExpression() => _self;
         
         protected override void InvalidateGenericCacheMapFunc(TypeTuple tuple)
         {

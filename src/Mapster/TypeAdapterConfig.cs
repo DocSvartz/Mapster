@@ -426,7 +426,7 @@ namespace Mapster
             } 
         }
 
-        internal bool TryPatchApply(out TypeAdapterGlobalConfigSnapshot snapshot)
+        internal bool TryPatchApply(out TypeAdapterConfigSnapshot snapshot)
         {
             if(_patches.TryDequeue(out var patch))
             {
@@ -443,7 +443,7 @@ namespace Mapster
                 
         }
 
-        public void PatchApply(out TypeAdapterGlobalConfigSnapshot snapshot, Action<TypeAdapterConfigPatchBuilder> patchAction)
+        public void PatchApply(out TypeAdapterConfigSnapshot snapshot, Action<TypeAdapterConfigPatchBuilder> patchAction)
         {
             var patch = TypeAdapterConfigPatchBuilder.Create();
             patchAction(patch);
@@ -453,9 +453,12 @@ namespace Mapster
         }
 
 
-        public TypeAdapterGlobalConfigSnapshot GetSnapshot => MappingCache.CurrentSnapshot;
+        public TypeAdapterConfigSnapshot GetSnapshot => MappingCache.GetSnapshot;
+        internal TypeAdapterGlobalConfigSnapshot GetGlobalSnapshot => MappingCache.GetGlobalSnapshot;
 
-        ITypeAdapterConfigSnapshot ITypeAdapterConfigGetSnapshot.GetSnapshot => GetSnapshot;
+        ITypeAdapterConfigSnapshot ITypeAdapterConfigGetSnapshot.GetSnapshot => MappingCache.GetSnapshot;
+
+        ITypeAdapterConfigSnapshot ITypeAdapterConfigGetGolbalSnapshot.GetGlobalSnapshot => MappingCache.GetGlobalSnapshot;
     }
 
     public static class TypeAdapterConfig<TSource, TDestination>

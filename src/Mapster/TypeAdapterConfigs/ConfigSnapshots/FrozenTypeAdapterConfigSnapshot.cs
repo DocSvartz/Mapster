@@ -14,6 +14,11 @@ namespace Mapster
 
         }
 
+        protected override Expression CreateSelfExpression()
+        {
+            throw new NotImplementedException();
+        }
+
         protected override void InvalidateGenericCacheMapFunc(TypeTuple tuple)
         {
             throw new NotImplementedException();

@@ -39,14 +39,14 @@ namespace Mapster
         }
 
         #endregion CacheFunc
-        
-        private Expression CreateSelfExpression()
-        {
-            //if (this == GlobalSettings)
-            //    return Expression.Property(null, typeof(TypeAdapterConfig).GetProperty(nameof(GlobalSettings))!);
-            //else
-                return Expression.Constant(this);
-        }
+
+        protected abstract Expression CreateSelfExpression();
+        //{
+        //    //if (this == GlobalSettings)
+        //    //    return Expression.Property(null, typeof(TypeAdapterConfig).GetProperty(nameof(GlobalSettings))!);
+        //    //else
+        //        return Expression.Constant(this);
+        //}
 
         internal Expression CreateDynamicMapInvokeExpressionBody(Type destinationType, Expression p1)
         {

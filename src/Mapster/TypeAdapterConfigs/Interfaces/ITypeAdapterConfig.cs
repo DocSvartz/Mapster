@@ -10,6 +10,7 @@ namespace Mapster
         ITypeAdapterConfigCloneable,
         ITypeAdapterConfigForkable,
         ITypeAdapterConfigGetSnapshot,
+        ITypeAdapterConfigGetGolbalSnapshot,
         ITypeAdapterConfigSettingsProducer
     {
         

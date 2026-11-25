@@ -31,8 +31,9 @@ namespace Mapster.Cache
 
         #region Cache
         private readonly ConcurrentDictionary<Type, MappingTypeModel> TypeMemberModelsCache = new();
-        private TypeAdapterGlobalConfigSnapshot? _cachedSnapShot;
-        
+        private TypeAdapterGlobalConfigSnapshot? _cachedGlobalSnapShot;
+        private TypeAdapterConfigSnapshot? _cachedSnapShot;
+
         private readonly Dictionary<TypeTuple, Delegate> _mapCache = new();
         private readonly Dictionary<TypeTuple, Delegate> _mapToTargetCache = new();
         private readonly Dictionary<TypeTuple, Delegate> _ProjectionCache = new();
@@ -303,12 +304,47 @@ namespace Mapster.Cache
             }
         }
 
-        private TypeAdapterGlobalConfigSnapshot GetSnapShot() 
+        private TypeAdapterGlobalConfigSnapshot GetGlobalSnapShot() 
         {
             lock ( _lock)
             {
+                if (_cachedGlobalSnapShot == null || _cachedGlobalSnapShot?.Version != _Version)
+                    _cachedGlobalSnapShot = new TypeAdapterGlobalConfigSnapshot()
+                    {
+                        Version = this._Version,
+                        BoolSettings = this.BoolSettings,
+
+                        TemplateRules = this.TemplateRules,
+                        AdapterRules = this.AdapterRules,
+                        CustomSettingsRules = this.CustomSettingsRules,
+                        RuleMap = this.RuleMap,
+                        DefaultSettingsRule = this.DefaultSettingsRule,
+
+                        Compiler = _Compiler,
+                        Config = _config,
+                        TypeMemberModelsCache = this.TypeMemberModelsCache,
+
+                        //CacheCompiledTypesSettings = 
+                        //_cachedSnapShot != null 
+                        //    && _cachedSnapShot?.DefaultSettingsRule == DefaultSettingsRule
+                        //    ? new(
+                        //        _cachedSnapShot.CacheCompiledTypesSettings
+                        //        .Where(x => !RuleMap.ContainsKey(x.Key))
+                        //        )
+                        //    : new()
+                    };
+
+                return _cachedGlobalSnapShot;
+            }
+        }
+
+
+        private TypeAdapterConfigSnapshot GetSnapShot()
+        {
+            lock (_lock)
+            {
                 if (_cachedSnapShot == null || _cachedSnapShot?.Version != _Version)
-                    _cachedSnapShot = new TypeAdapterGlobalConfigSnapshot()
+                    _cachedSnapShot = new TypeAdapterConfigSnapshot()
                     {
                         Version = this._Version,
                         BoolSettings = this.BoolSettings,
@@ -337,7 +373,9 @@ namespace Mapster.Cache
             }
         }
 
-        internal TypeAdapterGlobalConfigSnapshot ApplyPatch(BuilderTypeAdapterConfig patch)
+
+
+        internal TypeAdapterConfigSnapshot ApplyPatch(BuilderTypeAdapterConfig patch)
         {
             lock (_lock)
             {
@@ -414,6 +452,8 @@ namespace Mapster.Cache
             }
         }
 
-        public TypeAdapterGlobalConfigSnapshot CurrentSnapshot => GetSnapShot();
+        public TypeAdapterGlobalConfigSnapshot GetGlobalSnapshot => GetGlobalSnapShot();
+
+        public TypeAdapterConfigSnapshot GetSnapshot => GetSnapShot();
     }
 }
