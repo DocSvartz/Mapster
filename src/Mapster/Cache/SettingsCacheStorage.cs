@@ -31,7 +31,7 @@ namespace Mapster.Cache
 
         #region Cache
         private readonly ConcurrentDictionary<Type, MappingTypeModel> TypeMemberModelsCache = new();
-        private TypeAdapterConfigSnapshot? _cachedSnapShot;
+        private TypeAdapterGlobalConfigSnapshot? _cachedSnapShot;
         
         private readonly Dictionary<TypeTuple, Delegate> _mapCache = new();
         private readonly Dictionary<TypeTuple, Delegate> _mapToTargetCache = new();
@@ -303,12 +303,12 @@ namespace Mapster.Cache
             }
         }
 
-        private TypeAdapterConfigSnapshot GetSnapShot() 
+        private TypeAdapterGlobalConfigSnapshot GetSnapShot() 
         {
             lock ( _lock)
             {
                 if (_cachedSnapShot == null || _cachedSnapShot?.Version != _Version)
-                    _cachedSnapShot = new TypeAdapterConfigSnapshot()
+                    _cachedSnapShot = new TypeAdapterGlobalConfigSnapshot()
                     {
                         Version = this._Version,
                         BoolSettings = this.BoolSettings,
@@ -337,7 +337,7 @@ namespace Mapster.Cache
             }
         }
 
-        internal TypeAdapterConfigSnapshot ApplyPatch(BuilderTypeAdapterConfig patch)
+        internal TypeAdapterGlobalConfigSnapshot ApplyPatch(BuilderTypeAdapterConfig patch)
         {
             lock (_lock)
             {
@@ -414,6 +414,6 @@ namespace Mapster.Cache
             }
         }
 
-        public TypeAdapterConfigSnapshot CurrentSnapshot => GetSnapShot();
+        public TypeAdapterGlobalConfigSnapshot CurrentSnapshot => GetSnapShot();
     }
 }

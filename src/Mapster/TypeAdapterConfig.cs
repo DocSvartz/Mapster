@@ -426,7 +426,7 @@ namespace Mapster
             } 
         }
 
-        internal bool TryPatchApply(out TypeAdapterConfigSnapshot snapshot)
+        internal bool TryPatchApply(out TypeAdapterGlobalConfigSnapshot snapshot)
         {
             if(_patches.TryDequeue(out var patch))
             {
@@ -443,7 +443,7 @@ namespace Mapster
                 
         }
 
-        public void PatchApply(out TypeAdapterConfigSnapshot snapshot, Action<TypeAdapterConfigPatchBuilder> patchAction)
+        public void PatchApply(out TypeAdapterGlobalConfigSnapshot snapshot, Action<TypeAdapterConfigPatchBuilder> patchAction)
         {
             var patch = TypeAdapterConfigPatchBuilder.Create();
             patchAction(patch);
@@ -453,7 +453,7 @@ namespace Mapster
         }
 
 
-        public TypeAdapterConfigSnapshot GetSnapshot => MappingCache.CurrentSnapshot;
+        public TypeAdapterGlobalConfigSnapshot GetSnapshot => MappingCache.CurrentSnapshot;
 
         ITypeAdapterConfigSnapshot ITypeAdapterConfigGetSnapshot.GetSnapshot => GetSnapshot;
     }
