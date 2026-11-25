@@ -38,7 +38,7 @@ namespace Mapster.Benchmark.Development.Benchmarks
                 AddJob(Job.ShortRun
                     .WithLaunchCount(1)
                     .WithWarmupCount(10)
-                    .WithIterationCount(100)
+                    .WithIterationCount(10)
                     .WithCustomBuildConfiguration("nuget-bench")
                     .WithMsBuildArguments($"/p:SciVersion={version}")
                     .WithId($"v{version}")
@@ -48,7 +48,7 @@ namespace Mapster.Benchmark.Development.Benchmarks
             AddJob(Job.ShortRun
                 .WithLaunchCount(1)
                 .WithWarmupCount(10)
-                .WithIterationCount(100)
+                .WithIterationCount(10)
                 .WithCustomBuildConfiguration("developer-bench")
                 .WithId("developer"));
 

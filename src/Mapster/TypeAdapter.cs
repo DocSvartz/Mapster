@@ -56,14 +56,7 @@ namespace Mapster
         /// <returns>Adapted destination type.</returns>
         public static TDestination Adapt<TSource, TDestination>(this TSource source)
         {
-           // var config = MapsterGlobalConfig.GlobalSettings.GetSnapshot;
-           // var fn = config.GetMapFunction<TSource, TDestination>();
-
-           // return fn(source);
-
-           // return TypeAdapter<TSource, TDestination>.Map(source);
-
-           return MapsterGlobalConfig.GlobalSettings.GetGlobalSnapshot.GetMapFunction<TSource, TDestination>()(source);
+           return TypeAdapter<TSource, TDestination>.Map(source);
         }
 
         /// <summary>

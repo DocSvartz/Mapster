@@ -217,6 +217,9 @@ namespace Mapster
         /// <param name="destinationType">Destination type to compile.</param>
         public void CompileToSettingsSetters(Type sourceType, Type destinationType)
         {
+            if(this == MapsterGlobalConfig.GlobalSettings)
+                GetGlobalSnapshot.Compile(sourceType, destinationType);
+            else
             //var tuple = new TypeTuple(sourceType, destinationType);
             GetSnapshot.Compile(sourceType, destinationType);
 
