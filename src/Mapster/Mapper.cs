@@ -10,11 +10,16 @@ namespace MapsterMapper
     {
         public ITypeAdapterConfig Config { get; }
 
+        private readonly bool IsGlobalConfig = true;
+
         public Mapper() : this(MapsterGlobalConfig.GlobalSettings) { }
 
         public Mapper(ITypeAdapterConfig config)
         {
             Config = config;
+
+            if(config != MapsterGlobalConfig.GlobalSettings)
+                IsGlobalConfig = false;
         }
 
 		/// <summary>
@@ -41,8 +46,10 @@ namespace MapsterMapper
             if (source == null)
                 return default!;
             var type = source.GetType();
-            var fn = Config.GetSnapshot.GetDynamicMapFunction<TDestination>(type);
-            return fn(source);
+            if(IsGlobalConfig)
+                return MapsterGlobalConfig.GlobalSettings.GetGlobalSnapshot.GetDynamicMapFunction<TDestination>(type)(source);
+            else
+                return Config.GetSnapshot.GetDynamicMapFunction<TDestination>(type)(source);
         }
 
 
@@ -55,8 +62,10 @@ namespace MapsterMapper
 		/// <returns>type of destination mapping result</returns>
 		public virtual TDestination Map<TSource, TDestination>(TSource source)
         {
-            var fn = Config.GetSnapshot.GetMapFunction<TSource, TDestination>();
-            return fn(source);
+            if (IsGlobalConfig)
+                return MapsterGlobalConfig.GlobalSettings.GetGlobalSnapshot.GetMapFunction<TSource, TDestination>()(source);
+            else
+                return Config.GetSnapshot.GetMapFunction<TSource, TDestination>()(source);
         }
 
 
@@ -70,8 +79,10 @@ namespace MapsterMapper
 		/// <returns>type of destination mapping result</returns>
 		public virtual TDestination Map<TSource, TDestination>(TSource source, TDestination destination)
         {
-            var fn = Config.GetSnapshot.GetMapToTargetFunction<TSource, TDestination>();
-            return fn(source, destination);
+            if (IsGlobalConfig)
+                return MapsterGlobalConfig.GlobalSettings.GetGlobalSnapshot.GetMapToTargetFunction<TSource, TDestination>()(source, destination);
+            else
+                return Config.GetSnapshot.GetMapToTargetFunction<TSource, TDestination>()(source, destination);
         }
 
 
@@ -84,7 +95,13 @@ namespace MapsterMapper
         /// <returns>mapped result object</returns>
         public virtual object Map(object source, Type sourceType, Type destinationType)
         {
-            var del = Config.GetSnapshot.GetMapFunction(sourceType, destinationType);
+            Delegate del;
+
+            if(IsGlobalConfig)
+                del = MapsterGlobalConfig.GlobalSettings.GetGlobalSnapshot.GetMapFunction(sourceType, destinationType);
+            else
+                del = Config.GetSnapshot.GetMapFunction(sourceType, destinationType);
+
             var canUseDynamic = sourceType.GetTypeInfo().IsVisible && destinationType.GetTypeInfo().IsVisible;
             //NOTE: if type is non-public, we cannot use dynamic
             //DynamicInvoke is slow, but works with non-public
@@ -102,7 +119,13 @@ namespace MapsterMapper
 		/// <returns>mapped result object</returns>
         public virtual object Map(object source, object destination, Type sourceType, Type destinationType)
         {
-            var del = Config.GetSnapshot.GetMapToTargetFunction(sourceType, destinationType);
+            Delegate del;
+
+            if (IsGlobalConfig)
+                del = MapsterGlobalConfig.GlobalSettings.GetGlobalSnapshot.GetMapToTargetFunction(sourceType, destinationType);
+            else
+                del = Config.GetSnapshot.GetMapToTargetFunction(sourceType, destinationType);
+
             var canUseDynamic = sourceType.GetTypeInfo().IsVisible && destinationType.GetTypeInfo().IsVisible;
             //NOTE: if type is non-public, we cannot use dynamic
             //DynamicInvoke is slow, but works with non-public

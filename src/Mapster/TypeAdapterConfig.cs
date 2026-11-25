@@ -454,11 +454,11 @@ namespace Mapster
 
 
         public TypeAdapterConfigSnapshot GetSnapshot => MappingCache.GetSnapshot;
-        internal TypeAdapterGlobalConfigSnapshot GetGlobalSnapshot => MappingCache.GetGlobalSnapshot;
+        internal ITypeAdapterConfigSnapshot GetGlobalSnapshot => MappingCache.GetGlobalSnapshot;
 
         ITypeAdapterConfigSnapshot ITypeAdapterConfigGetSnapshot.GetSnapshot => MappingCache.GetSnapshot;
 
-        ITypeAdapterConfigSnapshot ITypeAdapterConfigGetGolbalSnapshot.GetGlobalSnapshot => MappingCache.GetGlobalSnapshot;
+       // ITypeAdapterConfigSnapshot ITypeAdapterConfigGetGolbalSnapshot.GetGlobalSnapshot => MappingCache.GetGlobalSnapshot;
     }
 
     public static class TypeAdapterConfig<TSource, TDestination>

@@ -24,7 +24,9 @@ namespace Mapster
         {
             Source = source;
             Config = config;
-            ConfigSnapshot = config.GetSnapshot;
+            ConfigSnapshot = config == MapsterGlobalConfig.GlobalSettings 
+                ? MapsterGlobalConfig.GlobalSettings.GetGlobalSnapshot 
+                : config.GetSnapshot;
         }
 
 
@@ -47,7 +49,7 @@ namespace Mapster
             int key2 = 0)
         {
             Config = Config.Fork(action, key1, key2);
-            ConfigSnapshot = Config.GetSnapshot; // need add new Property in Interface
+            ConfigSnapshot = Config.GetSnapshot; 
             return this;
         }
 

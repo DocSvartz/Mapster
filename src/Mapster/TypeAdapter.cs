@@ -41,7 +41,9 @@ namespace Mapster
         {
             // ReSharper disable once ConditionIsAlwaysTrueOrFalse
 
-            var snapshot = config.GetSnapshot;
+            var snapshot = config != MapsterGlobalConfig.GlobalSettings ? config.GetSnapshot
+                         : MapsterGlobalConfig.GlobalSettings.GetGlobalSnapshot;
+
             return source.Adapt<TDestination>(snapshot);
         }
 
@@ -74,7 +76,8 @@ namespace Mapster
         /// <returns>Adapted destination type.</returns>
         public static TDestination Adapt<TSource, TDestination>(this TSource source, ITypeAdapterConfigGetSnapshot config)
         {
-            var fn = config.GetSnapshot.GetMapFunction<TSource, TDestination>();
+            var fn = config != MapsterGlobalConfig.GlobalSettings ? config.GetSnapshot.GetMapFunction<TSource, TDestination>()
+                : MapsterGlobalConfig.GlobalSettings.GetGlobalSnapshot.GetMapFunction<TSource, TDestination>();
             return fn(source);
         }
 
@@ -102,7 +105,8 @@ namespace Mapster
         /// <returns>Adapted destination type.</returns>
         public static TDestination Adapt<TSource, TDestination>(this TSource source, TDestination destination, ITypeAdapterConfigGetSnapshot config)
         {
-            var snapshot = config.GetSnapshot;
+            var snapshot = config != MapsterGlobalConfig.GlobalSettings ? config.GetSnapshot
+                : MapsterGlobalConfig.GlobalSettings.GetGlobalSnapshot;
             return source.Adapt<TSource, TDestination>(destination,snapshot);
         }
                 
@@ -134,7 +138,8 @@ namespace Mapster
         /// <returns>Adapted destination type.</returns>
         public static object? Adapt(this object source, Type sourceType, Type destinationType, ITypeAdapterConfigGetSnapshot config)
         {
-            var snapshot = config.GetSnapshot;
+            var snapshot = config != MapsterGlobalConfig.GlobalSettings ? config.GetSnapshot 
+                : MapsterGlobalConfig.GlobalSettings.GetGlobalSnapshot;
 
             return source.Adapt(sourceType, destinationType, snapshot);
         }
@@ -163,7 +168,8 @@ namespace Mapster
         /// <returns>Adapted destination type.</returns>
         public static object? Adapt(this object source, object destination, Type sourceType, Type destinationType, ITypeAdapterConfigGetSnapshot config)
         {
-            var snapshot = config.GetSnapshot;
+            var snapshot = config != MapsterGlobalConfig.GlobalSettings ? config.GetSnapshot
+                : MapsterGlobalConfig.GlobalSettings.GetGlobalSnapshot;
             
             return source.Adapt(destination, sourceType, destinationType, snapshot);
         }
@@ -201,7 +207,9 @@ namespace Mapster
         /// <returns>Adapted destination type.</returns>
         public static TDestination ValidateAndAdapt<TSource, TDestination>(this TSource source, ITypeAdapterConfigGetSnapshot config)
         {
-            var snapshot = config.GetSnapshot;
+            var snapshot = config != MapsterGlobalConfig.GlobalSettings ? config.GetSnapshot 
+                : MapsterGlobalConfig.GlobalSettings.GetGlobalSnapshot;
+
             return source.ValidateAndAdapt<TSource, TDestination>(snapshot);
         }
 
