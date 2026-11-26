@@ -78,7 +78,7 @@ public class UserCodeGenConfig : ICodeGenerationRegister
 
 public class UserMappingRegister : IRegister
 {
-    public void Register(ITypeAdapterConfig config)
+    public void Register(ITypeAdapterConfigSettingsProducer config)
     {
         config.NewConfig<_User, _UserDto>()
             .MapToConstructor(true)

@@ -295,10 +295,14 @@ namespace Mapster
         /// <param name="registers">collection of IRegister interface to apply mapping.</param>
         public void Apply(IEnumerable<IRegister> registers)
         {
+            var tempconfig = new BuilderTypeAdapterConfig();
+
             foreach (IRegister register in registers)
             {
-                register.Register(this);
+                register.Register(tempconfig);
             }
+
+            MappingCache.ApplyPatch(tempconfig);
         }
 
 
@@ -308,10 +312,14 @@ namespace Mapster
         /// <param name="registers">IRegister interface params to apply mapping.</param>
         public void Apply(params IRegister[] registers)
         {
+            var tempconfig = new BuilderTypeAdapterConfig();
+
             foreach (IRegister register in registers)
             {
-                register.Register(this);
+                register.Register(tempconfig);
             }
+
+            MappingCache.ApplyPatch(tempconfig);
         }
         #endregion Scan&Apply
 
