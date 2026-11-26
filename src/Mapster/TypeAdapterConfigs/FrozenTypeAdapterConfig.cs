@@ -7,11 +7,24 @@ namespace Mapster
 {
     public class FrozenTypeAdapterConfig : ITypeAdapterConfigForkable, ITypeAdapterConfigGetSnapshot
     {
+        private bool _isInit = false;
+
+        public bool IsInit => _isInit;
+
         internal FrozenTypeAdapterConfig() { }
 
         internal FrozenTypeAdapterConfig(FrozenTypeAdapterConfigSnapshot snapshot)
         {
+            _isInit = true;
+        }
 
+        internal void SetSnapshot(FrozenTypeAdapterConfigSnapshot snapshot)
+        {
+            if(_SnapShot == null)
+            {
+                _SnapShot = snapshot;
+                _isInit = true;
+            }
         }
 
         private ConcurrentDictionary<string, FrozenTypeAdapterConfig>? _inlineConfigs;
@@ -42,25 +55,7 @@ namespace Mapster
 
         private FrozenTypeAdapterConfigSnapshot? _SnapShot;
 
-        private ConcurrentQueue<TypeAdapterConfigInitBuilder> _inits = new();
 
-        public TypeAdapterConfigInitBuilder Init 
-        {  
-            get 
-            {
-                if(_SnapShot is null)
-                {
-                    var init = TypeAdapterConfigInitBuilder.Create();
-                    _inits.Enqueue(init);
-                    return init;
-                }
-                else
-                {
-                    throw new InvalidOperationException("FrozenTypeAdapterConfig had already been created!");
-                }
-            } 
-        }
-
-        public ITypeAdapterConfigSnapshot GetSnapshot => throw new NotImplementedException();
+        public ITypeAdapterConfigSnapshot GetSnapshot => _SnapShot!;
     }
 }
