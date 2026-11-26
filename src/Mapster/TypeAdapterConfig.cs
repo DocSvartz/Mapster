@@ -206,7 +206,10 @@ namespace Mapster
         /// <exception cref="AggregateException"></exception>
         public void Compile(bool failFast = true)
         {
-            GetSnapshot.Compile(failFast);
+            if (this == MapsterGlobalConfig.GlobalSettings)
+                (MapsterGlobalConfig.GlobalSettings.GetGlobalSnapshot as TypeAdapterGlobalConfigSnapshot)?.Compile(failFast);
+            else
+                GetSnapshot.Compile(failFast);
         }
 
 
@@ -221,7 +224,7 @@ namespace Mapster
                 GetGlobalSnapshot.Compile(sourceType, destinationType);
             else
             //var tuple = new TypeTuple(sourceType, destinationType);
-            GetSnapshot.Compile(sourceType, destinationType);
+                GetSnapshot.Compile(sourceType, destinationType);
 
            // Compiler(GetSnapshot.CreateMapExpression(tuple, MapType.Map));
            //Compiler(GetSnapshot.CreateMapExpression(tuple, MapType.MapToTarget));
