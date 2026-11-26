@@ -1,4 +1,6 @@
-﻿namespace Mapster
+﻿using Mapster.TypeAdapterConfigs.Builders;
+
+namespace Mapster
 {
     /// <summary>
     /// Implement to allow mappings to be found when scanning assemblies.
@@ -8,5 +10,10 @@
     public interface IRegister
     {
         void Register(ITypeAdapterConfigSettingsProducer config);
+    }
+
+    public interface IRegisterBuilder
+    {
+        void Register(TypeAdapterConfigInitBuilder builder);
     }
 }

@@ -429,6 +429,35 @@ namespace Mapster
 
         #endregion Clone&Fork
 
+
+        #region Scan&ApplyBuilder
+        public IList<IRegisterBuilder> ScanBuilders(params Assembly[] assemblies)
+        {
+            List<IRegisterBuilder> registers = assemblies.Select(assembly => assembly.GetLoadableTypes()
+                .Where(x => typeof(IRegisterBuilder).GetTypeInfo().IsAssignableFrom(x.GetTypeInfo()) && x.GetTypeInfo().IsClass && !x.GetTypeInfo().IsAbstract))
+                .SelectMany(registerTypes =>
+                    registerTypes.Select(registerType => (IRegisterBuilder)Activator.CreateInstance(registerType))).ToList();
+
+            Apply(registers);
+            return registers;
+        }
+
+        public void Apply(IEnumerable<IRegisterBuilder> registers)
+        {
+            var builder = new TypeAdapterConfigInitBuilder();
+
+            foreach (IRegisterBuilder register in registers)
+            {
+                register.Register(builder);
+            }
+
+            var result = builder.Build().Config;
+
+            MappingCache.ApplyPatch(result);
+        }
+
+
+        #endregion Scan&ApplyBuilder
         private ConcurrentQueue<TypeAdapterConfigPatchBuilder> _patches = new();
 
         internal TypeAdapterConfigPatchBuilder Patch 

@@ -4,8 +4,10 @@ using Mapster.TypeAdapterConfigs.Builders;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Shouldly;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 
 namespace Mapster.Tests
 {
@@ -294,6 +296,48 @@ namespace Mapster.Tests
 
         }
 
+        [TestMethod]
+        public void ApplyBuildes_ModConfigSuccessfully()
+        {
+            var config = new TypeAdapterConfig();
+
+            var applyBuilders = new List<IRegisterBuilder>()
+            { new BuldConfigForBuilderSrc(), new BuldConfigForBuilderDest() };
+
+            config.Apply(applyBuilders);
+
+            config.ShouldSatisfyAllConditions(() =>
+            {
+                var snap = config.GetSnapshot;
+
+                snap.RuleMap.Count.ShouldBe(2);
+
+                snap.RuleMap.ContainsKey(TypeTuple.Create<ForBuilderSrc, ForBuilderDest>()).ShouldBeTrue();
+                snap.RuleMap.ContainsKey(TypeTuple.Create<ForBuilderDest, ForBuilderSrc>()).ShouldBeTrue();
+            });
+        }
+
+
+        [TestMethod]
+        public void ScanBuildesWithDublicate_Failed()
+        {
+            var config = new TypeAdapterConfig();
+
+            Should.Throw<InvalidOperationException>(() => 
+            {
+                try
+                {
+                    config.ScanBuilders(Assembly.GetExecutingAssembly());
+                }
+                catch (Exception exp)
+                {
+                    exp.Message.ShouldContain("Mapping for the pair is already registered in this builder");
+                    throw;
+                }
+                
+            });
+        }
+
         #region TestClases
 
         public class ForBuilderSrc
@@ -341,8 +385,41 @@ namespace Mapster.Tests
             }
         }
 
+        public class BuldConfigForBuilderSrc : IRegisterBuilder
+        {
+            public void Register(TypeAdapterConfigInitBuilder builder)
+            {
+                builder.NewConfig<ForBuilderSrc, ForBuilderDest>(cfg =>
+                {
+                    cfg.Map(dest => dest.NameProxy, src => src.Name);
+                    cfg.Map(dest => dest.AddressProxy, src => src.Address);
+                });
+            }
+        }
 
+        public class BuldConfigForBuilderDest : IRegisterBuilder
+        {
+            public void Register(TypeAdapterConfigInitBuilder builder)
+            {
+                builder.NewConfig<ForBuilderDest, ForBuilderSrc>(cfg =>
+                {
+                    cfg.Map(dest => dest.Name, src => src.NameProxy);
+                    cfg.Map(dest => dest.Address, src => src.NameProxy);
+                });
+            }
+        }
 
+        public class BuldConfigForBuilderSrcDublicate : IRegisterBuilder
+        {
+            public void Register(TypeAdapterConfigInitBuilder builder)
+            {
+                builder.NewConfig<ForBuilderSrc, ForBuilderDest>(cfg =>
+                {
+                    cfg.Map(dest => dest.NameProxy, src => src.Name);
+                    cfg.Map(dest => dest.AddressProxy, src => src.Address);
+                });
+            }
+        }
 
         #endregion TestClases
     }
