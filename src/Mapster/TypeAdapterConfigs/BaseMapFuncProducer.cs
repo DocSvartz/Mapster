@@ -100,13 +100,13 @@ namespace Mapster
             var lamdaBody = lambda.Body;
 
             // Support for using ValueType mapping configurations of types, for mapping cases on Nulllable ValueType values
-            if (arg.DestinationType.IsNullable() && !returnType.IsNullable() && returnType.IsValueType)
-            {
-                lamdaBody = Expression.Convert(lambda.Body, typeof(Nullable<>).MakeGenericType(lambda.ReturnType));
-                lambda = Expression.Lambda(lamdaBody, lambda.Parameters);
+            //if (arg.DestinationType.IsNullable() && !returnType.IsNullable() && returnType.IsValueType)
+            //{
+            //    lamdaBody = Expression.Convert(lambda.Body, typeof(Nullable<>).MakeGenericType(lambda.ReturnType));
+            //    lambda = Expression.Lambda(lamdaBody, lambda.Parameters);
 
-                returnType = lambda.ReturnType;
-            }
+            //    returnType = lambda.ReturnType;
+            //}
 
             if (returnType == destinationType)
                 return lambda;
