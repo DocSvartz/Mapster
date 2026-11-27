@@ -59,6 +59,11 @@ namespace Mapster.Adapters
                     convert = Expression.Condition(compareNull, destinationType.CreateDefault(arg), convert);
                 }
             }
+            else if(arg.Settings.CustomDefaultValue != null && source.CanBeNull())
+            {
+                var compareNull = Expression.Equal(source, Expression.Constant(null, sourceType));
+                convert = Expression.Condition(compareNull, destinationType.CreateDefault(arg), convert);
+            }
 
             return convert;
         }

@@ -11,9 +11,14 @@ namespace Mapster.Adapters
 
         protected override bool CanMap(PreCompileArgument arg)
         {
-            if(arg.ExplicitMapping)
+            if (arg.ExplicitMapping)
                 return false;
-            return arg.SourceType.IsNullable() || arg.DestinationType.IsNullable();
+            else if (arg.SourceType.IsNullable() && !arg.DestinationType.IsNullable())
+                return true;
+            else if (!arg.SourceType.IsNullable() && arg.DestinationType.IsNullable())
+                return true;
+            else
+                return false;
         }
         protected override bool CanInline(Expression source, Expression? destination, CompileArgument arg)
         {
