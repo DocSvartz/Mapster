@@ -1,5 +1,7 @@
 ﻿using Mapster.Adapters;
+using System;
 using System.Collections.Immutable;
+using System.Linq.Expressions;
 
 namespace Mapster
 {
@@ -8,6 +10,7 @@ namespace Mapster
         public static ImmutableArray<TypeAdapterRule> RulesTemplate { get; } = RuleTemplateBuilder().ToImmutable();
         public static TypeAdapterConfig GlobalSettings { get; } = new TypeAdapterConfig();
 
+        public static Func<LambdaExpression, Delegate> DefaultCompiler = lambda => lambda.Compile();
 
         private static ImmutableArray<TypeAdapterRule>.Builder RuleTemplateBuilder()
         {

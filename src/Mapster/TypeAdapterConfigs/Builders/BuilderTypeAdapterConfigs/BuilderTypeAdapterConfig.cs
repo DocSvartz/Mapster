@@ -17,7 +17,7 @@ namespace Mapster.TypeAdapterConfigs.Builders
         public bool AllowImplicitSourceInheritance { get => GetBoolSetting(nameof(AllowImplicitSourceInheritance)); set => SetBoolSetting(nameof(AllowImplicitSourceInheritance), value); }
         public bool SelfContainedCodeGeneration { get => GetBoolSetting(nameof(SelfContainedCodeGeneration)); set => SetBoolSetting(nameof(SelfContainedCodeGeneration), value); }
         public bool ActivateCustomConvertersSrcNullPropagation { get => GetBoolSetting(nameof(ActivateCustomConvertersSrcNullPropagation)); set => SetBoolSetting(nameof(ActivateCustomConvertersSrcNullPropagation), value); }
-        public Func<LambdaExpression, Delegate> Compiler { get; set; }
+        public Func<LambdaExpression, Delegate> Compiler { get; set; } = MapsterGlobalConfig.DefaultCompiler;
 
         public DefaultOnlySetter Default 
         {
