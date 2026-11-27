@@ -1,5 +1,7 @@
 ﻿using Mapster.Adapters;
+using Mapster.Models;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Linq.Expressions;
 
@@ -8,10 +10,22 @@ namespace Mapster
     public static class MapsterGlobalConfig
     {
         public static ImmutableArray<TypeAdapterRule> RulesTemplate { get; } = RuleTemplateBuilder().ToImmutable();
-        public static TypeAdapterConfig GlobalSettings { get; } = new TypeAdapterConfig();
-
         public static Func<LambdaExpression, Delegate> DefaultCompiler = lambda => lambda.Compile();
 
+        public static TypeAdapterConfig GlobalSettings { get; } = new TypeAdapterConfig();
+
+
+        internal static FuncParamsGroup GetParamForType(Type type)
+        {
+           return _funcParamsForTypes.GetOrAdd(type, new FuncParamsGroup(type));
+        }
+
+        internal static FuncParamsGroup GetParamForType<Type>()
+        {
+            return _funcParamsForTypes.GetOrAdd(typeof(Type), new FuncParamsGroup(typeof(Type)));
+        }
+
+        private static ConcurrentDictionary<Type, FuncParamsGroup> _funcParamsForTypes = new();
         private static ImmutableArray<TypeAdapterRule>.Builder RuleTemplateBuilder()
         {
             var result = ImmutableArray.CreateBuilder<TypeAdapterRule>();

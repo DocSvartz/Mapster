@@ -28,7 +28,7 @@ namespace Mapster.Adapters
             //var p = Expression.Parameter(arg.SourceType);
             var body = CreateExpressionBody(arg.Source, null, arg);
             return Expression.Lambda(body,
-                    new[] {arg.Source}.Concat(arg.Context.ExtraParameters))
+                    new[] {arg.Source}.Union(arg.Context.ExtraParameters))
                 .TrimParameters(1);
         }
 

@@ -131,9 +131,9 @@ namespace Mapster
             UpdateCachedSettings(tuple, IsHasAttributeRule, cacheItem, result, arg);
 
             //Defining the parameters of the mapping function
-            result.Source = Expression.Parameter(tuple.Source, "p1");
-            result.Destination = Expression.Parameter(tuple.Destination, "p2");
-            result.Result = Expression.Parameter(tuple.Destination, "result");
+            result.Source = MapsterGlobalConfig.GetParamForType(tuple.Source).Source;  //Expression.Parameter(tuple.Source, "p1");
+            result.Destination = MapsterGlobalConfig.GetParamForType(tuple.Destination).Destination; //Expression.Parameter(tuple.Destination, "p2");
+            result.Result = MapsterGlobalConfig.GetParamForType(tuple.Destination).Result; //Expression.Parameter(tuple.Destination, "result");
 
             return result;
         }
